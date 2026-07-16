@@ -1,0 +1,579 @@
+{% extends "base.html" %}
+
+{% block title %}Home | MedNearby{% endblock %}
+
+{% block extra_js %}
+<script>
+    (() => {
+        const input = document.getElementById("category-search");
+        if (!input) return;
+        const dropdown = document.getElementById("category-search-dropdown");
+        const heading = document.getElementById("category-search-heading");
+        const results = document.getElementById("category-search-results");
+        let timer;
+        let controller;
+
+        const closeResults = () => {
+            dropdown.hidden = true;
+            input.setAttribute("aria-expanded", "false");
+        };
+
+        const openResults = () => {
+            dropdown.hidden = false;
+            input.setAttribute("aria-expanded", "true");
+        };
+
+        const resultRow = (item) => {
+            const link = document.createElement("a");
+            link.href = item.url;
+            link.dataset.type = item.type;
+            link.setAttribute("role", "option");
+            link.className = "flex items-center gap-3 px-3 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors";
+
+            const iconBox = document.createElement("div");
+            iconBox.className = "w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center";
+            const icon = document.createElement("i");
+            icon.className = item.icon || (item.type === "specialty" ? "fa-solid fa-user-doctor" : "fa-solid fa-store");
+            iconBox.appendChild(icon);
+
+            const text = document.createElement("div");
+            text.className = "flex-1";
+            const name = document.createElement("h4");
+            name.className = "text-sm font-extrabold text-textMain";
+            name.textContent = item.label;
+            const type = document.createElement("p");
+            type.className = "text-[11px] font-medium text-textMuted";
+            type.textContent = item.type_label;
+            text.append(name, type);
+
+            const arrow = document.createElement("i");
+            arrow.className = "fa-solid fa-arrow-right text-gray-300 text-xs";
+            link.append(iconBox, text, arrow);
+            return link;
+        };
+
+        const renderResults = (items, query) => {
+            results.replaceChildren();
+            heading.textContent = `Top matches for “${query}”`;
+
+            if (!items.length) {
+                const empty = document.createElement("p");
+                empty.className = "px-3 py-4 text-sm text-textMuted";
+                empty.textContent = "No matching categories found.";
+                results.appendChild(empty);
+            } else {
+                results.append(...items.map(resultRow));
+            }
+            openResults();
+        };
+
+        const search = async () => {
+            const query = input.value.trim();
+            if (!query) {
+                controller?.abort();
+                closeResults();
+                return;
+            }
+
+            controller?.abort();
+            controller = new AbortController();
+            const url = new URL(input.dataset.searchUrl, window.location.origin);
+            url.searchParams.set("q", query);
+
+            try {
+                const response = await fetch(url, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" },
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error("Search request failed");
+                const data = await response.json();
+                if (query === input.value.trim()) renderResults(data.results, query);
+            } catch (error) {
+                if (error.name !== "AbortError") closeResults();
+            }
+        };
+
+        input.addEventListener("input", () => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(search, 250);
+        });
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") closeResults();
+        });
+        document.addEventListener("click", (event) => {
+            if (!dropdown.contains(event.target) && event.target !== input) closeResults();
+        });
+    })();
+</script>
+<script>
+    (() => {
+        const STORAGE_KEY = "mednearby_selected_locality";
+        const LAT_COOKIE = "mednearby_location_lat";
+        const LNG_COOKIE = "mednearby_location_lng";
+        const sheet = document.getElementById("location-sheet");
+        if (sheet.dataset.locationPickerInitialized) return;
+        sheet.dataset.locationPickerInitialized = "true";
+        const pickerName = document.getElementById("selected-location-name");
+        const searchInput = document.getElementById("locality-search");
+        const resultList = document.getElementById("locality-search-results");
+        const currentLocationButton = document.getElementById("use-current-location");
+        const currentLocationLabel = currentLocationButton.querySelector("span");
+        const status = document.getElementById("location-status");
+        let searchTimer;
+        let searchController;
+
+        const setStatus = (message, isError = false) => {
+            status.textContent = message;
+            status.classList.toggle("hidden", !message);
+            status.classList.toggle("text-red-600", isError);
+            status.classList.toggle("text-textMuted", !isError);
+        };
+
+        const setCoordinateCookie = (key, value) => {
+            const secure = window.location.protocol === "https:" ? "; Secure" : "";
+            document.cookie = `${key}=${encodeURIComponent(value)}; Max-Age=31536000; Path=/; SameSite=Lax${secure}`;
+        };
+
+        const saveLocality = (locality) => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(locality));
+            } catch (error) {
+                // The picker still works when browser storage is unavailable.
+            }
+            pickerName.textContent = locality.display_name;
+            if (locality.lat != null && locality.lng != null) {
+                setCoordinateCookie(LAT_COOKIE, locality.lat);
+                setCoordinateCookie(LNG_COOKIE, locality.lng);
+            }
+            sheet.dispatchEvent(new CustomEvent("location:selected", { detail: locality }));
+        };
+
+        const restoreLocality = () => {
+            try {
+                const locality = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                if (locality?.display_name) pickerName.textContent = locality.display_name;
+            } catch (error) {
+                // Ignore unavailable or malformed browser storage.
+            }
+        };
+
+        const localityRow = (locality) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.setAttribute("role", "option");
+            button.className = "flex w-full items-center gap-3 px-1 py-3 text-left hover:bg-gray-50";
+
+            const icon = document.createElement("span");
+            icon.className = "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-50 text-primary";
+            icon.innerHTML = '<i class="fa-solid fa-location-dot" aria-hidden="true"></i>';
+
+            const text = document.createElement("span");
+            text.className = "min-w-0 flex-1";
+            const name = document.createElement("strong");
+            name.className = "block truncate text-sm text-textMain";
+            name.textContent = locality.name;
+            const context = document.createElement("small");
+            context.className = "block truncate text-xs text-textMuted";
+            context.textContent = `${locality.city}, ${locality.state}`;
+            text.append(name, context);
+            button.append(icon, text);
+
+            button.addEventListener("click", () => {
+                saveLocality(locality);
+                closeBottomSheet("location-sheet");
+            });
+            return button;
+        };
+
+        const searchLocalities = async () => {
+            const query = searchInput.value.trim();
+            searchController?.abort();
+            resultList.replaceChildren();
+            if (query.length < 3) {
+                setStatus(query ? "Enter at least 3 characters." : "");
+                return;
+            }
+
+            searchController = new AbortController();
+            const url = new URL(sheet.dataset.searchUrl, window.location.origin);
+            url.searchParams.set("q", query);
+            setStatus("Searching…");
+
+            try {
+                const response = await fetch(url, { signal: searchController.signal });
+                if (!response.ok) throw new Error("Search failed");
+                const data = await response.json();
+                if (query !== searchInput.value.trim()) return;
+                resultList.append(...data.results.map(localityRow));
+                setStatus(data.results.length ? "" : "No matching localities found.");
+            } catch (error) {
+                if (error.name !== "AbortError") setStatus("Unable to search locations right now.", true);
+            }
+        };
+
+        const findNearestLocality = async (latitude, longitude, showFeedback) => {
+            setCoordinateCookie(LAT_COOKIE, latitude);
+            setCoordinateCookie(LNG_COOKIE, longitude);
+            const url = new URL(sheet.dataset.nearestUrl, window.location.origin);
+            url.searchParams.set("lat", latitude);
+            url.searchParams.set("lng", longitude);
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Nearest locality lookup failed");
+                const data = await response.json();
+                if (!data.result) throw new Error("No geocoded locality is available");
+                saveLocality(data.result);
+                setStatus("");
+                if (showFeedback) closeBottomSheet("location-sheet");
+            } catch (error) {
+                if (showFeedback) setStatus("We could not find a locality near those coordinates.", true);
+            }
+        };
+
+        const requestCurrentLocation = (showFeedback = true) => {
+            if (!navigator.geolocation) {
+                if (showFeedback) setStatus("Location is not supported by this browser.", true);
+                return;
+            }
+
+            currentLocationButton.disabled = true;
+            currentLocationLabel.textContent = "Finding your location…";
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    findNearestLocality(
+                        position.coords.latitude,
+                        position.coords.longitude,
+                        showFeedback
+                    ).finally(() => {
+                        currentLocationButton.disabled = false;
+                        currentLocationLabel.textContent = "Use current location";
+                    });
+                },
+                () => {
+                    currentLocationButton.disabled = false;
+                    currentLocationLabel.textContent = "Use current location";
+                    if (showFeedback) setStatus("Location permission was denied or unavailable.", true);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+            );
+        };
+
+        searchInput.addEventListener("input", () => {
+            window.clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(searchLocalities, 250);
+        });
+        currentLocationButton.addEventListener("click", () => requestCurrentLocation(true));
+        sheet.addEventListener("bottomsheet:open", () => searchInput.focus());
+
+        restoreLocality();
+        requestCurrentLocation(false);
+    })();
+</script>
+{% endblock %}
+
+{% block content %}
+    <div class="app-container relative z-0 bg-white min-h-screen">
+
+    <!-- Decorative Top Ambient Glow -->
+    <div class="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-emerald-500/5 to-transparent -z-10 pointer-events-none"></div>
+
+    <!-- HEADER: Logo & Location -->
+    <header class="bg-white/85 backdrop-blur-xl px-3 py-3 flex justify-between items-center z-50 sticky top-0 border-b border-gray-100/50 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2 active:scale-95 transition-transform w-fit">
+            <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-500 border border-emerald-100/50 shadow-sm">
+                <i class="fa-solid fa-notes-medical text-sm"></i>
+            </div>
+            <span class="text-xl font-black tracking-tight text-gray-900">
+                Med<span class="text-emerald-500">Nearby</span>
+            </span>
+        </a>
+
+        <!-- Location Picker -->
+        <button id="location-picker" type="button" data-bottom-sheet-target="#location-sheet"
+            class="flex items-center gap-2 bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] px-3 py-1.5 rounded-full active:scale-95 transition-all hover:bg-gray-50 shrink-0">
+            <i class="fa-solid fa-location-dot text-primary text-[10px]"></i>
+            <span id="selected-location-name" class="text-[12px] font-extrabold text-textMain max-w-30 truncate">Select location</span>
+            <i class="fa-solid fa-angle-down text-[10px] text-gray-400"></i>
+        </button>
+    </header>
+
+    <!-- SEARCH BAR -->
+    <div class="px-3 pt-3 pb-2 relative z-20">
+        <button type="button" data-bottom-sheet-target="#search-sheet" class="flex w-full items-center gap-3 rounded-[1.25rem] border border-gray-200 bg-white px-4 py-3.5 text-left shadow-[0_4px_16px_rgba(0,0,0,0.03)] active:scale-[0.99] transition-all hover:border-emerald-200 hover:shadow-md" aria-label="Search specialties or business categories">
+            <i class="fa-solid fa-magnifying-glass text-primary text-sm" aria-hidden="true"></i>
+            <span class="flex-1 text-[13px] font-bold text-gray-400 tracking-wide">Search doctors, clinics, labs...</span>
+        </button>
+    </div>
+
+    <!-- QUICK ACTIONS (4 Highlighted Boxes) -->
+    <section class="px-3 mt-5 mb-2 relative z-10">
+        <h2 class="text-[16px] font-black text-textMain mb-3 px-1 tracking-tight">What do you need today?</h2>
+
+        <div class="grid grid-cols-2 gap-3">
+            <!-- Box 1: Doctors -->
+            <a href="/doctors" class="relative w-full h-[105px] bg-gradient-to-br from-emerald-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-emerald-100/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-emerald-500/10 hover:border-emerald-200">
+                <div class="relative z-10 flex flex-col h-full justify-between">
+                    <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-emerald-500 text-xs">
+                        <i class="fa-solid fa-user-doctor"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-[15px] text-textMain leading-tight tracking-tight">Doctors</h3>
+                        <p class="text-[10px] font-bold text-gray-500 mt-0.5">Find specialists</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-user-doctor absolute -bottom-2 -right-2 text-6xl text-emerald-500/10 group-hover:text-emerald-500/20 transition-all duration-300 transform group-hover:scale-110 group-hover:-rotate-3"></i>
+            </a>
+
+            <!-- Box 2: Medicine -->
+            <a href="/category/pharmacies" class="relative w-full h-[105px] bg-gradient-to-br from-teal-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-teal-100/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-teal-500/10 hover:border-teal-200">
+                <div class="relative z-10 flex flex-col h-full justify-between">
+                    <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-teal-500 text-xs">
+                        <i class="fa-solid fa-capsules"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-[15px] text-textMain leading-tight tracking-tight">Medicine</h3>
+                        <p class="text-[10px] font-bold text-gray-500 mt-0.5">Local pharmacies</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-capsules absolute -bottom-2 -right-2 text-6xl text-teal-500/10 group-hover:text-teal-500/20 transition-all duration-300 transform group-hover:scale-110 group-hover:-rotate-3"></i>
+            </a>
+
+            <!-- Box 3: Diagnostics -->
+            <a href="/category/diagnostic-centers" class="relative w-full h-[105px] bg-gradient-to-br from-indigo-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-indigo-100/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-indigo-500/10 hover:border-indigo-200">
+                <div class="relative z-10 flex flex-col h-full justify-between">
+                    <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-indigo-500 text-xs">
+                        <i class="fa-solid fa-microscope"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-[15px] text-textMain leading-tight tracking-tight">Diagnostics</h3>
+                        <p class="text-[10px] font-bold text-gray-500 mt-0.5">Discover diagnostic centers</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-microscope absolute -bottom-1 -right-1 text-6xl text-indigo-500/10 group-hover:text-indigo-500/20 transition-all duration-300 transform group-hover:scale-110 group-hover:rotate-3"></i>
+            </a>
+
+            <!-- Box 4: Urgent -->
+            <a href="#" class="relative w-full h-[105px] bg-gradient-to-br from-rose-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-rose-100/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-rose-500/10 hover:border-rose-200">
+                <div class="relative z-10 flex flex-col h-full justify-between">
+                    <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-rose-500 text-xs">
+                        <i class="fa-solid fa-truck-medical"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-[15px] text-textMain leading-tight tracking-tight">Emmergency</h3>
+                        <p class="text-[10px] font-bold text-gray-500 mt-0.5">24/7 Emmergency Services</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-truck-medical absolute -bottom-2 -right-1 text-6xl text-rose-500/10 group-hover:text-rose-500/20 transition-all duration-300 transform group-hover:scale-110 group-hover:-rotate-3"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- POPULAR SPECIALTIES (With subtle background sectioning) -->
+    <section class="mt-6 pt-5 pb-3 bg-gradient-to-b from-gray-50/50 to-transparent border-t border-gray-50">
+        <div class="px-3 flex justify-between items-center mb-4">
+            <h2 class="text-[16px] font-black text-textMain tracking-tight">Top Specialties</h2>
+            <a href="{% url 'doctors:specialties' %}" class="bg-white border border-gray-200 px-3 py-1.5 rounded-full text-[10px] font-extrabold text-textMain hover:bg-gray-50 transition-colors shadow-sm active:scale-95">
+                View All
+            </a>
+        </div>
+
+        <div class="px-3 grid grid-cols-4 gap-y-4 gap-x-2">
+            {% for specialty in featured_specialties %}
+            <a href="{% url 'doctors:list' specialty.slug %}" class="flex flex-col items-center text-center group active:scale-95 transition-transform">
+                <div class="w-[52px] h-[52px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] rounded-[1rem] flex items-center justify-center text-[{{ specialty.color }}] text-lg border border-gray-100 transition-colors mb-1.5 group-hover:border-emerald-200">
+                    <i class="{{ specialty.icon|default:'fa-solid fa-user-doctor' }} group-hover:scale-110 transition-transform duration-300" aria-hidden="true"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-gray-600">{{ specialty.label|default:specialty.name }}</span>
+            </a>
+            {% empty %}
+            <p class="col-span-4 text-center text-xs font-semibold text-textMuted">No featured specialties available.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if available_doctors %}
+    <!-- Doctors Near You Available Today -->
+    <section class="mt-6 px-3">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-[16px] font-black text-textMain tracking-tight">Doctors Near You</h2>
+                <p class="mt-0.5 text-[10px] font-semibold text-textMuted">Available today near you</p>
+            </div>
+            <a href="{% url 'doctors:specialties' %}" class="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[10px] font-extrabold text-textMain shadow-sm transition-colors hover:bg-gray-50 active:scale-95">View All</a>
+        </div>
+
+        <div class="hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 -mx-1">
+            {% for doctor in available_doctors %}
+            <article class="w-[86%] max-w-[360px] shrink-0 snap-start rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm">
+                <!-- Keep Card Interior Untouched -->
+                <div class="flex items-stretch gap-3">
+                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] {% if doctor.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif doctor.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}"><i class="fa-solid {% if doctor.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}" aria-hidden="true"></i></div>
+                    <div class="flex min-w-0 flex-1 flex-col justify-between py-0.5">
+                        <div>
+                            <h4 class="truncate text-[17px] font-black leading-none tracking-tight text-textMain">{{ doctor.name }}</h4>
+                            <p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">{{ doctor.qualification }}</p>
+                            <p class="mt-0.5 truncate text-[10px] font-bold text-gray-400">{{ doctor.specialties|join:", " }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-2.5">
+                    <div class="flex items-start gap-1.5">
+                        <i class="fa-regular fa-hospital mt-0.5 shrink-0 text-[11px] text-rose-500" aria-hidden="true"></i>
+                        <div class="min-w-0 flex-1">
+                            <h5 class="truncate text-[12px] font-extrabold text-textMain">{{ doctor.business }}</h5>
+                            <p class="mt-0.5 truncate text-[11px] font-semibold text-textMuted">{{ doctor.address|default:doctor.locality }} &bull; <span class="font-bold text-primary">{{ doctor.distance_km }} km</span></p>
+                        </div>
+                    </div>
+                    <div class="mt-2 border-t border-gray-200/60 pt-2 text-[11px] font-extrabold text-emerald-600"><i class="fa-regular fa-clock mr-1 text-[10px]"></i>Available Today &bull; {{ doctor.schedule.next_time }}</div>
+                </div>
+
+                <div class="mt-3 grid grid-cols-3 gap-1.5">
+                    {% if doctor.phone %}<a href="tel:{{ doctor.phone }}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg bg-primary px-1 py-2.5 text-center text-[10px] font-extrabold text-white shadow-sm active:scale-95"><i class="fa-solid fa-phone"></i> Call Now</a>{% else %}<span class="flex min-w-0 cursor-not-allowed items-center justify-center gap-1 rounded-lg bg-gray-200 px-1 py-2.5 text-center text-[10px] font-extrabold text-gray-500"><i class="fa-solid fa-phone"></i> Call Now</span>{% endif %}
+                    <a href="{% url 'businesses:detail' doctor.business_slug %}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-primary bg-white px-1 py-2.5 text-center text-[10px] font-extrabold text-primary active:scale-95"><i class="fa-regular fa-hospital"></i> Visit Clinic</a>
+                    <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ doctor.latitude }},{{ doctor.longitude }}" target="_blank" rel="noopener noreferrer" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-primary bg-white px-1 py-2.5 text-center text-[10px] font-extrabold text-primary active:scale-95"><i class="fa-solid fa-diamond-turn-right"></i> Direction</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- WHY MEDNEARBY (Vertical Feature Layout) -->
+    <section class="px-3 mt-6 mb-6">
+        <div class="bg-white p-3 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[1.5rem] p-4.5 relative overflow-hidden">
+            <!-- Decorative Ambient Blur -->
+            <div class="absolute -right-8 -top-8 w-32 h-32 bg-emerald-50 rounded-full blur-2xl pointer-events-none"></div>
+
+            <!-- Header -->
+            <div class="relative z-10 mb-3 border-b border-gray-50 pb-2.5">
+                <h2 class="text-[16px] font-black text-textMain tracking-tight">Healthcare, simplified.</h2>
+                <p class="text-[10px] font-bold text-gray-400 mt-0.5">Everything you need to get well, faster.</p>
+            </div>
+
+            <!-- Vertical Benefits List -->
+            <ul class="flex flex-col gap-4 relative z-10 pt-1">
+                <li class="flex items-center gap-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 border border-blue-100/50 shadow-sm">
+                        <i class="fa-solid fa-shield-halved text-[13px]"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-[12px] font-extrabold text-textMain leading-tight">Trusted & Verified</h4>
+                        <p class="text-[10px] font-semibold text-textMuted mt-0.5 leading-snug pr-2">Reviewed healthcare profiles, clinics and medical professionals.</p>
+                    </div>
+                </li>
+
+                <li class="flex items-center gap-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 shrink-0 border border-rose-100/50 shadow-sm">
+                        <i class="fa-solid fa-clock-rotate-left text-[13px]"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-[12px] font-extrabold text-textMain leading-tight">Real-Time Status</h4>
+                        <p class="text-[10px] font-semibold text-textMuted mt-0.5 leading-snug pr-2">Know exactly who is open and available right now.</p>
+                    </div>
+                </li>
+
+                <li class="flex items-center gap-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0 border border-emerald-100/50 shadow-sm">
+                        <i class="fa-solid fa-hand-holding-dollar text-[13px]"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-[12px] font-extrabold text-textMain leading-tight">Free for Patients</h4>
+                        <p class="text-[10px] font-semibold text-textMuted mt-0.5 leading-snug pr-2">MedNearby is 100% free for patients.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    {% if nearby_businesses %}
+    <!-- Businesses Near You -->
+    <section class="mt-8 px-3">
+        <div class="mb-4">
+            <h2 class="text-[16px] font-black text-textMain tracking-tight">Businesses Near You</h2>
+            <p class="mt-0.5 text-[10px] font-semibold text-textMuted">Open now near your selected location</p>
+        </div>
+
+        <div class="hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 -mx-1">
+            {% for business in nearby_businesses %}
+            <article class="w-[86%] max-w-[360px] shrink-0 snap-start rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm">
+                <!-- Keep Card Interior Untouched -->
+                <div class="flex items-start gap-2.5">
+                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+                        <img src="{{ business.thumbnail_url }}" alt="{{ business.name }}" class="h-full w-full object-cover" loading="lazy">
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="mt-0.5 truncate text-[17px] font-extrabold leading-tight text-textMain"><a href="{% url 'businesses:detail' business.slug %}">{{ business.name }}</a></h4>
+                        <div class="mt-1 flex flex-wrap items-center gap-1">{% for name in business.categories %}<span class="rounded border border-gray-100 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-gray-600">{{ name }}</span>{% endfor %}</div>
+                        <div class="mt-1.5 flex items-start gap-1.5"><i class="fa-solid fa-location-dot mt-0.5 text-[11px] text-gray-400"></i><p class="min-w-0 truncate text-[11px] font-semibold text-textMuted" title="{{ business.full_address }}">{{ business.full_address }} &bull; <span class="font-bold text-primary">{{ business.distance_km }} km</span></p></div>
+                        <div class="mt-1.5 flex items-center gap-1.5"><span class="h-2 w-2 rounded-full {% if business.is_open %}bg-emerald-500{% else %}bg-red-600{% endif %}"></span><p class="text-[11px] font-extrabold {% if business.is_open %}text-emerald-600{% else %}text-red-600{% endif %}">{% if business.is_open %}Open Now{% else %}Closed{% endif %}{% if business.open_status %}<span class="ml-1 font-semibold text-gray-400">&bull; {{ business.open_status }}</span>{% endif %}</p></div>
+                    </div>
+                </div>
+
+                <div class="mt-3 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-50 pt-3">
+                    {% if business.phone %}<a href="tel:{{ business.phone }}" class="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-2 py-3 text-xs font-extrabold text-primary"><i class="fa-solid fa-phone"></i><span>Call</span></a>{% endif %}
+                    {% if business.whatsapp %}<a href="https://wa.me/{{ business.whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-2 py-3 text-xs font-extrabold text-indigo-500"><i class="fa-brands fa-whatsapp"></i><span>Chat</span></a>{% endif %}
+                    <a href="{% url 'businesses:detail' business.slug %}" class="flex items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2 py-3 text-xs font-extrabold text-gray-600"><i class="fa-solid fa-store"></i><span>Details</span></a>
+                    {% if business.latitude is not None and business.longitude is not None %}<a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ business.latitude }},{{ business.longitude }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2 py-3 text-xs font-extrabold text-gray-600"><i class="fa-solid fa-diamond-turn-right"></i><span>Directions</span></a>{% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- HEALTHCARE PROVIDER CTA -->
+    <section class="px-3 mt-8 mb-8">
+        <div class="relative w-full rounded-[1.5rem] bg-gradient-to-br from-gray-900 to-gray-800 p-5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+            <!-- Ambient Background Glow & Watermark -->
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl"></div>
+            <i class="fa-solid fa-hospital-user absolute -bottom-4 -right-2 text-7xl text-white/5 transform -rotate-12"></i>
+
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-1.5 bg-white/10 border border-white/10 px-2.5 py-1 rounded-full mb-3 backdrop-blur-sm shadow-sm">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-emerald-50">For Providers</span>
+                </div>
+
+                <h2 class="text-[18px] font-black text-white leading-tight tracking-tight">
+                    Grow your healthcare practice.
+                </h2>
+
+                <p class="text-[11px] font-medium text-gray-300 mt-2 leading-relaxed pr-6">
+                    Join MedNearby to reach local patients searching for care. Setup takes 2 minutes and is <span class="text-emerald-400 font-extrabold underline decoration-emerald-400/30 underline-offset-2">100% free</span>.
+                </p>
+
+                <a href="/provider/register" class="mt-5 w-full flex items-center justify-center gap-2 bg-emerald-500 text-white py-3.5 rounded-xl text-[12px] font-extrabold shadow-md shadow-emerald-500/20 active:scale-95 transition-all hover:bg-emerald-400">
+                    List Your Business for Free <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER SECTION -->
+    <footer class="mt-2 border-t border-gray-100 bg-gray-50/80 px-4 pt-6 pb-8">
+        <div class="flex flex-col items-center justify-center gap-3">
+            <div class="flex items-center gap-1.5 opacity-80">
+                <div class="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-50 text-[9px] text-primary shadow-sm border border-emerald-100/50">
+                    <i class="fa-solid fa-notes-medical"></i>
+                </div>
+                <span class="text-xs font-black text-textMain tracking-tight">MedNearby</span>
+            </div>
+
+            <nav class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+                <a href="#" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Support</a>
+                <div class="h-1 w-1 rounded-full bg-gray-300"></div>
+                <a href="#" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Privacy</a>
+                <div class="h-1 w-1 rounded-full bg-gray-300"></div>
+                <a href="#" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Terms</a>
+            </nav>
+
+            <p class="mt-2 text-center text-[9px] font-semibold text-gray-400">
+                &copy; 2026 MedNearby. All rights reserved.
+            </p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}{{ specialty.label|default:specialty.name }} near you | MedNearby{% endblock %}
+
+{% block content %}
+<main class="app-container min-h-screen bg-gray-50 pb-8">
+    <header class="sticky top-0 z-50 flex flex-col border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-md">
+        <div class="flex items-center gap-3 px-3 pb-2 pt-3">
+            <a href="{% url 'core:home' %}" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-100 bg-gray-50 text-textMain active:scale-95" aria-label="Back to home">
+                <i class="fa-solid fa-arrow-left text-sm" aria-hidden="true"></i>
+            </a>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-baseline gap-1.5">
+                    <h1 class="truncate text-base font-extrabold leading-tight text-textMain">{{ specialty.label|default:specialty.name }}</h1>
+                </div>
+                <p class="mt-0.5 truncate text-[10px] font-semibold text-textMuted">Doctors matching your search around <span id="selected-location-name" class="font-bold text-primary">Selected location</span></p>
+            </div>
+            <button type="button" data-bottom-sheet-target="#search-sheet" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 active:scale-95" aria-label="Search">
+                <i class="fa-regular fa-magnifying-glass text-[18px]" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="w-full px-3 pb-3 pt-1">
+            <div class="flex gap-2 overflow-x-auto hide-scrollbar">
+                <button id="available-today-filter" type="button" aria-pressed="false" class="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-100 bg-gray-50 px-3 py-1.5 text-[10px] font-extrabold text-gray-600 active:scale-95">Available Today <i class="fa-solid fa-clock"></i></button>
+            </div>
+        </div>
+    </header>
+
+    {% if location_required %}
+    <section class="mx-3 mt-5 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm">
+        <i class="fa-solid fa-location-dot text-3xl text-primary"></i>
+        <h2 class="mt-3 text-lg font-extrabold">Select your location</h2>
+        <p class="mt-1 text-sm text-textMuted">A location is required to find nearby doctors.</p>
+        <button type="button" data-bottom-sheet-target="#location-sheet" class="mt-4 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white">Choose location</button>
+    </section>
+    {% else %}
+    <section id="doctor-list" class="px-3 pb-6 pt-3" aria-live="polite">
+        {% for doctor in doctors %}
+        <article class="doctor-card {% if doctor.schedule.is_today %}available-today{% endif %} mb-3 rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md">
+    
+            <!-- Top Profile Section -->
+            <div class="flex gap-3 items-stretch">
+                <!-- Icon Container (Square, matching text height) -->
+                <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] {% if doctor.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif doctor.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}">
+                    <i class="fa-solid {% if doctor.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}" aria-hidden="true"></i>
+                </div>
+                
+                <!-- Right Side Text Content -->
+                <div class="min-w-0 flex-1 flex flex-col justify-between py-0.5">
+                    <div>
+                        <h2 class="truncate text-[17px] font-black leading-none tracking-tight text-textMain">{{ doctor.name }}</h2>
+                        <p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">{{ doctor.qualification }}</p>
+                        <p class="mt-0.5 truncate text-[10px] font-bold text-gray-400">{{ doctor.specialties|join:", " }}</p>
+                        {% if doctor.fees %}
+                            <p class="mt-1 text-[14px] font-black text-primary leading-none">₹{{ doctor.fees }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inner Card: Clinic Details, Distance, Availability & Schedule -->
+            <div class="mt-4 rounded-[1.25rem] bg-gradient-to-br from-gray-50/80 to-white border border-gray-100/60 p-3 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
+                
+                <!-- Clinic Name, Address & Distance -->
+                <div class="flex items-start gap-2.5">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-rose-100/50 bg-rose-50 text-[10px] text-rose-500 shadow-sm mt-0.5">
+                        <i class="fa-regular fa-hospital"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="truncate text-[12px] font-black text-textMain leading-tight">{{ doctor.business }}</h3>
+                        <p class="mt-0.5 truncate text-[11px] font-semibold text-textMuted">
+                            {{ doctor.address|default:doctor.locality }} &bull; <span class="text-primary font-extrabold">{{ doctor.distance_km }} km</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="my-2.5 border-t border-gray-100/80"></div>
+
+                <!-- Availability (Text only, no pill) -->
+                <div class="flex items-center gap-1.5 text-[11px] font-extrabold {% if doctor.schedule.is_today %}text-emerald-600{% else %}text-indigo-600{% endif %}">
+                    <i class="fa-regular fa-clock text-[11px]"></i>
+                    {% if doctor.schedule.is_today %}
+                        <span>Available Today &bull; {{ doctor.schedule.next_time }}</span>
+                    {% else %}
+                        <span>Available on {{ doctor.schedule.next_date }}{% if doctor.schedule.next_date %} &bull; {% endif %}{{ doctor.schedule.next_time }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Schedule List -->
+                {% if doctor.schedule.display_rows %}
+                <div class="mt-2.5 pt-2.5 border-t border-gray-100/80">
+                    <ul class="flex flex-col gap-1.5">
+                        {% for row in doctor.schedule.display_rows %}
+                        <li class="flex items-center justify-between gap-3 text-[10px]">
+                            <span class="font-extrabold text-gray-500">{{ row.label }}</span>
+                            <span class="shrink-0 text-right font-bold text-gray-400">{{ row.time_text }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+            </div>
+
+            <!-- Clinic Actions (Distinct Colors & Updated Text) -->
+            <div class="mt-3.5 grid grid-cols-3 gap-2">
+                {% if doctor.phone %}
+                <!-- Solid Blue for Enquiry -->
+                <a href="tel:{{ doctor.phone }}" class="flex min-w-0 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-1 py-2.5 text-center text-[10px] font-black text-white shadow-[0_4px_12px_rgba(37,99,235,0.2)] transition-transform active:scale-95">
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i> Enquiry
+                </a>
+                {% else %}
+                <!-- Disabled State -->
+                <span class="flex min-w-0 cursor-not-allowed items-center justify-center gap-1.5 rounded-xl bg-gray-50 px-1 py-2.5 text-center text-[10px] font-black text-gray-400 border border-gray-100" aria-label="Phone unavailable">
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i> Enquiry
+                </span>
+                {% endif %}
+                
+                <!-- Soft Emerald for Visit Clinic -->
+                <a href="{% url 'businesses:detail' doctor.business_slug %}" class="flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-200/80 bg-emerald-50 px-1 py-2.5 text-center text-[10px] font-black text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100/80 active:scale-95">
+                    <i class="fa-regular fa-hospital" aria-hidden="true"></i> Visit Clinic
+                </a>
+                
+                <!-- Soft Indigo for Direction -->
+                <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ doctor.latitude }},{{ doctor.longitude }}" target="_blank" rel="noopener noreferrer" class="flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50 px-1 py-2.5 text-center text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100/80 active:scale-95">
+                    <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Direction
+                </a>
+            </div>
+        </article>
+        {% empty %}
+        <div id="empty-doctors" class="rounded-[1.5rem] border border-gray-100 bg-white px-5 py-8 text-center shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-indigo-100 bg-indigo-50 text-2xl text-indigo-500">
+                <i class="fa-solid fa-user-doctor" aria-hidden="true"></i>
+            </div>
+            <h2 class="mt-4 text-base font-black text-textMain">No nearby doctors found</h2>
+            <p class="mx-auto mt-1.5 max-w-xs text-[12px] font-semibold leading-relaxed text-textMuted">
+                We couldn’t find any {{ specialty.label|default:specialty.name|lower }} near your selected location. Try another specialty or return home.
+            </p>
+            <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                <button type="button" data-bottom-sheet-target="#search-sheet" class="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-[12px] font-extrabold text-white shadow-sm transition-transform active:scale-95">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search Doctors
+                </button>
+                <a href="{% url 'core:home' %}" class="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-[12px] font-extrabold text-gray-600 transition-colors hover:bg-gray-50 active:scale-95">
+                    <i class="fa-solid fa-house" aria-hidden="true"></i> Return Home
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    <div class="px-3 text-center"><p id="doctor-load-status" class="hidden py-2 text-sm text-textMuted"></p><button id="load-more-doctors" type="button" data-url="{% url 'doctors:list' specialty.slug %}" data-page="{{ next_page|default:2 }}" {% if not has_more %}hidden{% endif %} class="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-60">Load more</button><div id="doctor-scroll-sentinel" class="h-1"></div></div>
+    {% endif %}
+</main>
+{% endblock %}
+
+{% block extra_js %}
+{% if location_required %}<script>document.addEventListener("location:selected", () => window.location.reload(), { once: true });</script>{% else %}
+<script>
+(() => {
+    const list = document.getElementById("doctor-list"), button = document.getElementById("load-more-doctors"), status = document.getElementById("doctor-load-status"), sentinel = document.getElementById("doctor-scroll-sentinel"), filter = document.getElementById("available-today-filter");
+    let loading = false;
+    const esc = value => { const div = document.createElement("div"); div.textContent = value ?? ""; return div.innerHTML; };
+    const clinicActions = d => {
+        const call = d.phone
+            ? `<a href="tel:${esc(d.phone)}" class="flex min-w-0 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-1 py-2.5 text-center text-[10px] font-black text-white shadow-[0_4px_12px_rgba(37,99,235,0.2)] transition-transform active:scale-95"><i class="fa-solid fa-phone" aria-hidden="true"></i> Enquiry</a>`
+            : `<span class="flex min-w-0 cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-gray-100 bg-gray-50 px-1 py-2.5 text-center text-[10px] font-black text-gray-400" aria-label="Phone unavailable"><i class="fa-solid fa-phone" aria-hidden="true"></i> Enquiry</span>`;
+        const clinicUrl = `/businesses/place/${encodeURIComponent(d.business_slug)}`;
+        const destination = encodeURIComponent(`${d.latitude},${d.longitude}`);
+        return `<div class="mt-3.5 grid grid-cols-3 gap-2">${call}<a href="${clinicUrl}" class="flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-200/80 bg-emerald-50 px-1 py-2.5 text-center text-[10px] font-black text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100/80 active:scale-95"><i class="fa-regular fa-hospital" aria-hidden="true"></i> Visit Clinic</a><a href="https://www.google.com/maps/dir/?api=1&destination=${destination}" target="_blank" rel="noopener noreferrer" class="flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50 px-1 py-2.5 text-center text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100/80 active:scale-95"><i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Direction</a></div>`;
+    };
+    const card = d => {
+        const today = d.schedule?.is_today, rows = d.schedule?.display_rows || [];
+        const profile = d.gender === "male"
+            ? { classes: "border-indigo-100 from-indigo-50 text-indigo-500", icon: "fa-user-doctor" }
+            : d.gender === "female"
+                ? { classes: "border-rose-100 from-rose-50 text-rose-500", icon: "fa-user-doctor-hair-long" }
+                : { classes: "border-emerald-100 from-emerald-50 text-emerald-500", icon: "fa-user-doctor" };
+        const article = document.createElement("article"); article.className = `doctor-card ${today ? "available-today" : ""} mb-3 rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md`;
+        const availability = today ? `Available Today • ${d.schedule.next_time}` : `Available on ${d.schedule?.next_date || ""}${d.schedule?.next_date ? " • " : ""}${d.schedule?.next_time || "Schedule unavailable"}`;
+        article.innerHTML = `<div class="flex items-stretch gap-3"><div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${profile.classes}"><i class="fa-solid ${profile.icon}" aria-hidden="true"></i></div><div class="flex min-w-0 flex-1 flex-col justify-between py-0.5"><div><h2 class="truncate text-[17px] font-black leading-none tracking-tight text-textMain">${esc(d.name)}</h2><p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">${esc(d.qualification)}</p><p class="mt-0.5 truncate text-[10px] font-bold text-gray-400">${esc((d.specialties || []).join(", "))}</p>${d.fees ? `<p class="mt-1 text-[14px] font-black leading-none text-primary">₹${esc(d.fees)}</p>` : ""}</div></div></div><div class="mt-4 rounded-[1.25rem] border border-gray-100/60 bg-gradient-to-br from-gray-50/80 to-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.01)]"><div class="flex items-start gap-2.5"><div class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-rose-100/50 bg-rose-50 text-[10px] text-rose-500 shadow-sm"><i class="fa-regular fa-hospital"></i></div><div class="min-w-0 flex-1"><h3 class="truncate text-[12px] font-black leading-tight text-textMain">${esc(d.business)}</h3><p class="mt-0.5 truncate text-[11px] font-semibold text-textMuted">${esc(d.address || d.locality)} • <span class="font-extrabold text-primary">${esc(d.distance_km)} km</span></p></div></div><div class="my-2.5 border-t border-gray-100/80"></div><div class="flex items-center gap-1.5 text-[11px] font-extrabold ${today ? "text-emerald-600" : "text-indigo-600"}"><i class="fa-regular fa-clock text-[11px]"></i><span>${esc(availability)}</span></div>${rows.length ? `<div class="mt-2.5 border-t border-gray-100/80 pt-2.5"><ul class="flex flex-col gap-1.5">${rows.map(r => `<li class="flex items-center justify-between gap-3 text-[10px]"><span class="font-extrabold text-gray-500">${esc(r.label)}</span><span class="shrink-0 text-right font-bold text-gray-400">${esc(r.time_text)}</span></li>`).join("")}</ul></div>` : ""}</div>${clinicActions(d)}`;
+        return article;
+    };
+    const applyFilter = () => list.querySelectorAll(".doctor-card").forEach(c => c.hidden = filter.getAttribute("aria-pressed") === "true" && !c.classList.contains("available-today"));
+    async function loadMore() { if (loading || button.hidden) return; loading = true; button.disabled = true; status.textContent = "Loading nearby doctors..."; status.classList.remove("hidden"); const url = new URL(button.dataset.url, location.origin); url.searchParams.set("page", button.dataset.page); try { const response = await fetch(url, {headers:{"X-Requested-With":"XMLHttpRequest"}}); if (!response.ok) throw new Error(); const data = await response.json(); document.getElementById("empty-doctors")?.remove(); list.append(...data.results.map(card)); button.dataset.page = data.next_page; button.hidden = !data.has_more; status.classList.add("hidden"); applyFilter(); } catch { status.textContent = "Unable to load more doctors. Please try again."; } finally { loading = false; button.disabled = false; } }
+    filter.addEventListener("click", () => { const active = filter.getAttribute("aria-pressed") !== "true"; filter.setAttribute("aria-pressed", active); filter.classList.toggle("bg-emerald-50", active); filter.classList.toggle("text-primary", active); applyFilter(); });
+    button.addEventListener("click", loadMore); if ("IntersectionObserver" in window) new IntersectionObserver(e => { if (e[0].isIntersecting) loadMore(); }, {rootMargin:"200px"}).observe(sentinel);
+})();
+</script>
+{% endif %}{% endblock %}

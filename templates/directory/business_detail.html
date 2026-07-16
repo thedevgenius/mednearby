@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+
+{% block title %}{{ business.name }} | MedNearby{% endblock %}
+
+{% block content %}
+<div class="app-container">
+
+        <!-- THUMBNAIL IMAGE -->
+        <div class="relative h-60 bg-gray-200">
+            <!-- Background Image -->
+            <img src="{{ business_thumbnail_url }}" alt="{{ business.name }}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/30"></div>
+
+            <!-- Floating Back & Action Buttons -->
+            <div class="absolute top-4 left-3 right-3 flex justify-between items-center z-10">
+                <a href="{% url 'core:home' %}" data-back-button aria-label="Back" class="w-9 h-9 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full text-white active:scale-95 transition-transform border border-white/30">
+                    <i class="fa-solid fa-arrow-left text-sm"></i>
+                </a>
+                <!-- <div class="flex gap-2">
+                    <button class="w-9 h-9 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full text-white active:scale-95 transition-transform border border-white/30 hover:bg-rose-500 hover:border-rose-500">
+                        <i class="fa-regular fa-heart text-sm"></i>
+                    </button>
+                    <button class="w-9 h-9 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full text-white active:scale-95 transition-transform border border-white/30 hover:bg-primary hover:border-primary">
+                        <i class="fa-solid fa-share-nodes text-sm"></i>
+                    </button>
+                </div> -->
+            </div>
+        </div>
+
+        <!-- OVERVIEW SECTION -->
+        <section id="overview" class="bg-white px-4 pt-4 pb-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] scroll-mt-[50px] rounded-b-[1.5rem] flex flex-col">
+            
+            <!-- 1. Categories -->
+            {% if business.categories.all %}
+            <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
+                {% for category in business.categories.all %}                <a href="{% url 'businesses:list' category.slug %}"
+                    class="{% if forloop.first %}bg-emerald-50 border-emerald-100/50 text-emerald-600{% else %}bg-gray-50 border-gray-100 text-gray-500{% endif %} border px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-colors hover:bg-emerald-100 hover:text-emerald-700 shadow-sm">
+                    {{ category.name }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- 2. Title -->
+            <h1 class="font-black text-[20px] text-textMain leading-none tracking-tight">{{ business.name }}</h1>
+
+            <!-- 3 & 4. Opening Status & Years in Business (Combined for compactness) -->
+            <div class="flex flex-wrap items-center gap-3 mt-2.5">
+                <div class="flex items-center gap-1.5 text-[11px] font-extrabold {% if is_open_now %}text-emerald-600{% else %}text-red-600{% endif %}">
+                    <div class="w-2 h-2 rounded-full {% if is_open_now %}bg-emerald-500 animate-pulse{% else %}bg-red-500{% endif %} shadow-sm"></div>
+                    {% if is_open_now %}Open Now{% else %}Closed{% endif %}
+                    {% if open_status %}<span class="font-semibold text-gray-400">&bull; {{ open_status }}</span>{% endif %}
+                </div>
+                
+                {% if years_in_business is not None %}
+                <div class="flex items-center gap-1 text-[11px] font-bold text-amber-600">
+                    <i class="fa-solid fa-award text-xs"></i>
+                    {{ years_in_business }} Year{{ years_in_business|pluralize }} in Business
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 5. Address, Distance & Dashed Direction Link -->
+            <div class="flex items-start gap-1.5 mt-2.5">
+                <i class="fa-solid fa-location-dot mt-0.5 text-[11px] text-gray-400"></i>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[12px] font-bold text-textMain leading-snug pr-2 text-gray-600">{{ full_address|default:"Address unavailable" }}</p>
+                    <div class="mt-1.5 flex items-center gap-1.5 text-[11px]">
+                        {% if distance_km is not None %}
+                        <span class="font-extrabold text-primary">{{ distance_km }} km away</span>
+                        <span class="text-gray-300">&bull;</span>
+                        {% endif %}
+                        
+                        {% if google_directions_url %}
+                        <a href="{{ google_directions_url }}" target="_blank" rel="noopener noreferrer" class="font-bold text-gray-500 hover:text-primary transition-colors border-b border-dashed border-gray-400 hover:border-primary pb-[1px]">
+                            Get Directions
+                        </a>
+                        {% elif osm_map_url %}
+                        <a href="{{ osm_map_url }}" target="_blank" rel="noopener noreferrer" class="font-bold text-gray-500 hover:text-primary transition-colors border-b border-dashed border-gray-400 hover:border-primary pb-[1px]">
+                            View on Map
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. BUSINESS HOURS ACCORDION -->
+            <div class="mt-3.5 border border-gray-100 rounded-xl overflow-hidden bg-gray-50/50 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                <button id="hours-toggle" type="button" aria-expanded="false" aria-controls="hours-content" class="w-full px-3 py-2.5 flex justify-between items-center text-[11px] active:bg-gray-100 transition-colors">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-regular fa-clock text-gray-400 text-xs"></i>
+                        <span class="font-extrabold text-gray-600">
+                            {{ today_hours.day }}
+                            <span class="font-semibold text-gray-400 ml-1">
+                                &bull; {{ today_hours.hours }}
+                            </span>
+                        </span>
+                    </div>
+                    <i id="hours-chevron" class="fa-solid fa-chevron-down text-gray-400 text-[10px] transition-transform duration-300"></i>
+                </button>
+
+                <div id="hours-content" class="hidden px-3 pb-3 pt-1 border-t border-gray-100 bg-white">
+                    <ul class="text-[11px] flex flex-col gap-1.5 mt-1">
+                        {% for row in hours_rows %}
+                        <li class="flex justify-between items-center {% if row.is_today %}font-black text-emerald-700 bg-emerald-50/80 border border-emerald-100/50 px-2 py-1 -mx-2 rounded-lg shadow-sm{% elif row.hours == 'Closed' %}text-rose-500 font-bold{% else %}text-gray-500 font-medium{% endif %}">
+                            <span>{{ row.day }}{% if row.is_today %} (Today){% endif %}</span>
+                            <span class="{% if not row.is_today and row.hours != 'Closed' %}text-textMain font-bold{% endif %}">{{ row.hours }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 7. DELIVERY FLAGS -->
+            {% if business.is_home_delivery or business.is_home_collection %}
+            <div class="grid {% if business.is_home_delivery and business.is_home_collection %}grid-cols-2{% else %}grid-cols-1{% endif %} gap-2 mt-3.5">
+                {% if business.is_home_delivery %}
+                <div class="flex items-center gap-2 bg-gradient-to-r from-teal-50 to-white border border-teal-100/60 rounded-[1rem] p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-teal-500 shadow-sm shrink-0 border border-teal-50">
+                        <i class="fa-solid fa-motorcycle text-[10px]"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-[11px] font-extrabold text-textMain leading-tight truncate">Home Delivery</h4>
+                        <p class="text-[9px] font-bold text-gray-500 truncate">For medicines</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if business.is_home_collection %}
+                <div class="flex items-center gap-2 bg-gradient-to-r from-rose-50 to-white border border-rose-100/60 rounded-[1rem] p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-rose-500 shadow-sm shrink-0 border border-rose-50">
+                        <i class="fa-solid fa-house-medical text-[10px]"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-[11px] font-extrabold text-textMain leading-tight truncate">Home Collection</h4>
+                        <p class="text-[9px] font-bold text-gray-500 truncate">For blood tests</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- 8. ACTION BUTTONS (Fluid Horizontal Scroll) -->
+            {% if business.phone or business.whatsapp or business.website or business.latitude != None and business.longitude != None %}
+            <div class="flex gap-2 overflow-x-auto hide-scrollbar snap-x pt-3.5 pb-1 -mx-1 px-1">
+                {% if business.phone %}
+                <a href="tel:{{ business.phone }}" class="snap-start flex-[0_0_70px] flex flex-col items-center justify-center gap-1 bg-white border border-gray-100 rounded-[0.85rem] py-2 active:scale-95 transition-transform shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-emerald-200">
+                    <div class="text-emerald-500 text-base"><i class="fa-solid fa-phone"></i></div>
+                    <span class="text-[8px] font-extrabold text-textMain uppercase tracking-wide">Call</span>
+                </a>
+                {% endif %}
+
+                {% if business.whatsapp %}
+                <a href="https://wa.me/{{ business.whatsapp }}" target="_blank" rel="noopener noreferrer" class="snap-start flex-[0_0_70px] flex flex-col items-center justify-center gap-1 bg-white border border-gray-100 rounded-[0.85rem] py-2 active:scale-95 transition-transform shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-indigo-200">
+                    <div class="text-indigo-500 text-base"><i class="fa-brands fa-whatsapp"></i></div>
+                    <span class="text-[8px] font-extrabold text-textMain uppercase tracking-wide">Chat</span>
+                </a>
+                {% endif %}
+
+                {% if business.latitude != None and business.longitude != None %}
+                <a href="{{ google_directions_url }}" target="_blank" rel="noopener noreferrer" class="snap-start flex-[0_0_70px] flex flex-col items-center justify-center gap-1 bg-white border border-gray-100 rounded-[0.85rem] py-2 active:scale-95 transition-transform shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-blue-200">
+                    <div class="text-blue-500 text-base"><i class="fa-solid fa-diamond-turn-right"></i></div>
+                    <span class="text-[8px] font-extrabold text-textMain uppercase tracking-wide">Direction</span>
+                </a>
+                {% endif %}
+
+                {% if business.website %}
+                <a href="{{ business.website }}" target="_blank" rel="noopener noreferrer" class="snap-start flex-[0_0_70px] flex flex-col items-center justify-center gap-1 bg-white border border-gray-100 rounded-[0.85rem] py-2 active:scale-95 transition-transform shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-sky-200">
+                    <div class="text-sky-500 text-base"><i class="fa-solid fa-globe"></i></div>
+                    <span class="text-[8px] font-extrabold text-textMain uppercase tracking-wide">Website</span>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </section>
+
+        <!-- SERVICES OFFERED -->
+        {% if business_services %}
+        <section id="services" class="px-3 mt-6 scroll-mt-[60px]">
+            <h3 class="text-sm font-extrabold text-textMain mb-3">Services Offered</h3>
+            <div class="flex flex-wrap gap-2">
+                {% for service in business_services %}
+                <span class="bg-gray-50 border border-gray-100 text-gray-600 px-3 py-1.5 rounded-full text-[10px] font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-check text-primary text-[8px]" aria-hidden="true"></i> {{ service }}
+                </span>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- DOCTORS AVAILABLE -->
+        {% if business.active_doctors %}
+        <section id="doctors" class="mt-6 border-t border-gray-50 pt-5 bg-white scroll-mt-[60px] px-3">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-extrabold text-textMain">Doctors Available</h3>
+                <span class="text-[10px] font-extrabold text-primary bg-primaryLight px-2 py-1 rounded-md">{{ business.active_doctors|length }} Doctor{{ business.active_doctors|length|pluralize }}</span>
+            </div>
+
+            <div id="doctor-specialty-tabs" class="mb-3 flex gap-2 overflow-x-auto hide-scrollbar pb-1" role="tablist" aria-label="Filter doctors by specialty">
+                <button type="button" role="tab" aria-selected="true" data-specialty-filter="all" class="doctor-specialty-tab shrink-0 rounded-full border border-emerald-200 bg-emerald-100/70 px-3 py-1.5 text-[10px] font-extrabold text-emerald-700 transition-colors">
+                    All
+                </button>
+                {% for specialty in available_specialties %}
+                <button type="button" role="tab" aria-selected="false" data-specialty-filter="{{ specialty.slug }}" class="doctor-specialty-tab shrink-0 rounded-full border border-gray-100 bg-gray-100/70 px-3 py-1.5 text-[10px] font-extrabold text-gray-600 transition-colors">
+                    {{ specialty.label|default:specialty.name }}
+                </button>
+                {% endfor %}
+            </div>
+            
+            <div class="flex flex-col gap-2.5">
+                {% for doctor in business.active_doctors %}
+                <article class="doctor-card rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm" data-doctor-specialties="{% for specialty in doctor.specialties.all %}{{ specialty.slug }} {% endfor %}">
+                    <div class="flex items-stretch gap-3">
+                        <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] {% if doctor.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif doctor.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}">
+                            <i class="fa-solid {% if doctor.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}" aria-hidden="true"></i>
+                        </div>
+                        <div class="flex min-w-0 flex-1 flex-col justify-between py-0.5">
+                            <div>
+                                <h4 class="truncate text-[17px] font-black leading-none tracking-tight text-textMain">{{ doctor.name }}</h4>
+                                {% if doctor.qualification %}
+                                <p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">{{ doctor.qualification }}</p>
+                                {% endif %}
+                                <p class="mt-0.5 truncate text-[10px] font-bold text-gray-400">
+                                    {% for specialty in doctor.specialties.all %}{{ specialty.name }}{% if not forloop.last %}, {% endif %}{% empty %}General practice{% endfor %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-2.5">
+                        <div class="text-[11px] font-extrabold {% if doctor.display_schedule.is_today %}text-emerald-600{% else %}text-indigo-600{% endif %}">
+                            <i class="fa-regular fa-clock mr-1 text-[10px]" aria-hidden="true"></i>
+                            {% if doctor.display_schedule.is_today %}
+                                Available Today &bull; {{ doctor.display_schedule.next_time }}
+                            {% elif doctor.display_schedule.next_date %}
+                                Available on {{ doctor.display_schedule.next_date }} &bull; {{ doctor.display_schedule.next_time }}
+                            {% else %}
+                                {{ doctor.display_schedule.next_time }}
+                            {% endif %}
+                        </div>
+
+                        {% if doctor.display_schedule.display_rows %}
+                        <div class="mt-2 border-t border-gray-200/60 pt-2">
+                            <ul class="flex flex-col gap-1">
+                                {% for row in doctor.display_schedule.display_rows %}
+                                <li class="flex items-start justify-between gap-3 text-[10px] font-bold text-gray-500">
+                                    <span>{{ row.label }}</span>
+                                    <span class="shrink-0 text-right">{{ row.time_text }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if business.phone %}
+                    <a href="tel:{{ business.phone }}" class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary bg-white py-2.5 text-[12px] font-extrabold text-primary transition-colors hover:bg-emerald-50 active:scale-95">
+                        <i class="fa-solid fa-phone" aria-hidden="true"></i> Call for Enquiry
+                    </a>
+                    {% else %}
+                    <span class="mt-3 flex w-full cursor-not-allowed items-center justify-center rounded-lg border border-gray-200 bg-white py-2.5 text-[12px] font-extrabold text-gray-400">Enquiry phone unavailable</span>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- FACILITIES & AMENITIES -->
+        <!-- <section class="px-3 mt-6">
+            <h3 class="text-sm font-extrabold text-textMain mb-3">Facilities & Amenities</h3>
+            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-3 grid grid-cols-2 gap-y-3 gap-x-2">
+                <div class="flex items-center gap-2 text-[11px] font-bold text-gray-700">
+                    <div class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary"><i class="fa-solid fa-snowflake"></i></div> AC Available
+                </div>
+                <div class="flex items-center gap-2 text-[11px] font-bold text-gray-700">
+                    <div class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary"><i class="fa-solid fa-couch"></i></div> Waiting Area
+                </div>
+                <div class="flex items-center gap-2 text-[11px] font-bold text-gray-700">
+                    <div class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary"><i class="fa-solid fa-square-parking"></i></div> Free Parking
+                </div>
+                <div class="flex items-center gap-2 text-[11px] font-bold text-gray-700">
+                    <div class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary"><i class="fa-solid fa-wifi"></i></div> Free Wi-Fi
+                </div>
+            </div>
+        </section> -->
+
+        <!-- CONTACT INFO SECTION -->
+        {% if business.phone or business.whatsapp or business.email or business.website %}
+        <section id="contact" class="px-4 mt-6 mb-6 scroll-mt-[60px]">
+            <h3 class="text-[15px] font-black text-textMain tracking-tight mb-3">Contact Information</h3>
+            <div class="bg-white border border-gray-100 rounded-[1.25rem] p-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                
+                <ul class="flex flex-col">
+                    {% if business.phone %}
+                    <li>
+                        <a href="tel:{{ business.phone }}" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                            <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-100/50">
+                                <i class="fa-solid fa-phone text-[13px]"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-gray-400">Phone Number</p>
+                                <p class="text-[12px] font-extrabold text-textMain mt-0.5 truncate">{{ business.phone }}</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-[10px]"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if business.whatsapp %}
+                    <li>
+                        <a href="https://wa.me/{{ business.whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                            <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0 border border-indigo-100/50">
+                                <i class="fa-brands fa-whatsapp text-[14px]"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-gray-400">WhatsApp</p>
+                                <p class="text-[12px] font-extrabold text-textMain mt-0.5 truncate">{{ business.whatsapp }}</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-[10px]"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if business.email %}
+                    <li>
+                        <a href="mailto:{{ business.email }}" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                            <div class="w-9 h-9 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 border border-amber-100/50">
+                                <i class="fa-solid fa-envelope text-[13px]"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-gray-400">Email Address</p>
+                                <p class="text-[12px] font-extrabold text-textMain mt-0.5 truncate">{{ business.email }}</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-[10px]"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if business.website %}
+                    <li>
+                        <a href="{{ business.website }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                            <div class="w-9 h-9 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center shrink-0 border border-sky-100/50">
+                                <i class="fa-solid fa-globe text-[13px]"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-gray-400">Website</p>
+                                <p class="text-[12px] font-extrabold text-textMain mt-0.5 truncate">{{ business.website|urlizetrunc:30|striptags }}</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-[10px]"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- UPDATES, OFFERS & NEW SERVICES -->
+        <!-- <section id="offers" class="px-3 mt-6 scroll-mt-[60px]">
+            <h3 class="text-sm font-extrabold text-textMain mb-3">Updates & Offers</h3>
+            <div class="flex flex-col gap-3">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 text-white flex justify-between items-center shadow-lg shadow-emerald-500/20 relative overflow-hidden">
+                    <i class="fa-solid fa-certificate absolute -right-2 -bottom-2 text-6xl opacity-10"></i>
+                    <div class="relative z-10">
+                        <span class="bg-white text-emerald-600 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest shadow-sm">Discount</span>
+                        <h4 class="font-extrabold text-[14px] mt-2 leading-tight">20% Off Full Body Checkup</h4>
+                        <p class="text-[10px] font-semibold text-emerald-100 mt-1">Valid till 30th August</p>
+                    </div>
+                </div>
+            </div>
+        </section> -->
+
+        <!-- RELATED BUSINESSES -->
+        {% if similar_businesses %}
+        <section class="mt-8 bg-surface border-y border-gray-100 py-5 px-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-extrabold text-textMain">Similar Places Nearby</h3>
+            </div>
+            <div class="flex overflow-x-auto gap-3 snap-x hide-scrollbar pb-2">
+                {% for nearby in similar_businesses %}
+                <article class="business-card min-w-[310px] max-w-[340px] snap-start rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm">
+                    <div class="flex gap-2.5">
+                        <div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+                            <img src="{{ nearby.thumbnail_url }}" alt="{{ nearby.name }}" class="h-full w-full object-cover" loading="lazy">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h4 class="mt-0.5 truncate text-[17px] font-extrabold leading-tight text-textMain"><a href="{% url 'businesses:detail' nearby.slug %}">{{ nearby.name }}</a></h4>
+                            <div class="mt-1 flex flex-wrap items-center gap-1">
+                                {% for name in nearby.categories %}<span class="rounded border border-gray-100 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-gray-600">{{ name }}</span>{% endfor %}
+                            </div>
+                            <div class="mt-1.5 flex flex-col gap-1.5">
+                                <p class="truncate text-[11px] font-semibold text-textMuted" title="{{ nearby.full_address }}"><i class="fa-solid fa-location-dot mr-1 text-gray-400" aria-hidden="true"></i>{{ nearby.full_address }} &bull; <span class="font-bold text-primary">{{ nearby.distance_km }} km</span></p>
+                                <div class="flex items-center gap-1">
+                                    <span class="h-2 w-2 rounded-full {% if nearby.is_open %}bg-emerald-500{% else %}bg-red-600{% endif %}"></span>
+                                    <p class="truncate text-[11px] font-extrabold {% if nearby.is_open %}text-emerald-600{% else %}text-red-600{% endif %}">{% if nearby.is_open %}Open Now{% else %}Closed{% endif %}{% if nearby.open_status %}<span class="ml-1 font-semibold text-gray-400">&bull; {{ nearby.open_status }}</span>{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-50 pt-3">
+                        {% if nearby.phone %}<a href="tel:{{ nearby.phone }}" class="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-2 py-3 text-xs font-extrabold text-primary"><i class="fa-solid fa-phone"></i><span>Call</span></a>{% endif %}
+                        {% if nearby.whatsapp %}<a href="https://wa.me/{{ nearby.whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-2 py-3 text-xs font-extrabold text-indigo-500"><i class="fa-brands fa-whatsapp"></i><span>Chat</span></a>{% endif %}
+                        <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ nearby.latitude }},{{ nearby.longitude }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2 py-3 text-xs font-extrabold text-gray-600"><i class="fa-solid fa-diamond-turn-right"></i><span>Directions</span></a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- TRUST & REPORTING -->
+        <!-- <section class="px-3 mt-4 flex flex-col items-center gap-3">
+            <p class="text-[10px] font-semibold text-gray-400">Is this your business? <a href="#" class="text-primary font-bold">Claim it now</a></p>
+            <div class="flex justify-center gap-4">
+                <button class="text-[11px] font-bold text-gray-500 hover:text-primary flex items-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-pen-to-square"></i> Suggest an edit
+                </button>
+                <div class="w-px h-3.5 bg-gray-300 mt-0.5"></div>
+                <button class="text-[11px] font-bold text-gray-500 hover:text-rose-500 flex items-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Report error
+                </button>
+            </div>
+        </section> -->
+        
+        <!-- PADDING SPACER FOR BOTTOM BAR -->
+        <div class="h-28"></div>
+
+        <!-- BOTTOM STICKY ACTION BAR (Appears on Scroll) -->
+        {% if business.phone or business.latitude != None and business.longitude != None %}
+        <div id="sticky-bottom-bar" class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white/95 backdrop-blur-md border-t border-gray-100 px-4 py-3 flex items-center justify-between z-50 transform translate-y-full transition-transform duration-300 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+            <div class="flex-1 overflow-hidden pr-3">
+                <h4 class="font-extrabold text-[13px] text-textMain truncate">{{ business.name }}</h4>
+                <div class="flex items-center gap-1 text-[9px] font-bold {% if is_open_now %}text-emerald-600{% else %}text-red-600{% endif %} mt-0.5">
+                    <div class="w-1.5 h-1.5 rounded-full {% if is_open_now %}bg-emerald-500{% else %}bg-red-600{% endif %}"></div>
+                    {% if is_open_now %}Open Now{% else %}Closed{% endif %}
+                </div>
+            </div>
+            
+            <div class="flex gap-2 shrink-0">
+                {% if business.latitude != None and business.longitude != None %}
+                <a href="{{ google_directions_url }}" target="_blank" rel="noopener noreferrer" aria-label="Get directions" class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-sm active:scale-95 transition-transform hover:bg-gray-200">
+                    <i class="fa-solid fa-diamond-turn-right"></i>
+                </a>
+                {% endif %}
+                {% if business.phone %}
+                <a href="tel:{{ business.phone }}" aria-label="Call {{ business.name }}" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center text-sm shadow-md shadow-primary/30 active:scale-95 transition-transform hover:bg-primaryDark">
+                    <i class="fa-solid fa-phone"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const bottomBar = document.getElementById("sticky-bottom-bar");
+    if (bottomBar) window.addEventListener("scroll", () => bottomBar.classList.toggle("translate-y-full", window.scrollY <= 300));
+    const toggle = document.getElementById("hours-toggle"), content = document.getElementById("hours-content"), chevron = document.getElementById("hours-chevron");
+    toggle?.addEventListener("click", () => { const expanded = toggle.getAttribute("aria-expanded") === "true"; toggle.setAttribute("aria-expanded", String(!expanded)); content?.classList.toggle("hidden", expanded); chevron?.classList.toggle("rotate-180", !expanded); });
+    const specialtyTabs = document.getElementById("doctor-specialty-tabs");
+    specialtyTabs?.addEventListener("click", event => {
+        const selectedTab = event.target.closest("[data-specialty-filter]");
+        if (!selectedTab) return;
+        const specialty = selectedTab.dataset.specialtyFilter;
+
+        specialtyTabs.querySelectorAll("[data-specialty-filter]").forEach(tab => {
+            const active = tab === selectedTab;
+            tab.setAttribute("aria-selected", String(active));
+            tab.classList.toggle("border-emerald-200", active);
+            tab.classList.toggle("bg-emerald-100/70", active);
+            tab.classList.toggle("text-emerald-700", active);
+            tab.classList.toggle("border-gray-100", !active);
+            tab.classList.toggle("bg-gray-100/70", !active);
+            tab.classList.toggle("text-gray-600", !active);
+        });
+
+        document.querySelectorAll("#doctors .doctor-card").forEach(card => {
+            const specialties = card.dataset.doctorSpecialties.trim().split(/\s+/);
+            card.hidden = specialty !== "all" && !specialties.includes(specialty);
+        });
+    });
+    document.getElementById("business-detail-back")?.addEventListener("click", () => { if (history.length > 1) history.back(); else location.href = "{% url 'core:home' %}"; });
+});
+</script>
+{% endblock %}

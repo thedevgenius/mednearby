@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Specialties | MedNearby{% endblock %}
+
+{% block content %}
+
+<!-- Decorative Background Ambient Glow -->
+<div class="fixed top-0 left-0 right-0 h-40 bg-gradient-to-b from-primary/5 to-transparent -z-10 pointer-events-none"></div>
+
+<!-- STICKY TOP CONTAINER (Header) -->
+<div class="sticky top-0 z-50 bg-white/85 backdrop-blur-xl border-b border-gray-100/50 shadow-[0_4px_24px_rgba(0,0,0,0.02)] app-container">
+    <!-- HEADER -->
+    <header class="px-4 pt-4 pb-3 flex items-center gap-3">
+        <!-- Back Button -->
+        <a href="{% url 'core:home' %}" id="doctor-specialties-back"
+            aria-label="Go back"
+            class="w-10 h-10 flex items-center justify-center shrink-0 bg-white border border-gray-100 shadow-sm rounded-full text-textMain active:scale-95 transition-all hover:bg-gray-50">
+            <i class="fa-solid fa-arrow-left text-sm" aria-hidden="true"></i>
+        </a>
+
+        <!-- Title & Location Subtitle -->
+        <div class="flex-1 overflow-hidden">
+            <h1 class="font-extrabold text-[19px] text-textMain leading-tight truncate tracking-tight">Doctors</h1>
+            <div class="flex items-center gap-1.5 mt-0.5">
+                <p class="text-[11px] font-semibold text-textMuted">Find available doctors near</p>
+                <!-- Inline Location Picker -->
+                <button type="button" data-bottom-sheet-target="#location-sheet" aria-label="Change selected location" class="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full flex-shrink-0 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-location-dot text-[8px]"></i>
+                    <span id="selected-location-name" class="max-w-30 truncate text-[10px] font-extrabold">Select location</span>
+                    <i class="fa-solid fa-angle-down text-[8px]"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+</div>
+
+<div class="app-container pb-10">
+    
+    <!-- SECTION 1: ALL SPECIALTIES (Premium 3-Column Grid) -->
+    <section id="specialties" class="px-4 mt-6 relative z-0 scroll-mt-28">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-extrabold text-textMain tracking-tight">Find by specialties</h3>
+            <i class="fa-solid fa-stethoscope text-primary/20 text-lg"></i>
+        </div>
+
+        <!-- Grid -->
+        <div class="grid grid-cols-3 gap-3">
+            {% for specialty in specialties %}
+                <a href="{% url 'doctors:list' specialty.slug %}" class="bg-white border border-gray-100/80 shadow-[0_4px_16px_rgba(0,0,0,0.03)] rounded-[1.25rem] p-3.5 flex flex-col items-center text-center gap-2.5 group hover:border-emerald-200 hover:shadow-[0_8px_24px_rgba(16,185,129,0.08)] active:scale-95 transition-all duration-300 relative overflow-hidden">
+                    <!-- Subtle Hover Glow -->
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-gray-50/50 pointer-events-none group-hover:to-emerald-50/30 transition-colors"></div>
+                    
+                    <!-- Icon Container -->
+                    <div class="relative z-10 w-12 h-12 flex items-center justify-center rounded-2xl bg-gray-50 group-hover:bg-white group-hover:shadow-sm transition-all duration-300 border border-transparent group-hover:border-gray-100">
+                        <i class="{{ specialty.icon|default:'fa-solid fa-user-doctor' }} text-[26px] text-[{{specialty.color}}]" aria-hidden="true"></i>
+                    </div>
+                    <span class="text-[11px] font-extrabold text-textMain leading-tight relative z-10">{{ specialty.label|default:specialty.name }}</span>
+                </a>
+            {% empty %}
+                <div class="col-span-3 rounded-[1.25rem] border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center flex flex-col items-center justify-center gap-2">
+                    <i class="fa-solid fa-folder-open text-gray-300 text-2xl"></i>
+                    <p class="text-xs font-semibold text-textMuted">No doctor specialties are available yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- SECTION 2: SEARCH BY ORGAN -->
+    <section id="organs" class="px-4 mt-8 scroll-mt-28">
+        <h3 class="text-sm font-extrabold text-textMain mb-4 tracking-tight">Find by affected organ</h3>
+
+        <div class="grid grid-cols-4 gap-x-2 gap-y-4">
+            
+            <a href="/doctors/cardiologists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+                <div class="w-[60px] h-[60px] bg-gradient-to-br from-rose-50 to-rose-100/50 rounded-[1.25rem] flex items-center justify-center text-rose-500 text-[22px] transition-all duration-300 mb-2 border border-white">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-textMain">Heart</span>
+            </a>
+
+            <a href="/doctors/neurologists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+                <div class="w-[60px] h-[60px] bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-[1.25rem] flex items-center justify-center text-purple-500 text-[22px] transition-all duration-300 mb-2 border border-white">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-textMain">Brain</span>
+            </a>
+
+            <a href="/doctors/pulmonologists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+                <div class="w-[60px] h-[60px] bg-gradient-to-br from-sky-50 to-sky-100/50 rounded-[1.25rem] flex items-center justify-center text-sky-500 text-[22px] transition-all duration-300 mb-2 border border-white">
+                    <i class="fa-solid fa-lungs"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-textMain">Lungs</span>
+            </a>
+
+            <a href="/doctors/gastroenterologists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+                <div class="w-[60px] h-[60px] bg-gradient-to-br from-lime-50 to-lime-100/50 rounded-[1.25rem] flex items-center justify-center text-lime-600 text-[22px] transition-all duration-300 mb-2 border border-white">
+                    <i class="fa-solid fa-stomach"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-textMain">Stomach</span>
+            </a>
+
+            <a href="/doctors/orthopedists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+                <div class="w-[60px] h-[60px] bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[1.25rem] flex items-center justify-center text-orange-500 text-[22px] transition-all duration-300 mb-2 border border-white">
+                    <i class="fa-solid fa-bone"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-textMain">Bones</span>
+            </a>
+
+            <a href="/doctors/ophthalmologists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+                <div class="w-[60px] h-[60px] bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-[1.25rem] flex items-center justify-center text-indigo-500 text-[22px] transition-all duration-300 mb-2 border border-white">
+                    <i class="fa-solid fa-eye"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-textMain">Eyes</span>
+            </a>
+
+            <a href="/doctors/dermatologists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+                <div class="w-[60px] h-[60px] bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-[1.25rem] flex items-center justify-center text-amber-500 text-[22px] transition-all duration-300 mb-2 border border-white">
+                    <i class="fa-solid fa-hand-dots"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-textMain">Skin</span>
+            </a>
+
+            <a href="/doctors/nephrologists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+                <div class="w-[60px] h-[60px] bg-gradient-to-br from-cyan-50 to-cyan-100/50 rounded-[1.25rem] flex items-center justify-center text-cyan-500 text-[22px] transition-all duration-300 mb-2 border border-white">
+                    <i class="fa-solid fa-droplet"></i>
+                </div>
+                <span class="text-[10px] font-extrabold text-textMain">Kidneys</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- SECTION 3: SEARCH BY SYMPTOMS -->
+    <!-- <section id="symptoms" class="px-4 mt-8 mb-6 scroll-mt-28">
+        <h3 class="text-sm font-extrabold text-textMain mb-4 tracking-tight">Common Symptoms</h3>
+
+        <div class="flex flex-wrap gap-2.5">
+            <button class="flex items-center gap-1.5 bg-white border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.03)] px-4 py-2.5 rounded-[1rem] text-[11px] font-extrabold text-gray-700 hover:bg-emerald-50 hover:text-primary hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all duration-300 active:scale-95">
+                <span class="text-[13px]">🤒</span> Fever
+            </button>
+            <button class="flex items-center gap-1.5 bg-white border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.03)] px-4 py-2.5 rounded-[1rem] text-[11px] font-extrabold text-gray-700 hover:bg-emerald-50 hover:text-primary hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all duration-300 active:scale-95">
+                <span class="text-[13px]">🤕</span> Headache
+            </button>
+            <button class="flex items-center gap-1.5 bg-white border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.03)] px-4 py-2.5 rounded-[1rem] text-[11px] font-extrabold text-gray-700 hover:bg-emerald-50 hover:text-primary hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all duration-300 active:scale-95">
+                <span class="text-[13px]">🗣️</span> Cough
+            </button>
+            <button class="flex items-center gap-1.5 bg-white border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.03)] px-4 py-2.5 rounded-[1rem] text-[11px] font-extrabold text-gray-700 hover:bg-emerald-50 hover:text-primary hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all duration-300 active:scale-95">
+                <span class="text-[13px]">🏃</span> Back Pain
+            </button>
+            <button class="flex items-center gap-1.5 bg-white border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.03)] px-4 py-2.5 rounded-[1rem] text-[11px] font-extrabold text-gray-700 hover:bg-emerald-50 hover:text-primary hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all duration-300 active:scale-95">
+                <span class="text-[13px]">🤢</span> Stomach Ache
+            </button>
+            <button class="flex items-center gap-1.5 bg-white border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.03)] px-4 py-2.5 rounded-[1rem] text-[11px] font-extrabold text-gray-700 hover:bg-emerald-50 hover:text-primary hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all duration-300 active:scale-95">
+                <span class="text-[13px]">👁️</span> Vision Issue
+            </button>
+            <button class="flex items-center gap-1.5 bg-gray-50 border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.03)] px-4 py-2.5 rounded-[1rem] text-[11px] font-extrabold text-gray-700 hover:bg-gray-100 transition-all duration-300 active:scale-95">
+                <i class="fa-solid fa-plus text-[10px] text-gray-400 mr-0.5"></i> View All
+            </button>
+        </div>
+    </section> -->
+
+</div>
+{% endblock %}
