@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Schedule | {{ doctor.name }}{% endblock %}
+
+{% block content %}
+<main class="min-h-dvh bg-gray-50 px-4 py-8">
+    <div class="mx-auto max-w-2xl">
+        <a href="{% url 'core:internal-tasks' %}" class="text-sm font-bold text-primary">← Internal Tasks</a>
+        <h1 class="mt-4 text-2xl font-black">Doctor Schedule</h1>
+        <p class="mt-1 text-sm text-textMuted">{{ doctor.name }}{% if doctor.business %} · {{ doctor.business.name }}{% endif %}</p>
+        {% if saved %}<p class="mt-4 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">Doctor schedule updated successfully.</p>{% endif %}
+
+        <form method="post" id="schedule-form" class="mt-5">{% csrf_token %}
+            <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between"><div><h2 class="font-black">Weekly Schedules</h2><p class="text-xs text-textMuted">Notes are generated from selected weekdays.</p></div><button id="add-rule" type="button" class="rounded-lg bg-purple-50 px-3 py-2 text-xs font-bold text-purple-700">+ Add</button></div>
+                <div id="weekly-rules" class="mt-4 space-y-4"></div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between"><div><h2 class="font-black">Monthly Weekday Schedules</h2><p class="text-xs text-textMuted">Choose weekdays and occurrences within each month.</p></div><button id="add-monthly-weekday" type="button" class="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700">+ Add</button></div>
+                <div id="monthly-weekday-rules" class="mt-4 space-y-4"></div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between"><div><h2 class="font-black">Monthly Date Schedules</h2><p class="text-xs text-textMuted">Choose specific dates that repeat every month.</p></div><button id="add-monthly-dates" type="button" class="rounded-lg bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">+ Add</button></div>
+                <div id="monthly-date-rules" class="mt-4 space-y-4"></div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <label for="schedule-json" class="font-black">Generated JSON</label>
+                <p class="mt-1 text-xs text-textMuted">You may also edit the generated JSON directly.</p>
+                <textarea id="schedule-json" name="schedule" rows="14" class="mt-3 w-full rounded-xl border border-gray-200 bg-gray-950 p-3 font-mono text-xs leading-relaxed text-gray-100" required></textarea>
+            </div>
+            <div class="sticky bottom-3 mt-5 rounded-2xl border border-gray-100 bg-white/95 p-3 shadow-lg backdrop-blur"><button class="w-full rounded-xl bg-primary py-3 text-sm font-black text-white hover:bg-primaryDark">Save Doctor Schedule</button></div>
+        </form>
+    </div>
+</main>
+{{ doctor.schedule|json_script:"initial-schedule" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const initial = JSON.parse(document.getElementById("initial-schedule").textContent) || {};
+    const state = {weekly: Array.isArray(initial.weekly) ? initial.weekly : [], monthly_weekday: Array.isArray(initial.monthly_weekday) ? initial.monthly_weekday : [], monthly_dates: Array.isArray(initial.monthly_dates) ? initial.monthly_dates : []};
+    const rules = document.getElementById("weekly-rules"), monthlyWeekdayRules = document.getElementById("monthly-weekday-rules"), monthlyDateRules = document.getElementById("monthly-date-rules"), output = document.getElementById("schedule-json");
+    const makeNote = weekdays => `Available every ${weekdays.map(day => dayNames[day]).join(", ")}`;
+    const sync = () => { output.value = JSON.stringify(state, null, 2); };
+    const renderSlots = (rule, slotBox, rerender) => {
+        rule.slots.forEach((slot, slotIndex) => {
+            const row = document.createElement("div"); row.className = "grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2";
+            row.innerHTML = `<input type="time" value="${slot.start || ""}" class="start min-w-0 rounded-lg border border-gray-200 p-2 text-sm" required><span class="text-xs text-gray-400">to</span><input type="time" value="${slot.end || ""}" class="end min-w-0 rounded-lg border border-gray-200 p-2 text-sm" required><button type="button" class="remove-slot rounded-lg bg-red-50 px-3 py-2 text-red-600">×</button>`;
+            row.querySelector(".start").oninput = event => { slot.start = event.target.value; sync(); };
+            row.querySelector(".end").oninput = event => { slot.end = event.target.value; sync(); };
+            row.querySelector(".remove-slot").onclick = () => { rule.slots.splice(slotIndex, 1); rerender(); };
+            slotBox.appendChild(row);
+        });
+    };
+    const render = () => {
+        rules.innerHTML = "";
+        state.weekly.forEach((rule, ruleIndex) => {
+            rule.weekdays = Array.isArray(rule.weekdays) ? rule.weekdays : [];
+            rule.slots = Array.isArray(rule.slots) ? rule.slots : [];
+            rule.note = makeNote(rule.weekdays);
+            const card = document.createElement("section");
+            card.className = "rounded-xl border border-gray-200 bg-gray-50 p-3";
+            card.innerHTML = `<div class="flex justify-between gap-3"><div class="days flex flex-wrap gap-1.5"></div><button type="button" class="delete text-xs font-bold text-red-600">Remove</button></div><p class="note mt-2 text-xs font-bold text-purple-700"></p><div class="slots mt-3 space-y-2"></div><button type="button" class="add-slot mt-3 rounded-lg bg-white px-3 py-2 text-xs font-bold shadow-sm">+ Add time slot</button>`;
+            const days = card.querySelector(".days");
+            dayNames.forEach((name, day) => {
+                const label = document.createElement("label");
+                label.className = "cursor-pointer rounded-full border border-gray-200 bg-white px-2 py-1 text-[10px] font-bold";
+                label.innerHTML = `<input type="checkbox" class="mr-1" ${rule.weekdays.includes(day) ? "checked" : ""}>${name.slice(0,3)}`;
+                label.querySelector("input").onchange = event => { rule.weekdays = event.target.checked ? [...new Set([...rule.weekdays, day])].sort() : rule.weekdays.filter(value => value !== day); rule.note = makeNote(rule.weekdays); render(); };
+                days.appendChild(label);
+            });
+            card.querySelector(".note").textContent = rule.note || "Select weekdays";
+            const slotBox = card.querySelector(".slots");
+            renderSlots(rule, slotBox, render);
+            card.querySelector(".add-slot").onclick = () => { rule.slots.push({start:"09:00", end:"13:00"}); render(); };
+            card.querySelector(".delete").onclick = () => { state.weekly.splice(ruleIndex, 1); render(); }; rules.appendChild(card);
+        });
+        renderMonthlyWeekdays();
+        renderMonthlyDates();
+        sync();
+    };
+    const renderMonthlyWeekdays = () => {
+        monthlyWeekdayRules.innerHTML = "";
+        state.monthly_weekday.forEach((rule, ruleIndex) => {
+            rule.weekdays = Array.isArray(rule.weekdays) ? rule.weekdays : []; rule.week_numbers = Array.isArray(rule.week_numbers) ? rule.week_numbers : []; rule.slots = Array.isArray(rule.slots) ? rule.slots : [];
+            const weekLabels = rule.week_numbers.map(value => value === -1 ? "last" : ["", "first", "second", "third", "fourth"][value]);
+            rule.note = `Available on the ${weekLabels.join(", ")} ${rule.weekdays.map(day => dayNames[day]).join(", ")} of every month`;
+            const card = document.createElement("section"); card.className = "rounded-xl border border-gray-200 bg-gray-50 p-3";
+            card.innerHTML = `<div class="flex justify-between gap-3"><div><p class="text-[10px] font-black uppercase text-gray-400">Weekdays</p><div class="days mt-1 flex flex-wrap gap-1.5"></div></div><button type="button" class="delete text-xs font-bold text-red-600">Remove</button></div><div class="mt-3"><p class="text-[10px] font-black uppercase text-gray-400">Week of month</p><div class="weeks mt-1 flex flex-wrap gap-1.5"></div></div><p class="note mt-2 text-xs font-bold text-indigo-700"></p><div class="slots mt-3 space-y-2"></div><button type="button" class="add-slot mt-3 rounded-lg bg-white px-3 py-2 text-xs font-bold shadow-sm">+ Add time slot</button>`;
+            dayNames.forEach((name, day) => { const label = document.createElement("label"); label.className = "rounded-full border bg-white px-2 py-1 text-[10px] font-bold"; label.innerHTML = `<input type="checkbox" class="mr-1" ${rule.weekdays.includes(day) ? "checked" : ""}>${name.slice(0,3)}`; label.querySelector("input").onchange = event => { rule.weekdays = event.target.checked ? [...new Set([...rule.weekdays, day])].sort() : rule.weekdays.filter(value => value !== day); render(); }; card.querySelector(".days").appendChild(label); });
+            [[1,"1st"],[2,"2nd"],[3,"3rd"],[4,"4th"],[-1,"Last"]].forEach(([value,labelText]) => { const label = document.createElement("label"); label.className = "rounded-full border bg-white px-2 py-1 text-[10px] font-bold"; label.innerHTML = `<input type="checkbox" class="mr-1" ${rule.week_numbers.includes(value) ? "checked" : ""}>${labelText}`; label.querySelector("input").onchange = event => { rule.week_numbers = event.target.checked ? [...new Set([...rule.week_numbers, value])] : rule.week_numbers.filter(item => item !== value); render(); }; card.querySelector(".weeks").appendChild(label); });
+            card.querySelector(".note").textContent = rule.note; renderSlots(rule, card.querySelector(".slots"), render); card.querySelector(".add-slot").onclick = () => { rule.slots.push({start:"09:00",end:"13:00"}); render(); }; card.querySelector(".delete").onclick = () => { state.monthly_weekday.splice(ruleIndex,1); render(); }; monthlyWeekdayRules.appendChild(card);
+        });
+    };
+    const renderMonthlyDates = () => {
+        monthlyDateRules.innerHTML = "";
+        state.monthly_dates.forEach((rule, ruleIndex) => {
+            rule.dates = Array.isArray(rule.dates) ? rule.dates : []; rule.slots = Array.isArray(rule.slots) ? rule.slots : []; rule.note = `Available on dates ${rule.dates.join(", ")} of every month`;
+            const card = document.createElement("section"); card.className = "rounded-xl border border-gray-200 bg-gray-50 p-3";
+            card.innerHTML = `<div class="flex justify-between gap-3"><label class="flex-1 text-[10px] font-black uppercase text-gray-400">Dates (1–31)<input class="dates mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 text-sm font-semibold" value="${rule.dates.join(", ")}" placeholder="1, 15, 28"></label><button type="button" class="delete text-xs font-bold text-red-600">Remove</button></div><p class="note mt-2 text-xs font-bold text-amber-700"></p><div class="slots mt-3 space-y-2"></div><button type="button" class="add-slot mt-3 rounded-lg bg-white px-3 py-2 text-xs font-bold shadow-sm">+ Add time slot</button>`;
+            card.querySelector(".dates").onchange = event => { rule.dates = [...new Set(event.target.value.split(",").map(value => Number(value.trim())).filter(value => Number.isInteger(value) && value >= 1 && value <= 31))].sort((a,b) => a-b); render(); };
+            card.querySelector(".note").textContent = rule.note; renderSlots(rule, card.querySelector(".slots"), render); card.querySelector(".add-slot").onclick = () => { rule.slots.push({start:"09:00",end:"13:00"}); render(); }; card.querySelector(".delete").onclick = () => { state.monthly_dates.splice(ruleIndex,1); render(); }; monthlyDateRules.appendChild(card);
+        });
+    };
+    document.getElementById("add-rule").onclick = () => { state.weekly.push({weekdays:[], slots:[{start:"09:00", end:"13:00"}], note:""}); render(); };
+    document.getElementById("add-monthly-weekday").onclick = () => { state.monthly_weekday.push({weekdays:[], week_numbers:[], slots:[{start:"09:00",end:"13:00"}], note:""}); render(); };
+    document.getElementById("add-monthly-dates").onclick = () => { state.monthly_dates.push({dates:[], slots:[{start:"09:00",end:"13:00"}], note:""}); render(); };
+    document.getElementById("schedule-form").addEventListener("submit", () => { try { const edited = JSON.parse(output.value); Object.assign(state, edited); sync(); } catch {} });
+    render();
+})();
+</script>
+{% endblock %}

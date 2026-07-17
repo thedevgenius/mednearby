@@ -1,0 +1,1974 @@
+[
+  {
+    "model": "your_app.category",
+    "pk": 1,
+    "fields": {
+      "name": "Doctor",
+      "label": "Doctors",
+      "slug": "doctors",
+      "type": "category",
+      "parent": null,
+      "aliases": "doctor,physician,medical practitioner,consultant",
+      "icon": "fa-solid fa-user-doctor",
+      "color": "#0EA5E9",
+      "display_order": 10,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 2,
+    "fields": {
+      "name": "Clinic",
+      "label": "Clinics",
+      "slug": "clinics",
+      "type": "category",
+      "parent": null,
+      "aliases": "medical clinic,health clinic,doctor chamber,outpatient clinic",
+      "icon": "fa-solid fa-house-medical",
+      "color": "#14B8A6",
+      "display_order": 20,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 3,
+    "fields": {
+      "name": "Hospital",
+      "label": "Hospitals",
+      "slug": "hospitals",
+      "type": "category",
+      "parent": null,
+      "aliases": "medical center,nursing home,multispeciality hospital,healthcare center",
+      "icon": "fa-solid fa-hospital",
+      "color": "#EF4444",
+      "display_order": 30,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 4,
+    "fields": {
+      "name": "Pharmacy",
+      "label": "Pharmacies",
+      "slug": "pharmacies",
+      "type": "category",
+      "parent": null,
+      "aliases": "chemist,medical store,drug store,medicine shop",
+      "icon": "fa-solid fa-prescription-bottle-medical",
+      "color": "#22C55E",
+      "display_order": 40,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 5,
+    "fields": {
+      "name": "Diagnostic Centre",
+      "label": "Diagnostic Centres",
+      "slug": "diagnostic-centres",
+      "type": "category",
+      "parent": null,
+      "aliases": "diagnostic center,pathology lab,medical test centre,lab test",
+      "icon": "fa-solid fa-microscope",
+      "color": "#8B5CF6",
+      "display_order": 50,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 6,
+    "fields": {
+      "name": "Laboratory",
+      "label": "Laboratories",
+      "slug": "laboratories",
+      "type": "category",
+      "parent": null,
+      "aliases": "lab,pathology laboratory,medical laboratory,blood test lab",
+      "icon": "fa-solid fa-flask-vial",
+      "color": "#A855F7",
+      "display_order": 60,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 7,
+    "fields": {
+      "name": "Medical Imaging Centre",
+      "label": "Medical Imaging Centres",
+      "slug": "medical-imaging-centres",
+      "type": "category",
+      "parent": null,
+      "aliases": "radiology,x ray,ultrasound,mri,ct scan,imaging center",
+      "icon": "fa-solid fa-x-ray",
+      "color": "#6366F1",
+      "display_order": 70,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 8,
+    "fields": {
+      "name": "Dental Care",
+      "label": "Dental Care Centres",
+      "slug": "dental-care",
+      "type": "category",
+      "parent": null,
+      "aliases": "dentist,dental clinic,oral care,tooth clinic",
+      "icon": "fa-solid fa-tooth",
+      "color": "#06B6D4",
+      "display_order": 80,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 9,
+    "fields": {
+      "name": "Eye Care",
+      "label": "Eye Care Centres",
+      "slug": "eye-care",
+      "type": "category",
+      "parent": null,
+      "aliases": "eye clinic,ophthalmology,optical care,vision center",
+      "icon": "fa-solid fa-eye",
+      "color": "#3B82F6",
+      "display_order": 90,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 10,
+    "fields": {
+      "name": "Mental Health Care",
+      "label": "Mental Health Centres",
+      "slug": "mental-health-care",
+      "type": "category",
+      "parent": null,
+      "aliases": "mental health,psychology,psychiatry,counselling,therapy",
+      "icon": "fa-solid fa-brain",
+      "color": "#EC4899",
+      "display_order": 100,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 11,
+    "fields": {
+      "name": "Physiotherapy Centre",
+      "label": "Physiotherapy Centres",
+      "slug": "physiotherapy-centres",
+      "type": "category",
+      "parent": null,
+      "aliases": "physio,physical therapy,rehabilitation,pain therapy",
+      "icon": "fa-solid fa-person-walking",
+      "color": "#F97316",
+      "display_order": 110,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 12,
+    "fields": {
+      "name": "Wellness Centre",
+      "label": "Wellness Centres",
+      "slug": "wellness-centres",
+      "type": "category",
+      "parent": null,
+      "aliases": "wellness,preventive care,holistic health,health center",
+      "icon": "fa-solid fa-spa",
+      "color": "#84CC16",
+      "display_order": 120,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 13,
+    "fields": {
+      "name": "Blood Bank",
+      "label": "Blood Banks",
+      "slug": "blood-banks",
+      "type": "category",
+      "parent": null,
+      "aliases": "blood donation,blood storage,plasma bank",
+      "icon": "fa-solid fa-droplet",
+      "color": "#DC2626",
+      "display_order": 130,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 14,
+    "fields": {
+      "name": "Ambulance Service",
+      "label": "Ambulance Services",
+      "slug": "ambulance-services",
+      "type": "category",
+      "parent": null,
+      "aliases": "ambulance,emergency transport,patient transport",
+      "icon": "fa-solid fa-truck-medical",
+      "color": "#F43F5E",
+      "display_order": 140,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 15,
+    "fields": {
+      "name": "Home Healthcare",
+      "label": "Home Healthcare Services",
+      "slug": "home-healthcare",
+      "type": "category",
+      "parent": null,
+      "aliases": "home nursing,home care,patient attendant,elder care",
+      "icon": "fa-solid fa-house-chimney-medical",
+      "color": "#10B981",
+      "display_order": 150,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 16,
+    "fields": {
+      "name": "Nursing Service",
+      "label": "Nursing Services",
+      "slug": "nursing-services",
+      "type": "category",
+      "parent": null,
+      "aliases": "nurse,home nurse,patient care,medical attendant",
+      "icon": "fa-solid fa-user-nurse",
+      "color": "#0D9488",
+      "display_order": 160,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 17,
+    "fields": {
+      "name": "Elder Care",
+      "label": "Elder Care Services",
+      "slug": "elder-care",
+      "type": "category",
+      "parent": null,
+      "aliases": "senior care,geriatric care,old age care,caregiver",
+      "icon": "fa-solid fa-person-cane",
+      "color": "#78716C",
+      "display_order": 170,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 18,
+    "fields": {
+      "name": "Medical Equipment Supplier",
+      "label": "Medical Equipment Suppliers",
+      "slug": "medical-equipment-suppliers",
+      "type": "category",
+      "parent": null,
+      "aliases": "medical devices,hospital equipment,surgical equipment,health equipment",
+      "icon": "fa-solid fa-stethoscope",
+      "color": "#64748B",
+      "display_order": 180,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 19,
+    "fields": {
+      "name": "Optical Store",
+      "label": "Optical Stores",
+      "slug": "optical-stores",
+      "type": "category",
+      "parent": null,
+      "aliases": "optician,eyeglasses,spectacles,contact lenses",
+      "icon": "fa-solid fa-glasses",
+      "color": "#2563EB",
+      "display_order": 190,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 20,
+    "fields": {
+      "name": "Hearing Care Centre",
+      "label": "Hearing Care Centres",
+      "slug": "hearing-care-centres",
+      "type": "category",
+      "parent": null,
+      "aliases": "hearing aid,audiology,ear testing,hearing clinic",
+      "icon": "fa-solid fa-ear-listen",
+      "color": "#7C3AED",
+      "display_order": 200,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 21,
+    "fields": {
+      "name": "Ayurveda Centre",
+      "label": "Ayurveda Centres",
+      "slug": "ayurveda-centres",
+      "type": "category",
+      "parent": null,
+      "aliases": "ayurvedic clinic,ayurvedic doctor,panchakarma,ayush",
+      "icon": "fa-solid fa-leaf",
+      "color": "#65A30D",
+      "display_order": 210,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 22,
+    "fields": {
+      "name": "Homeopathy Clinic",
+      "label": "Homeopathy Clinics",
+      "slug": "homeopathy-clinics",
+      "type": "category",
+      "parent": null,
+      "aliases": "homeopathic clinic,homeopath,alternative medicine",
+      "icon": "fa-solid fa-seedling",
+      "color": "#16A34A",
+      "display_order": 220,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 23,
+    "fields": {
+      "name": "General Clinic",
+      "label": "General Clinics",
+      "slug": "general-clinics",
+      "type": "category",
+      "parent": 2,
+      "aliases": "general physician clinic,family clinic,primary care clinic",
+      "icon": "fa-solid fa-house-medical",
+      "color": "#14B8A6",
+      "display_order": 21,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 24,
+    "fields": {
+      "name": "Multi-specialty Clinic",
+      "label": "Multi-specialty Clinics",
+      "slug": "multi-specialty-clinics",
+      "type": "category",
+      "parent": 2,
+      "aliases": "multispeciality clinic,specialist clinic,polyclinic",
+      "icon": "fa-solid fa-notes-medical",
+      "color": "#0F766E",
+      "display_order": 22,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 25,
+    "fields": {
+      "name": "Day Care Clinic",
+      "label": "Day Care Clinics",
+      "slug": "day-care-clinics",
+      "type": "category",
+      "parent": 2,
+      "aliases": "day surgery,ambulatory care,short stay clinic",
+      "icon": "fa-solid fa-bed-pulse",
+      "color": "#0D9488",
+      "display_order": 23,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 26,
+    "fields": {
+      "name": "General Hospital",
+      "label": "General Hospitals",
+      "slug": "general-hospitals",
+      "type": "category",
+      "parent": 3,
+      "aliases": "community hospital,medical hospital",
+      "icon": "fa-solid fa-hospital",
+      "color": "#EF4444",
+      "display_order": 31,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 27,
+    "fields": {
+      "name": "Multi-specialty Hospital",
+      "label": "Multi-specialty Hospitals",
+      "slug": "multi-specialty-hospitals",
+      "type": "category",
+      "parent": 3,
+      "aliases": "multispeciality hospital,super specialty hospital",
+      "icon": "fa-solid fa-hospital-user",
+      "color": "#DC2626",
+      "display_order": 32,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 28,
+    "fields": {
+      "name": "Nursing Home",
+      "label": "Nursing Homes",
+      "slug": "nursing-homes",
+      "type": "category",
+      "parent": 3,
+      "aliases": "private hospital,small hospital,inpatient care",
+      "icon": "fa-solid fa-bed",
+      "color": "#B91C1C",
+      "display_order": 33,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 29,
+    "fields": {
+      "name": "Maternity Hospital",
+      "label": "Maternity Hospitals",
+      "slug": "maternity-hospitals",
+      "type": "category",
+      "parent": 3,
+      "aliases": "mother and child hospital,delivery hospital,women hospital",
+      "icon": "fa-solid fa-person-pregnant",
+      "color": "#EC4899",
+      "display_order": 34,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 30,
+    "fields": {
+      "name": "Children's Hospital",
+      "label": "Children's Hospitals",
+      "slug": "childrens-hospitals",
+      "type": "category",
+      "parent": 3,
+      "aliases": "pediatric hospital,child hospital,kids hospital",
+      "icon": "fa-solid fa-child-reaching",
+      "color": "#F59E0B",
+      "display_order": 35,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 31,
+    "fields": {
+      "name": "Eye Hospital",
+      "label": "Eye Hospitals",
+      "slug": "eye-hospitals",
+      "type": "category",
+      "parent": 3,
+      "aliases": "ophthalmology hospital,vision hospital",
+      "icon": "fa-solid fa-eye",
+      "color": "#3B82F6",
+      "display_order": 36,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 32,
+    "fields": {
+      "name": "Cancer Hospital",
+      "label": "Cancer Hospitals",
+      "slug": "cancer-hospitals",
+      "type": "category",
+      "parent": 3,
+      "aliases": "oncology hospital,cancer centre",
+      "icon": "fa-solid fa-ribbon",
+      "color": "#A855F7",
+      "display_order": 37,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 33,
+    "fields": {
+      "name": "Cardiac Hospital",
+      "label": "Cardiac Hospitals",
+      "slug": "cardiac-hospitals",
+      "type": "category",
+      "parent": 3,
+      "aliases": "heart hospital,cardiology hospital",
+      "icon": "fa-solid fa-heart-pulse",
+      "color": "#E11D48",
+      "display_order": 38,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 34,
+    "fields": {
+      "name": "Orthopedic Hospital",
+      "label": "Orthopedic Hospitals",
+      "slug": "orthopedic-hospitals",
+      "type": "category",
+      "parent": 3,
+      "aliases": "bone hospital,joint hospital,orthopaedic hospital",
+      "icon": "fa-solid fa-bone",
+      "color": "#F97316",
+      "display_order": 39,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 35,
+    "fields": {
+      "name": "Retail Pharmacy",
+      "label": "Retail Pharmacies",
+      "slug": "retail-pharmacies",
+      "type": "category",
+      "parent": 4,
+      "aliases": "chemist shop,medicine store,drugstore",
+      "icon": "fa-solid fa-prescription-bottle-medical",
+      "color": "#22C55E",
+      "display_order": 41,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 36,
+    "fields": {
+      "name": "24-hour Pharmacy",
+      "label": "24-hour Pharmacies",
+      "slug": "24-hour-pharmacies",
+      "type": "category",
+      "parent": 4,
+      "aliases": "24x7 pharmacy,night pharmacy,emergency medicine shop",
+      "icon": "fa-solid fa-clock",
+      "color": "#16A34A",
+      "display_order": 42,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 37,
+    "fields": {
+      "name": "Online Pharmacy",
+      "label": "Online Pharmacies",
+      "slug": "online-pharmacies",
+      "type": "category",
+      "parent": 4,
+      "aliases": "medicine delivery,online medicine,e pharmacy",
+      "icon": "fa-solid fa-mobile-screen-button",
+      "color": "#15803D",
+      "display_order": 43,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 38,
+    "fields": {
+      "name": "Specialty Pharmacy",
+      "label": "Specialty Pharmacies",
+      "slug": "specialty-pharmacies",
+      "type": "category",
+      "parent": 4,
+      "aliases": "specialised medicines,rare medicines,chronic care pharmacy",
+      "icon": "fa-solid fa-capsules",
+      "color": "#166534",
+      "display_order": 44,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 39,
+    "fields": {
+      "name": "Pathology Centre",
+      "label": "Pathology Centres",
+      "slug": "pathology-centres",
+      "type": "category",
+      "parent": 5,
+      "aliases": "pathology lab,blood test,urine test,lab diagnostics",
+      "icon": "fa-solid fa-vials",
+      "color": "#8B5CF6",
+      "display_order": 51,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 40,
+    "fields": {
+      "name": "Health Checkup Centre",
+      "label": "Health Checkup Centres",
+      "slug": "health-checkup-centres",
+      "type": "category",
+      "parent": 5,
+      "aliases": "full body checkup,preventive health check,screening center",
+      "icon": "fa-solid fa-clipboard-check",
+      "color": "#7C3AED",
+      "display_order": 52,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 41,
+    "fields": {
+      "name": "Collection Centre",
+      "label": "Collection Centres",
+      "slug": "collection-centres",
+      "type": "category",
+      "parent": 5,
+      "aliases": "sample collection,blood collection,home sample collection",
+      "icon": "fa-solid fa-syringe",
+      "color": "#6D28D9",
+      "display_order": 53,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 42,
+    "fields": {
+      "name": "X-ray Centre",
+      "label": "X-ray Centres",
+      "slug": "x-ray-centres",
+      "type": "category",
+      "parent": 7,
+      "aliases": "xray,radiography,digital x ray",
+      "icon": "fa-solid fa-x-ray",
+      "color": "#6366F1",
+      "display_order": 71,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 43,
+    "fields": {
+      "name": "Ultrasound Centre",
+      "label": "Ultrasound Centres",
+      "slug": "ultrasound-centres",
+      "type": "category",
+      "parent": 7,
+      "aliases": "sonography,usg,ultrasonography",
+      "icon": "fa-solid fa-wave-square",
+      "color": "#4F46E5",
+      "display_order": 72,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 44,
+    "fields": {
+      "name": "MRI Centre",
+      "label": "MRI Centres",
+      "slug": "mri-centres",
+      "type": "category",
+      "parent": 7,
+      "aliases": "magnetic resonance imaging,mri scan",
+      "icon": "fa-solid fa-magnet",
+      "color": "#4338CA",
+      "display_order": 73,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 45,
+    "fields": {
+      "name": "CT Scan Centre",
+      "label": "CT Scan Centres",
+      "slug": "ct-scan-centres",
+      "type": "category",
+      "parent": 7,
+      "aliases": "computed tomography,cat scan,ct imaging",
+      "icon": "fa-solid fa-circle-radiation",
+      "color": "#3730A3",
+      "display_order": 74,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 46,
+    "fields": {
+      "name": "Dental Clinic",
+      "label": "Dental Clinics",
+      "slug": "dental-clinics",
+      "type": "category",
+      "parent": 8,
+      "aliases": "dentist clinic,tooth clinic,oral clinic",
+      "icon": "fa-solid fa-tooth",
+      "color": "#06B6D4",
+      "display_order": 81,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 47,
+    "fields": {
+      "name": "Orthodontic Clinic",
+      "label": "Orthodontic Clinics",
+      "slug": "orthodontic-clinics",
+      "type": "category",
+      "parent": 8,
+      "aliases": "braces clinic,teeth alignment,orthodontist",
+      "icon": "fa-solid fa-teeth-open",
+      "color": "#0891B2",
+      "display_order": 82,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 48,
+    "fields": {
+      "name": "Dental Implant Centre",
+      "label": "Dental Implant Centres",
+      "slug": "dental-implant-centres",
+      "type": "category",
+      "parent": 8,
+      "aliases": "tooth implant,implant dentistry,dental surgery",
+      "icon": "fa-solid fa-screwdriver-wrench",
+      "color": "#0E7490",
+      "display_order": 83,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 49,
+    "fields": {
+      "name": "Eye Clinic",
+      "label": "Eye Clinics",
+      "slug": "eye-clinics",
+      "type": "category",
+      "parent": 9,
+      "aliases": "ophthalmology clinic,vision clinic,eye doctor",
+      "icon": "fa-solid fa-eye",
+      "color": "#3B82F6",
+      "display_order": 91,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 50,
+    "fields": {
+      "name": "Optometry Centre",
+      "label": "Optometry Centres",
+      "slug": "optometry-centres",
+      "type": "category",
+      "parent": 9,
+      "aliases": "vision testing,eye test,optometrist",
+      "icon": "fa-solid fa-eye-low-vision",
+      "color": "#2563EB",
+      "display_order": 92,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 51,
+    "fields": {
+      "name": "Counselling Centre",
+      "label": "Counselling Centres",
+      "slug": "counselling-centres",
+      "type": "category",
+      "parent": 10,
+      "aliases": "counseling,therapy,psychological counselling",
+      "icon": "fa-solid fa-comments",
+      "color": "#EC4899",
+      "display_order": 101,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 52,
+    "fields": {
+      "name": "Psychiatric Clinic",
+      "label": "Psychiatric Clinics",
+      "slug": "psychiatric-clinics",
+      "type": "category",
+      "parent": 10,
+      "aliases": "psychiatry clinic,mental illness clinic,psychiatrist",
+      "icon": "fa-solid fa-brain",
+      "color": "#DB2777",
+      "display_order": 102,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 53,
+    "fields": {
+      "name": "De-addiction Centre",
+      "label": "De-addiction Centres",
+      "slug": "de-addiction-centres",
+      "type": "category",
+      "parent": 10,
+      "aliases": "rehab,addiction treatment,substance abuse treatment",
+      "icon": "fa-solid fa-hand-holding-heart",
+      "color": "#BE185D",
+      "display_order": 103,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 54,
+    "fields": {
+      "name": "Sports Physiotherapy Centre",
+      "label": "Sports Physiotherapy Centres",
+      "slug": "sports-physiotherapy-centres",
+      "type": "category",
+      "parent": 11,
+      "aliases": "sports rehab,sports injury physiotherapy,athlete rehabilitation",
+      "icon": "fa-solid fa-person-running",
+      "color": "#F97316",
+      "display_order": 111,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 55,
+    "fields": {
+      "name": "Rehabilitation Centre",
+      "label": "Rehabilitation Centres",
+      "slug": "rehabilitation-centres",
+      "type": "category",
+      "parent": 11,
+      "aliases": "physical rehabilitation,post surgery rehab,neuro rehab",
+      "icon": "fa-solid fa-wheelchair-move",
+      "color": "#EA580C",
+      "display_order": 112,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 56,
+    "fields": {
+      "name": "Home Nursing Service",
+      "label": "Home Nursing Services",
+      "slug": "home-nursing-services",
+      "type": "category",
+      "parent": 15,
+      "aliases": "nurse at home,private nurse,home patient care",
+      "icon": "fa-solid fa-user-nurse",
+      "color": "#10B981",
+      "display_order": 151,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 57,
+    "fields": {
+      "name": "Patient Attendant Service",
+      "label": "Patient Attendant Services",
+      "slug": "patient-attendant-services",
+      "type": "category",
+      "parent": 15,
+      "aliases": "caregiver at home,patient helper,bedside attendant",
+      "icon": "fa-solid fa-hands-holding-child",
+      "color": "#059669",
+      "display_order": 152,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 58,
+    "fields": {
+      "name": "Home Sample Collection",
+      "label": "Home Sample Collection Services",
+      "slug": "home-sample-collection",
+      "type": "category",
+      "parent": 15,
+      "aliases": "blood collection at home,lab test at home,home diagnostics",
+      "icon": "fa-solid fa-vial-circle-check",
+      "color": "#047857",
+      "display_order": 153,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 59,
+    "fields": {
+      "name": "Surgical Equipment Supplier",
+      "label": "Surgical Equipment Suppliers",
+      "slug": "surgical-equipment-suppliers",
+      "type": "category",
+      "parent": 18,
+      "aliases": "surgical store,operation equipment,surgical instruments",
+      "icon": "fa-solid fa-scissors",
+      "color": "#64748B",
+      "display_order": 181,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 60,
+    "fields": {
+      "name": "Medical Oxygen Supplier",
+      "label": "Medical Oxygen Suppliers",
+      "slug": "medical-oxygen-suppliers",
+      "type": "category",
+      "parent": 18,
+      "aliases": "oxygen cylinder,oxygen concentrator,medical gas",
+      "icon": "fa-solid fa-lungs",
+      "color": "#475569",
+      "display_order": 182,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 61,
+    "fields": {
+      "name": "Mobility Aid Supplier",
+      "label": "Mobility Aid Suppliers",
+      "slug": "mobility-aid-suppliers",
+      "type": "category",
+      "parent": 18,
+      "aliases": "wheelchair,walker,crutches,mobility equipment",
+      "icon": "fa-solid fa-wheelchair",
+      "color": "#334155",
+      "display_order": 183,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 62,
+    "fields": {
+      "name": "General Physician",
+      "label": "General Physicians",
+      "slug": "general-physicians",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "general doctor,physician,family doctor,primary care doctor",
+      "icon": "fa-solid fa-stethoscope",
+      "color": "#0EA5E9",
+      "display_order": 10,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 63,
+    "fields": {
+      "name": "Pediatrician",
+      "label": "Pediatricians",
+      "slug": "pediatricians",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "child specialist,children doctor,kids doctor,paediatrician",
+      "icon": "fa-solid fa-baby",
+      "color": "#F59E0B",
+      "display_order": 20,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 64,
+    "fields": {
+      "name": "Gynecologist",
+      "label": "Gynecologists",
+      "slug": "gynecologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "gynaecologist,women specialist,obgyn,obstetrician",
+      "icon": "fa-solid fa-venus",
+      "color": "#EC4899",
+      "display_order": 30,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 65,
+    "fields": {
+      "name": "Dermatologist",
+      "label": "Dermatologists",
+      "slug": "dermatologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "skin doctor,skin specialist,hair specialist,nail specialist",
+      "icon": "fa-solid fa-hand-dots",
+      "color": "#F97316",
+      "display_order": 40,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 66,
+    "fields": {
+      "name": "Dentist",
+      "label": "Dentists",
+      "slug": "dentists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "dental doctor,tooth doctor,oral health doctor",
+      "icon": "fa-solid fa-tooth",
+      "color": "#06B6D4",
+      "display_order": 50,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 67,
+    "fields": {
+      "name": "Cardiologist",
+      "label": "Cardiologists",
+      "slug": "cardiologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "heart doctor,heart specialist,cardiac specialist",
+      "icon": "fa-solid fa-heart-pulse",
+      "color": "#E11D48",
+      "display_order": 60,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 68,
+    "fields": {
+      "name": "Orthopedic Surgeon",
+      "label": "Orthopedic Surgeons",
+      "slug": "orthopedic-surgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "orthopaedic doctor,bone specialist,joint specialist",
+      "icon": "fa-solid fa-bone",
+      "color": "#F97316",
+      "display_order": 70,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 69,
+    "fields": {
+      "name": "Ophthalmologist",
+      "label": "Ophthalmologists",
+      "slug": "ophthalmologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "eye doctor,eye specialist,vision specialist",
+      "icon": "fa-solid fa-eye",
+      "color": "#3B82F6",
+      "display_order": 80,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 70,
+    "fields": {
+      "name": "ENT Specialist",
+      "label": "ENT Specialists",
+      "slug": "ent-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "ear nose throat doctor,otolaryngologist,ear specialist",
+      "icon": "fa-solid fa-ear-listen",
+      "color": "#8B5CF6",
+      "display_order": 90,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 71,
+    "fields": {
+      "name": "Neurologist",
+      "label": "Neurologists",
+      "slug": "neurologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "brain doctor,nerve specialist,neurology doctor",
+      "icon": "fa-solid fa-brain",
+      "color": "#7C3AED",
+      "display_order": 100,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 72,
+    "fields": {
+      "name": "Psychiatrist",
+      "label": "Psychiatrists",
+      "slug": "psychiatrists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "mental health doctor,psychiatry specialist",
+      "icon": "fa-solid fa-head-side-virus",
+      "color": "#DB2777",
+      "display_order": 110,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 73,
+    "fields": {
+      "name": "Psychologist",
+      "label": "Psychologists",
+      "slug": "psychologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "therapist,counsellor,counselor,clinical psychologist",
+      "icon": "fa-solid fa-comments",
+      "color": "#EC4899",
+      "display_order": 120,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 74,
+    "fields": {
+      "name": "Gastroenterologist",
+      "label": "Gastroenterologists",
+      "slug": "gastroenterologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "stomach specialist,digestive system doctor,gastric doctor",
+      "icon": "fa-solid fa-stomach",
+      "color": "#84CC16",
+      "display_order": 130,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 75,
+    "fields": {
+      "name": "Pulmonologist",
+      "label": "Pulmonologists",
+      "slug": "pulmonologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "lung specialist,chest specialist,respiratory doctor",
+      "icon": "fa-solid fa-lungs",
+      "color": "#14B8A6",
+      "display_order": 140,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 76,
+    "fields": {
+      "name": "Endocrinologist",
+      "label": "Endocrinologists",
+      "slug": "endocrinologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "hormone specialist,thyroid doctor,diabetes specialist",
+      "icon": "fa-solid fa-droplet",
+      "color": "#A855F7",
+      "display_order": 150,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 77,
+    "fields": {
+      "name": "Diabetologist",
+      "label": "Diabetologists",
+      "slug": "diabetologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "diabetes doctor,sugar specialist,diabetic specialist",
+      "icon": "fa-solid fa-cubes-stacked",
+      "color": "#9333EA",
+      "display_order": 160,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 78,
+    "fields": {
+      "name": "Nephrologist",
+      "label": "Nephrologists",
+      "slug": "nephrologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "kidney doctor,kidney specialist,renal specialist",
+      "icon": "fa-solid fa-filter",
+      "color": "#2563EB",
+      "display_order": 170,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 79,
+    "fields": {
+      "name": "Urologist",
+      "label": "Urologists",
+      "slug": "urologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "urinary specialist,prostate doctor,male urinary doctor",
+      "icon": "fa-solid fa-person",
+      "color": "#0284C7",
+      "display_order": 180,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 80,
+    "fields": {
+      "name": "Oncologist",
+      "label": "Oncologists",
+      "slug": "oncologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "cancer doctor,cancer specialist,medical oncologist",
+      "icon": "fa-solid fa-ribbon",
+      "color": "#9333EA",
+      "display_order": 190,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 81,
+    "fields": {
+      "name": "Hematologist",
+      "label": "Hematologists",
+      "slug": "hematologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "blood specialist,blood disorder doctor,haematologist",
+      "icon": "fa-solid fa-droplet",
+      "color": "#DC2626",
+      "display_order": 200,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 82,
+    "fields": {
+      "name": "Rheumatologist",
+      "label": "Rheumatologists",
+      "slug": "rheumatologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "arthritis specialist,autoimmune specialist,joint inflammation doctor",
+      "icon": "fa-solid fa-hands",
+      "color": "#F59E0B",
+      "display_order": 210,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 83,
+    "fields": {
+      "name": "General Surgeon",
+      "label": "General Surgeons",
+      "slug": "general-surgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "surgery doctor,surgical specialist",
+      "icon": "fa-solid fa-user-doctor",
+      "color": "#64748B",
+      "display_order": 220,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 84,
+    "fields": {
+      "name": "Laparoscopic Surgeon",
+      "label": "Laparoscopic Surgeons",
+      "slug": "laparoscopic-surgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "keyhole surgeon,minimally invasive surgeon",
+      "icon": "fa-solid fa-scissors",
+      "color": "#475569",
+      "display_order": 230,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 85,
+    "fields": {
+      "name": "Neurosurgeon",
+      "label": "Neurosurgeons",
+      "slug": "neurosurgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "brain surgeon,spine surgeon,nerve surgeon",
+      "icon": "fa-solid fa-brain",
+      "color": "#6D28D9",
+      "display_order": 240,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 86,
+    "fields": {
+      "name": "Cardiac Surgeon",
+      "label": "Cardiac Surgeons",
+      "slug": "cardiac-surgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "heart surgeon,cardiothoracic surgeon",
+      "icon": "fa-solid fa-heart-circle-bolt",
+      "color": "#BE123C",
+      "display_order": 250,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 87,
+    "fields": {
+      "name": "Plastic Surgeon",
+      "label": "Plastic Surgeons",
+      "slug": "plastic-surgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "cosmetic surgeon,reconstructive surgeon,aesthetic surgeon",
+      "icon": "fa-solid fa-wand-magic-sparkles",
+      "color": "#F472B6",
+      "display_order": 260,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 88,
+    "fields": {
+      "name": "Vascular Surgeon",
+      "label": "Vascular Surgeons",
+      "slug": "vascular-surgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "vein specialist,artery surgeon,blood vessel surgeon",
+      "icon": "fa-solid fa-wave-square",
+      "color": "#B91C1C",
+      "display_order": 270,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 89,
+    "fields": {
+      "name": "Pediatric Surgeon",
+      "label": "Pediatric Surgeons",
+      "slug": "pediatric-surgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "child surgeon,children surgery specialist,paediatric surgeon",
+      "icon": "fa-solid fa-child-reaching",
+      "color": "#F59E0B",
+      "display_order": 280,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 90,
+    "fields": {
+      "name": "Obstetrician",
+      "label": "Obstetricians",
+      "slug": "obstetricians",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "pregnancy doctor,delivery specialist,maternity doctor",
+      "icon": "fa-solid fa-person-pregnant",
+      "color": "#EC4899",
+      "display_order": 290,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 91,
+    "fields": {
+      "name": "Infertility Specialist",
+      "label": "Infertility Specialists",
+      "slug": "infertility-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "fertility doctor,ivf specialist,reproductive specialist",
+      "icon": "fa-solid fa-venus-mars",
+      "color": "#D946EF",
+      "display_order": 300,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 92,
+    "fields": {
+      "name": "Radiologist",
+      "label": "Radiologists",
+      "slug": "radiologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "imaging specialist,x ray doctor,mri specialist,ct scan doctor",
+      "icon": "fa-solid fa-x-ray",
+      "color": "#6366F1",
+      "display_order": 310,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 93,
+    "fields": {
+      "name": "Pathologist",
+      "label": "Pathologists",
+      "slug": "pathologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "lab doctor,pathology specialist,diagnostic pathology",
+      "icon": "fa-solid fa-microscope",
+      "color": "#8B5CF6",
+      "display_order": 320,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 94,
+    "fields": {
+      "name": "Anesthesiologist",
+      "label": "Anesthesiologists",
+      "slug": "anesthesiologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "anaesthetist,anesthesia doctor,pain anesthesia specialist",
+      "icon": "fa-solid fa-syringe",
+      "color": "#64748B",
+      "display_order": 330,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 95,
+    "fields": {
+      "name": "Emergency Medicine Specialist",
+      "label": "Emergency Medicine Specialists",
+      "slug": "emergency-medicine-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "emergency doctor,er doctor,trauma doctor",
+      "icon": "fa-solid fa-truck-medical",
+      "color": "#EF4444",
+      "display_order": 340,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 96,
+    "fields": {
+      "name": "Critical Care Specialist",
+      "label": "Critical Care Specialists",
+      "slug": "critical-care-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "icu doctor,intensivist,critical care doctor",
+      "icon": "fa-solid fa-bed-pulse",
+      "color": "#DC2626",
+      "display_order": 350,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 97,
+    "fields": {
+      "name": "Infectious Disease Specialist",
+      "label": "Infectious Disease Specialists",
+      "slug": "infectious-disease-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "infection doctor,fever specialist,tropical disease specialist",
+      "icon": "fa-solid fa-virus",
+      "color": "#16A34A",
+      "display_order": 360,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 98,
+    "fields": {
+      "name": "Internal Medicine Specialist",
+      "label": "Internal Medicine Specialists",
+      "slug": "internal-medicine-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "medicine specialist,adult physician,internist",
+      "icon": "fa-solid fa-stethoscope",
+      "color": "#0EA5E9",
+      "display_order": 370,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 99,
+    "fields": {
+      "name": "Geriatrician",
+      "label": "Geriatricians",
+      "slug": "geriatricians",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "elderly care doctor,senior doctor,geriatric specialist",
+      "icon": "fa-solid fa-person-cane",
+      "color": "#78716C",
+      "display_order": 380,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 100,
+    "fields": {
+      "name": "Sports Medicine Specialist",
+      "label": "Sports Medicine Specialists",
+      "slug": "sports-medicine-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "sports injury doctor,athlete doctor,sports physician",
+      "icon": "fa-solid fa-person-running",
+      "color": "#F97316",
+      "display_order": 390,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 101,
+    "fields": {
+      "name": "Pain Management Specialist",
+      "label": "Pain Management Specialists",
+      "slug": "pain-management-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "pain doctor,chronic pain specialist,pain physician",
+      "icon": "fa-solid fa-bolt",
+      "color": "#F59E0B",
+      "display_order": 400,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 102,
+    "fields": {
+      "name": "Physical Medicine Specialist",
+      "label": "Physical Medicine Specialists",
+      "slug": "physical-medicine-specialists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "rehabilitation doctor,physiatrist,rehab specialist",
+      "icon": "fa-solid fa-person-walking",
+      "color": "#EA580C",
+      "display_order": 410,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 103,
+    "fields": {
+      "name": "Physiotherapist",
+      "label": "Physiotherapists",
+      "slug": "physiotherapists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "physio,physical therapist,rehabilitation therapist",
+      "icon": "fa-solid fa-person-walking",
+      "color": "#F97316",
+      "display_order": 420,
+      "is_featured": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 104,
+    "fields": {
+      "name": "Occupational Therapist",
+      "label": "Occupational Therapists",
+      "slug": "occupational-therapists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "ot therapist,daily living therapist,rehab therapist",
+      "icon": "fa-solid fa-hands",
+      "color": "#0D9488",
+      "display_order": 430,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 105,
+    "fields": {
+      "name": "Speech Therapist",
+      "label": "Speech Therapists",
+      "slug": "speech-therapists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "speech language therapist,speech pathologist,voice therapist",
+      "icon": "fa-solid fa-comment-medical",
+      "color": "#06B6D4",
+      "display_order": 440,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 106,
+    "fields": {
+      "name": "Audiologist",
+      "label": "Audiologists",
+      "slug": "audiologists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "hearing specialist,hearing test doctor,audiology specialist",
+      "icon": "fa-solid fa-ear-listen",
+      "color": "#7C3AED",
+      "display_order": 450,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 107,
+    "fields": {
+      "name": "Dietitian",
+      "label": "Dietitians",
+      "slug": "dietitians",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "nutritionist,diet specialist,clinical nutritionist",
+      "icon": "fa-solid fa-apple-whole",
+      "color": "#65A30D",
+      "display_order": 460,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 108,
+    "fields": {
+      "name": "Podiatrist",
+      "label": "Podiatrists",
+      "slug": "podiatrists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "foot doctor,ankle specialist,foot care specialist",
+      "icon": "fa-solid fa-shoe-prints",
+      "color": "#92400E",
+      "display_order": 470,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 109,
+    "fields": {
+      "name": "Oral and Maxillofacial Surgeon",
+      "label": "Oral and Maxillofacial Surgeons",
+      "slug": "oral-maxillofacial-surgeons",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "oral surgeon,jaw surgeon,facial surgeon",
+      "icon": "fa-solid fa-teeth-open",
+      "color": "#0891B2",
+      "display_order": 480,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 110,
+    "fields": {
+      "name": "Orthodontist",
+      "label": "Orthodontists",
+      "slug": "orthodontists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "braces specialist,teeth alignment doctor,dental braces doctor",
+      "icon": "fa-solid fa-teeth",
+      "color": "#06B6D4",
+      "display_order": 490,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 111,
+    "fields": {
+      "name": "Periodontist",
+      "label": "Periodontists",
+      "slug": "periodontists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "gum specialist,gum doctor,periodontal dentist",
+      "icon": "fa-solid fa-tooth",
+      "color": "#0E7490",
+      "display_order": 500,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 112,
+    "fields": {
+      "name": "Endodontist",
+      "label": "Endodontists",
+      "slug": "endodontists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "root canal specialist,rct dentist,dental pulp specialist",
+      "icon": "fa-solid fa-tooth",
+      "color": "#155E75",
+      "display_order": 510,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 113,
+    "fields": {
+      "name": "Prosthodontist",
+      "label": "Prosthodontists",
+      "slug": "prosthodontists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "denture specialist,dental implant specialist,prosthetic dentist",
+      "icon": "fa-solid fa-teeth-open",
+      "color": "#164E63",
+      "display_order": 520,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 114,
+    "fields": {
+      "name": "Pediatric Dentist",
+      "label": "Pediatric Dentists",
+      "slug": "pediatric-dentists",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "child dentist,kids dentist,paediatric dentist",
+      "icon": "fa-solid fa-child",
+      "color": "#F59E0B",
+      "display_order": 530,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 115,
+    "fields": {
+      "name": "Ayurvedic Doctor",
+      "label": "Ayurvedic Doctors",
+      "slug": "ayurvedic-doctors",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "ayurveda physician,ayush doctor,vedic medicine doctor",
+      "icon": "fa-solid fa-leaf",
+      "color": "#65A30D",
+      "display_order": 540,
+      "is_featured": false,
+      "is_active": true
+    }
+  },
+  {
+    "model": "your_app.category",
+    "pk": 116,
+    "fields": {
+      "name": "Homeopathic Doctor",
+      "label": "Homeopathic Doctors",
+      "slug": "homeopathic-doctors",
+      "type": "specialty",
+      "parent": null,
+      "aliases": "homeopath,homeopathy physician,alternative medicine doctor",
+      "icon": "fa-solid fa-seedling",
+      "color": "#16A34A",
+      "display_order": 550,
+      "is_featured": false,
+      "is_active": true
+    }
+  }
+]

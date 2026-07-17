@@ -5,7 +5,7 @@ from .models import User
 
 
 @admin.register(User)
-class UserAdmin(DjangoUserAdmin):
+class UserAdmin(admin.ModelAdmin):
     ordering = ("phone",)
     list_display = ("phone", "full_name", "is_staff", "is_active")
     search_fields = ("phone", "full_name")
@@ -17,16 +17,17 @@ class UserAdmin(DjangoUserAdmin):
         (
             "Permissions",
             {
+                "classes": ("collapse",),
                 "fields": (
                     "is_active",
                     "is_staff",
                     "is_superuser",
-                    "groups",
-                    "user_permissions",
+                    # "groups",
+                    # "user_permissions",
                 )
             },
         ),
-        ("Important dates", {"fields": ("last_login", "date_joined")}),
+        ("Important dates", {"classes": ("collapse",),"fields": ("last_login", "date_joined")}),
     )
     add_fieldsets = (
         (
@@ -37,3 +38,5 @@ class UserAdmin(DjangoUserAdmin):
             },
         ),
     )
+
+

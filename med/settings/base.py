@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "storages",
+
     "core",
     "accounts",
     "directory",
@@ -115,5 +117,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STORAGE_URL = "https://pub-19e3e70a6ea04e189ac12824c6dc70cb.r2.dev/"
-THUMBNAIL_URL = os.getenv("THUMBNAIL_URL", STORAGE_URL)
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
+THUMBNAIL_URL = os.getenv("THUMBNAIL_URL", MEDIA_URL)

@@ -1,8 +1,15 @@
 import uuid
+from io import BytesIO
+from pathlib import Path
 
 import pygeohash as pgh
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.core.validators import FileExtensionValidator
+from django.db import models, transaction
+from django.db.models import Q
 from django.utils import timezone
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from core.utils import generate_unique_slug
 
@@ -26,6 +33,13 @@ class Business(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, blank=True, unique=True)
+    owner = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="businesses",
+    )
     categories = models.ManyToManyField(
         Category,
         blank=True,
@@ -66,6 +80,7 @@ class Business(models.Model):
     is_24_7 = models.BooleanField(default=False)
     is_home_collection = models.BooleanField(default=False)
     is_home_delivery = models.BooleanField(default=False)
+    is_emergency = models.BooleanField(default=False)
 
     verification_status = models.CharField(
         max_length=20,
@@ -83,6 +98,11 @@ class Business(models.Model):
     business_hours = models.JSONField(null=True, blank=True)
     services = models.JSONField(null=True, blank=True, default=list)
     thumbnail_url = models.CharField(max_length=200, blank=True, null=True)
+    facilities = models.ManyToManyField(
+        "Facility",
+        blank=True,
+        related_name="businesses",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -117,9 +137,11 @@ class Business(models.Model):
 
     def save(self, *args, **kwargs):
         changed_fields = set()
-        if not self.slug:
-            self.slug = generate_unique_slug(self, self.name)
-            changed_fields.add("slug")
+        slug_source = " ".join(
+            part.strip() for part in (self.name, self.landmark) if part and part.strip()
+        )
+        self.slug = generate_unique_slug(self, slug_source, fallback="business")
+        changed_fields.add("slug")
 
         if self.latitude is not None and self.longitude is not None:
             self.geohash = pgh.encode(
@@ -152,3 +174,149 @@ class Business(models.Model):
             self.featured_until
             and self.featured_until > timezone.now()
         )
+
+
+class BusinessImage(models.Model):
+    business = models.ForeignKey(
+        Business,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField(
+        upload_to="businesses",
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=("jpg", "jpeg", "png", "webp")
+            )
+        ],
+    )
+    is_thumbnail = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "Business Images"
+        db_table = "business_images"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("business",),
+                condition=Q(is_thumbnail=True),
+                name="one_thumbnail_per_business",
+            )
+        ]
+
+    def _prepare_webp_image(self):
+        if not self.image or self.image._committed:
+            return
+
+        try:
+            self.image.seek(0)
+            with Image.open(self.image) as source:
+                source.verify()
+            self.image.seek(0)
+            with Image.open(self.image) as source:
+                processed = ImageOps.exif_transpose(source)
+                if processed.width > 768:
+                    height = max(1, round(processed.height * 768 / processed.width))
+                    processed = processed.resize(
+                        (768, height),
+                        Image.Resampling.LANCZOS,
+                    )
+                if processed.mode not in ("RGB", "RGBA"):
+                    processed = processed.convert(
+                        "RGBA" if "transparency" in processed.info else "RGB"
+                    )
+
+                output = BytesIO()
+                processed.save(
+                    output,
+                    format="WEBP",
+                    quality=82,
+                    method=6,
+                    optimize=True,
+                )
+        except (UnidentifiedImageError, OSError, ValueError) as exc:
+            raise ValidationError(
+                {"image": "Upload a valid JPG, PNG, or WebP image file."}
+            ) from exc
+
+        output.seek(0)
+        filename = f"{Path(self.image.name).stem}.webp"
+        self.image = ContentFile(output.read(), name=filename)
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        previous = None
+        if self.pk:
+            previous = type(self).objects.filter(pk=self.pk).values(
+                "image", "is_thumbnail"
+            ).first()
+
+        self._prepare_webp_image()
+
+        if self.is_thumbnail:
+            type(self).objects.filter(
+                business_id=self.business_id,
+                is_thumbnail=True,
+            ).exclude(pk=self.pk).update(is_thumbnail=False)
+
+        super().save(*args, **kwargs)
+
+        if self.is_thumbnail:
+            Business.objects.filter(pk=self.business_id).update(
+                thumbnail_url=self.image.name
+            )
+        elif previous and previous["is_thumbnail"]:
+            Business.objects.filter(
+                pk=self.business_id,
+                thumbnail_url=previous["image"],
+            ).update(thumbnail_url=None)
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        business_id = self.business_id
+        image_name = self.image.name
+        was_thumbnail = self.is_thumbnail
+        result = super().delete(*args, **kwargs)
+        if was_thumbnail:
+            Business.objects.filter(
+                pk=business_id,
+                thumbnail_url=image_name,
+            ).update(thumbnail_url=None)
+        return result
+
+    def __str__(self):
+        return f"{self.business.name} - {self.image}"
+
+
+class Ambulance(models.Model):
+    business = models.ForeignKey(
+        Business,
+        on_delete=models.CASCADE,
+        related_name="ambulances",
+    )
+    phone = models.CharField(max_length=20, unique=True)
+    is_active = models.BooleanField(default=True)
+    is_24_7 = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Ambulances"
+        db_table = "ambulances"
+
+    def __str__(self):
+        return f"{self.business.name} - {self.phone}"
+
+
+class Facility(models.Model):
+    name = models.CharField(max_length=255)
+    icon = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name_plural = "Facilities"
+        db_table = "facilities"
+
+    def __str__(self):
+        return self.name

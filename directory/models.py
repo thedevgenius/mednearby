@@ -79,5 +79,10 @@ class Category(models.Model):
 
 
 # Preserve the existing public import API: from directory.models import ...
-from .business_models import Business  # noqa: E402, F401
+from .business_models import (  # noqa: E402, F401
+    Ambulance,
+    Business,
+    BusinessImage,
+    Facility,
+)
 from .doctor_models import Doctor  # noqa: E402, F401

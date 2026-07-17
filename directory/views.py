@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views import View
 
@@ -22,6 +23,7 @@ from .services import (
     serialize_business,
     serialize_category,
     serialize_doctor,
+    similar_doctors_nearby,
     similar_businesses_nearby,
 )
 
@@ -166,6 +168,7 @@ class BusinessDetailView(View):
                 "locality__city__state",
             ).prefetch_related(
                 "categories",
+                "facilities",
                 Prefetch(
                     "doctor_set",
                     queryset=Doctor.objects.filter(is_active=True).prefetch_related(
@@ -279,8 +282,6 @@ class BusinessDetailView(View):
                 "api": "1",
                 "destination": f"{latitude},{longitude}",
             }
-            if user_latitude is not None and user_longitude is not None:
-                directions_params["origin"] = f"{user_latitude},{user_longitude}"
             google_directions_url = (
                 "https://www.google.com/maps/dir/?" + urlencode(directions_params)
             )
@@ -295,6 +296,17 @@ class BusinessDetailView(View):
                     1,
                 )
         similar_businesses = similar_businesses_nearby(business, limit=10)
+        business_url = request.build_absolute_uri(
+            reverse("businesses:detail", kwargs={"slug": business.slug})
+        )
+        whatsapp_share_url = "https://api.whatsapp.com/send?" + urlencode(
+            {
+                "text": (
+                    f"View {business.name} on MedNearby.\n\n"
+                    f"{business_url}"
+                )
+            }
+        )
 
         return render(
             request,
@@ -316,6 +328,7 @@ class BusinessDetailView(View):
                 "google_directions_url": google_directions_url,
                 "distance_km": distance_km,
                 "similar_businesses": similar_businesses,
+                "whatsapp_share_url": whatsapp_share_url,
             },
         )
 
@@ -370,5 +383,58 @@ class DoctorListView(View):
                 "has_more": has_more,
                 "next_page": page + 1,
                 "location_required": False,
+            },
+        )
+
+
+class DoctorDetailView(View):
+    http_method_names = ["get"]
+
+    def get(self, request, slug, *args, **kwargs):
+        doctor = get_object_or_404(
+            Doctor.objects.select_related(
+                "business",
+                "business__locality",
+            ).prefetch_related("specialties"),
+            slug=slug,
+            is_active=True,
+            business__is_testing=False,
+            business__is_active=True,
+            business__publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        try:
+            latitude = float(request.COOKIES["mednearby_location_lat"])
+            longitude = float(request.COOKIES["mednearby_location_lng"])
+            if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+                raise ValueError
+        except (KeyError, TypeError, ValueError):
+            latitude = float(doctor.business.latitude) if doctor.business.latitude is not None else None
+            longitude = float(doctor.business.longitude) if doctor.business.longitude is not None else None
+
+        similar_doctors = (
+            similar_doctors_nearby(doctor, latitude, longitude)
+            if latitude is not None and longitude is not None
+            else []
+        )
+        doctor_url = request.build_absolute_uri(
+            reverse("doctors:detail", kwargs={"slug": doctor.slug})
+        )
+        whatsapp_share_url = "https://api.whatsapp.com/send?" + urlencode(
+            {
+                "text": (
+                    f"View {doctor.name}'s profile on MedNearby.\n\n"
+                    f"{doctor_url}"
+                )
+            }
+        )
+        return render(
+            request,
+            "directory/doctor_detail.html",
+            {
+                "doctor": doctor,
+                "specialties": list(doctor.specialties.all()),
+                "display_schedule": doctor_schedule_availability(doctor.schedule),
+                "similar_doctors": similar_doctors,
+                "whatsapp_share_url": whatsapp_share_url,
             },
         )

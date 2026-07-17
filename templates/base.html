@@ -11,6 +11,10 @@
     <title>{% block title %}MedNearby{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <!-- Mobile and Theme -->
+    {% comment %} <meta name="theme-color" content="#10b981"> {% endcomment %}
+    {% block extra_head %}{% endblock %}
     {% block extra_css %}{% endblock %}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

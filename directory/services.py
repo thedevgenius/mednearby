@@ -12,7 +12,7 @@ from django.db.models import Value
 from django.db.models.functions import Cast
 from django.utils import timezone
 
-from .models import Business, Category, Doctor
+from .models import Ambulance, Business, Category, Doctor
 
 
 SEARCH_RESULT_LIMIT = 10
@@ -151,6 +151,66 @@ def businesses_nearby(latitude, longitude, limit=10):
             if len(open_businesses) == limit:
                 break
     return open_businesses
+
+
+def ambulances_nearby(latitude, longitude, limit=None):
+    """Return active ambulances ordered by their business location."""
+    latitude = float(latitude)
+    longitude = float(longitude)
+    center_hash = pgh.encode(latitude, longitude, precision=5)
+    prefixes = neighboring_geohashes(center_hash)
+    geohash_filter = Q()
+    for prefix in prefixes:
+        geohash_filter |= Q(business__geohash__startswith=prefix)
+
+    lat = Cast("business__latitude", FloatField())
+    lng = Cast("business__longitude", FloatField())
+    lat_delta = lat - Value(latitude)
+    lng_delta = (lng - Value(longitude)) * Value(cos(radians(latitude)))
+    distance_degrees = ExpressionWrapper(
+        lat_delta * lat_delta + lng_delta * lng_delta,
+        output_field=FloatField(),
+    )
+    queryset = (
+        Ambulance.objects.filter(
+            is_active=True,
+            business__is_testing=False,
+            business__is_active=True,
+            business__publication_status=Business.PublicationStatus.PUBLISHED,
+            business__latitude__isnull=False,
+            business__longitude__isnull=False,
+        )
+        .filter(geohash_filter)
+        .select_related("business", "business__locality", "business__locality__city")
+        .annotate(distance_degrees=distance_degrees)
+        .order_by("distance_degrees", "id")
+    )
+    if limit is not None:
+        queryset = queryset[:limit]
+    return [serialize_ambulance(ambulance) for ambulance in queryset]
+
+
+def serialize_ambulance(ambulance):
+    business = ambulance.business
+    address_parts = [
+        business.address,
+        business.landmark,
+        business.locality.name if business.locality else "",
+        business.locality.city.name if business.locality and business.locality.city else "",
+        business.pincode,
+    ]
+    return {
+        "business": business.name,
+        "business_slug": business.slug,
+        "phone": ambulance.phone,
+        "is_24_7": ambulance.is_24_7,
+        "distance_km": round((ambulance.distance_degrees ** 0.5) * 111.195, 1),
+        "address": ", ".join(
+            part.strip() for part in address_parts if part and part.strip()
+        ),
+        "latitude": business.latitude,
+        "longitude": business.longitude,
+    }
 
 
 def similar_businesses_nearby(business, limit=10):
@@ -395,6 +455,42 @@ def doctors_nearby_available_today(latitude, longitude, limit=10):
             if len(available) == limit:
                 break
     return available
+
+
+def similar_doctors_nearby(doctor, latitude, longitude, limit=10):
+    """Return nearby active doctors sharing at least one specialty."""
+    specialty_ids = list(doctor.specialties.values_list("id", flat=True))
+    if not specialty_ids:
+        return []
+
+    latitude = float(latitude)
+    longitude = float(longitude)
+    lat = Cast("business__latitude", FloatField())
+    lng = Cast("business__longitude", FloatField())
+    lat_delta = lat - Value(latitude)
+    lng_delta = (lng - Value(longitude)) * Value(cos(radians(latitude)))
+    distance_degrees = ExpressionWrapper(
+        lat_delta * lat_delta + lng_delta * lng_delta,
+        output_field=FloatField(),
+    )
+    doctors = (
+        Doctor.objects.filter(
+            specialties__id__in=specialty_ids,
+            is_active=True,
+            business__is_testing=False,
+            business__is_active=True,
+            business__publication_status=Business.PublicationStatus.PUBLISHED,
+            business__latitude__isnull=False,
+            business__longitude__isnull=False,
+        )
+        .exclude(pk=doctor.pk)
+        .select_related("business", "business__locality")
+        .prefetch_related("specialties")
+        .annotate(distance_degrees=distance_degrees)
+        .order_by("distance_degrees", "id")
+        .distinct()[:limit]
+    )
+    return [serialize_doctor(item) for item in doctors]
 
 
 def _schedule_date_matches(rule, day, rule_type):
