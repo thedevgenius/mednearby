@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Use{% endblock %}
+
+{% block content %}
+    <div class="app-container relative z-0 bg-gray-50 min-h-screen pb-10">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 flex items-center gap-3 border-b border-gray-100/80 bg-white/95 px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-md">
+        <a href="{% url 'core:home' %}" data-back-button class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-100 bg-gray-50 text-textMain transition-transform active:scale-95 hover:bg-gray-100" aria-label="Go back">
+            <i class="fa-solid fa-arrow-left text-base" aria-hidden="true"></i>
+        </a>
+        <div class="min-w-0 flex-1">
+            <h1 class="truncate text-[16px] font-black text-textMain tracking-tight">Terms of Use</h1>
+            <p class="text-[10px] font-bold text-emerald-500">Last updated: July 17, 2026</p>
+        </div>
+    </header>
+
+    <!-- INTRO HEADER -->
+    <section class="px-4 mt-6">
+        <div class="flex items-start gap-3 mb-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100/50 text-indigo-500 shadow-[0_2px_8px_rgba(99,102,241,0.08)]">
+                <i class="fa-solid fa-file-contract text-xl"></i>
+            </div>
+            <div class="flex-1 pt-1">
+                <p class="text-[12px] font-semibold text-gray-500 leading-relaxed">
+                    <span class="font-black text-textMain">Welcome to MedNearby.</span> By accessing or using our website or application, you agree to these Terms of Use.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TERMS CONTENT CARDS -->
+    <section class="px-4 mt-2 flex flex-col gap-4">
+        
+        <!-- Section: About MedNearby -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100/50">
+                    <i class="fa-solid fa-circle-info text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">About MedNearby</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p>MedNearby is a healthcare business discovery platform that helps users find nearby doctors, clinics, hospitals, pharmacies, diagnostic centres, and other healthcare service providers.</p>
+                <p>MedNearby provides business and professional information for general discovery purposes only. We do not provide medical advice, diagnosis, treatment, emergency assistance, or healthcare services.</p>
+            </div>
+        </article>
+
+        <!-- Section: Open-Source Platform & Sponsorship -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 border border-emerald-100/50">
+                    <i class="fa-brands fa-osi text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Open-Source & Sponsorship</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p><strong>Open-Source Platform:</strong> MedNearby is completely open-source. Its source code may be publicly available under the applicable open-source licence. Use, copying, modification, and distribution are subject to the terms of that licence. Availability of the code does not grant permission to use the MedNearby name, logo, branding, or business data.</p>
+                <p><strong>Sponsorship:</strong> MedNearby may be supported by local healthcare providers. Sponsorship helps us operate and improve the Platform, but it does not mean MedNearby medically recommends, certifies, or guarantees the sponsor.</p>
+                <p>Sponsored listings may receive additional visibility and will be identified as sponsored or promoted content. Sponsorship does not guarantee better search ranking unless clearly marked.</p>
+            </div>
+        </article>
+
+        <!-- Section: No Medical Advice (CRITICAL HIGHLIGHT) -->
+        <article class="bg-rose-50 border border-rose-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(244,63,94,0.04)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-rose-100/80 flex items-center justify-center text-rose-600 border border-rose-200/50">
+                    <i class="fa-solid fa-user-doctor text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-rose-900 tracking-tight">No Medical Advice</h2>
+            </div>
+            <div class="text-[12px] font-semibold text-rose-800 leading-relaxed space-y-3">
+                <p>Information available on MedNearby is provided for general informational purposes only and must not be treated as medical advice.</p>
+                <p>Always seek advice from a qualified healthcare professional regarding any medical condition, diagnosis, treatment, or health-related decision.</p>
+                <div class="mt-2 bg-white/60 rounded-xl p-3 border border-rose-200/50">
+                    <p class="text-[11px] font-extrabold text-rose-700">In a medical emergency, contact your local emergency service or visit the nearest appropriate medical facility immediately.</p>
+                </div>
+            </div>
+        </article>
+
+        <!-- Section: Business Information & Accuracy -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center text-teal-500 border border-teal-100/50">
+                    <i class="fa-solid fa-store text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Business Information & Accuracy</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p>Business information displayed may be submitted by owners, professionals, users, or collected from public sources. This includes:</p>
+                
+                <div class="mt-2 bg-gray-50 rounded-xl p-3 border border-gray-100/60">
+                    <ul class="flex flex-col gap-1.5 text-[11px] font-semibold text-gray-600">
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Name, address, and location</li>
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Contact details (Phone, WhatsApp, Email)</li>
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Business hours and schedules</li>
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Services, facilities, photos, and offers</li>
+                    </ul>
+                </div>
+                
+                <p>Businesses and professionals are responsible for ensuring their information is accurate, lawful, and up to date.</p>
+                <p class="text-[11px] font-semibold text-textMuted bg-gray-50 px-2 py-1.5 border-l-2 border-teal-400"><strong>Accuracy:</strong> We try to provide useful information, but do not guarantee that every detail is always correct. Always contact the business directly to confirm important details before relying on a listing. Distances shown on the platform are approximate and calculated as a straight-line distance between locations, so they may differ from route-based distances shown by Google Maps or other navigation services.</p>
+            </div>
+        </article>
+
+        <!-- Section: User Responsibilities -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 border border-amber-100/50">
+                    <i class="fa-solid fa-users text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">User Responsibilities</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p>When using MedNearby, you agree not to:</p>
+                <ul class="flex flex-col gap-2 pl-1">
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-xmark text-amber-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Submit false, misleading, unlawful, or harmful information.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-xmark text-amber-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Impersonate another person, business, or professional.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-xmark text-amber-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Upload content without permission or legal rights.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-xmark text-amber-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Attempt to damage, disrupt, or misuse the Platform.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-xmark text-amber-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Use the Platform for fraud, spam, harassment, or illegal activity.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-xmark text-amber-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Copy or reuse Platform content in an unauthorised manner.</span>
+                    </li>
+                </ul>
+            </div>
+        </article>
+
+        <!-- Section: IP, Removals & Disclaimers -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200/50">
+                    <i class="fa-solid fa-scale-balanced text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Legal & Limitations</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p><strong>Removals:</strong> MedNearby may edit, restrict, or remove any listing that is inaccurate, unlawful, or violates these Terms. Owners may contact us to update or remove eligible information.</p>
+                <p><strong>Intellectual Property:</strong> The MedNearby name, logo, and original content belong to MedNearby. Businesses retain ownership of submitted content and grant us permission to use it for operating the Platform.</p>
+                <p><strong>Third-Party Services:</strong> We are not responsible for the availability, content, or actions of third-party maps, links, or services accessible via MedNearby.</p>
+                <p><strong>Limitation of Responsibility:</strong> MedNearby does not guarantee any healthcare provider. Any dispute or transaction is solely between the user and the provider. MedNearby is not responsible for any loss, injury, or damage resulting from the use of the Platform.</p>
+                <p><strong>Platform Availability:</strong> We may change or suspend MedNearby at any time and do not guarantee it will be uninterrupted or error-free.</p>
+            </div>
+        </article>
+
+        <!-- Section: Updates & Governing Law -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500 border border-purple-100/50">
+                    <i class="fa-solid fa-gavel text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Updates & Governing Law</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-2">
+                <p>We may update these Terms of Use when required. Continued use of MedNearby after changes are published means you accept the updated Terms.</p>
+                <p>These Terms are governed by the applicable laws of India. Any disputes will be subject to the jurisdiction of the courts located in [City, State], India.</p>
+            </div>
+        </article>
+
+    </section>
+
+    <!-- CONTACT & OPEN SOURCE CTA -->
+    <section class="px-4 mt-6">
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-[1.5rem] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="relative z-10 text-center">
+                <h2 class="text-[16px] font-black text-white mb-1.5">Contact Us</h2>
+                <p class="text-[11px] font-medium text-gray-300 mb-4 px-2">For questions, corrections, or listing requests, contact us at:</p>
+                
+                <a href="mailto:mednearby.2026@gmail.com" class="inline-flex w-full items-center justify-center gap-2 bg-emerald-500 text-white py-3.5 rounded-[14px] text-[12px] font-extrabold shadow-md shadow-emerald-500/20 active:scale-95 transition-transform hover:bg-emerald-400">
+                    <i class="fa-solid fa-envelope"></i> mednearby.2026@gmail.com
+                </a>
+            
+                
+                <p class="mt-4 text-[10px] font-bold text-gray-400"><span class="text-white">MedNearby</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

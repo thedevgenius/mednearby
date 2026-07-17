@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Support{% endblock %}
+
+{% block content %}
+<div class="app-container relative z-0 bg-gray-50 min-h-dvh pb-10">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 flex items-center gap-3 border-b border-gray-100/80 bg-white/95 px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-md">
+        <a href="{% url 'core:home' %}" data-back-button class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-gray-50 text-gray-600 active:scale-95 transition-transform hover:bg-gray-100" aria-label="Go back">
+            <i class="fa-solid fa-arrow-left text-sm"></i>
+        </a>
+        <div class="min-w-0 flex-1">
+            <h1 class="truncate text-[16px] font-black text-textMain tracking-tight">Help & Support</h1>
+            <p class="text-[10px] font-bold text-emerald-500">We're here for you</p>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="px-4 mt-8 flex flex-col items-center text-center">
+        <!-- Animated Icon Container -->
+        <div class="w-20 h-20 bg-gradient-to-br from-indigo-50 to-white rounded-full flex items-center justify-center border border-indigo-100/50 shadow-[0_4px_20px_rgba(99,102,241,0.1)] mb-4 relative">
+            <div class="absolute inset-0 rounded-full border-2 border-indigo-500/20 animate-ping"></div>
+            <i class="fa-solid fa-headset text-3xl text-indigo-500"></i>
+        </div>
+        
+        <h2 class="text-[22px] font-black text-textMain leading-tight tracking-tight">How can we help?</h2>
+        <p class="text-[12px] font-semibold text-gray-500 mt-2 max-w-[260px] leading-relaxed">Have a question about MedNearby or need to update a listing? Reach out to our team.</p>
+    </section>
+
+    <!-- CONTACT OPTIONS -->
+    <section class="px-4 mt-8 flex flex-col gap-3.5">
+        
+        <!-- 1. WhatsApp Option (Primary) -->
+        <a href="https://wa.me/+917029005857?text=Hi%2C%20I%E2%80%99d%20like%20to%20add%20my%20business%20to%20MedNearby.%20Please%20share%20the%20next%20steps." target="_blank" rel="noopener noreferrer" class="relative overflow-hidden bg-white border border-gray-100/80 rounded-[1.5rem] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.03)] active:scale-[0.98] transition-all duration-300 block group hover:border-emerald-200 hover:shadow-md">
+            
+            <!-- Background Watermark -->
+            <i class="fa-brands fa-whatsapp absolute -bottom-4 -right-4 text-7xl text-emerald-500/5 group-hover:text-emerald-500/10 transition-all duration-300 transform group-hover:scale-110 group-hover:-rotate-6"></i>
+            
+            <div class="relative z-10 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500 border border-emerald-100/50 shadow-[0_2px_8px_rgba(16,185,129,0.15)] shrink-0">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md mb-1.5">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-emerald-600">Replies instantly</span>
+                    </div>
+                    <h3 class="text-[15px] font-black text-textMain tracking-tight">Chat on WhatsApp</h3>
+                    <p class="text-[11px] font-bold text-gray-400 mt-0.5">Fastest way to get support</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-gray-300 text-[10px] pr-1 group-hover:text-emerald-400 transition-colors"></i>
+            </div>
+        </a>
+
+        <!-- 2. Email Option (Secondary) -->
+        <!-- <a href="mailto:support@mednearby.com" class="relative overflow-hidden bg-white border border-gray-100/80 rounded-[1.5rem] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.03)] active:scale-[0.98] transition-all duration-300 block group hover:border-blue-200 hover:shadow-md">
+            
+            <i class="fa-solid fa-envelope absolute -bottom-4 -right-4 text-7xl text-blue-500/5 group-hover:text-blue-500/10 transition-all duration-300 transform group-hover:scale-110 group-hover:-rotate-6"></i>
+            
+            <div class="relative z-10 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100/50 shadow-sm shrink-0">
+                    <i class="fa-regular fa-envelope text-xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-[15px] font-black text-textMain tracking-tight mt-1">Send an Email</h3>
+                    <p class="text-[11px] font-bold text-gray-400 mt-0.5">support@mednearby.com</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-gray-300 text-[10px] pr-1 group-hover:text-blue-400 transition-colors"></i>
+            </div>
+        </a> -->
+
+    </section>
+    
+    <!-- FOOTER NOTE -->
+    <div class="px-4 mt-8 text-center">
+        <p class="text-[10px] font-bold text-gray-400">Operating Hours: Monday - Saturday, 10 AM to 6 PM</p>
+    </div>
+
+</div>
+{% endblock %}

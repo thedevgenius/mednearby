@@ -12,24 +12,19 @@
     <!-- HEADER -->
     <header class="px-4 pt-4 pb-3 flex items-center gap-3">
         <!-- Back Button -->
-        <a href="{% url 'core:home' %}" id="doctor-specialties-back"
-            aria-label="Go back"
-            class="w-10 h-10 flex items-center justify-center shrink-0 bg-white border border-gray-100 shadow-sm rounded-full text-textMain active:scale-95 transition-all hover:bg-gray-50">
-            <i class="fa-solid fa-arrow-left text-sm" aria-hidden="true"></i>
+        <a href="{% url 'core:home' %}" id="doctor-specialties-back" data-back-button aria-label="Go back"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-100 bg-gray-50 text-textMain transition-transform active:scale-95 hover:bg-gray-100">
+            <i class="fa-solid fa-arrow-left text-base" aria-hidden="true"></i>
         </a>
 
         <!-- Title & Location Subtitle -->
-        <div class="flex-1 overflow-hidden">
+        <div class="flex-1 overflow-hidden flex items-center justify-between">
             <h1 class="font-extrabold text-[19px] text-textMain leading-tight truncate tracking-tight">Doctors</h1>
-            <div class="flex items-center gap-1.5 mt-0.5">
-                <p class="text-[11px] font-semibold text-textMuted">Find available doctors near</p>
-                <!-- Inline Location Picker -->
-                <button type="button" data-bottom-sheet-target="#location-sheet" aria-label="Change selected location" class="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full flex-shrink-0 active:scale-95 transition-transform">
-                    <i class="fa-solid fa-location-dot text-[8px]"></i>
-                    <span id="selected-location-name" class="max-w-30 truncate text-[10px] font-extrabold">Select location</span>
-                    <i class="fa-solid fa-angle-down text-[8px]"></i>
-                </button>
-            </div>
+            <button type="button" data-bottom-sheet-target="#location-sheet" aria-label="Change selected location" class="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1.5 rounded-full flex-shrink-0 active:scale-95 transition-transform">
+                <i class="fa-solid fa-location-dot text-[8px]"></i>
+                <span id="selected-location-name" class="max-w-30 truncate text-[11px] font-bold">Select location</span>
+                <i class="fa-solid fa-angle-down text-[8px]"></i>
+            </button>
         </div>
     </header>
 </div>
@@ -39,22 +34,22 @@
     <!-- SECTION 1: ALL SPECIALTIES (Premium 3-Column Grid) -->
     <section id="specialties" class="px-4 mt-6 relative z-0 scroll-mt-28">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-extrabold text-textMain tracking-tight">Find by specialties</h3>
+            <h3 class="font-extrabold text-textMain tracking-tight">Find by specialties</h3>
             <i class="fa-solid fa-stethoscope text-primary/20 text-lg"></i>
         </div>
 
         <!-- Grid -->
         <div class="grid grid-cols-3 gap-3">
             {% for specialty in specialties %}
-                <a href="{% url 'doctors:list' specialty.slug %}" class="bg-white border border-gray-100/80 shadow-[0_4px_16px_rgba(0,0,0,0.03)] rounded-[1.25rem] p-3.5 flex flex-col items-center text-center gap-2.5 group hover:border-emerald-200 hover:shadow-[0_8px_24px_rgba(16,185,129,0.08)] active:scale-95 transition-all duration-300 relative overflow-hidden">
+                <a href="{% url 'doctors:list' specialty.slug %}" class="bg-white border border-gray-100/80 shadow-[0_4px_16px_rgba(0,0,0,0.05)] rounded-[1.25rem] px-3 py-3.5 flex flex-col items-center text-center gap-2.5 group hover:border-emerald-200 hover:shadow-[0_8px_24px_rgba(16,185,129,0.08)] active:scale-95 transition-all duration-300 relative overflow-hidden">
                     <!-- Subtle Hover Glow -->
                     <div class="absolute inset-0 bg-gradient-to-b from-transparent to-gray-50/50 pointer-events-none group-hover:to-emerald-50/30 transition-colors"></div>
                     
                     <!-- Icon Container -->
-                    <div class="relative z-10 w-12 h-12 flex items-center justify-center rounded-2xl bg-gray-50 group-hover:bg-white group-hover:shadow-sm transition-all duration-300 border border-transparent group-hover:border-gray-100">
+                    <div class="relative z-10 w-12 h-12 flex items-center justify-center rounded-2xl bg-[{{specialty.color}}]/15 group-hover:bg-white group-hover:shadow-sm transition-all duration-300 border border-transparent group-hover:border-gray-100">
                         <i class="{{ specialty.icon|default:'fa-solid fa-user-doctor' }} text-[26px] text-[{{specialty.color}}]" aria-hidden="true"></i>
                     </div>
-                    <span class="text-[11px] font-extrabold text-textMain leading-tight relative z-10">{{ specialty.label|default:specialty.name }}</span>
+                    <span class="text-[11px] font-bold text-textMain leading-tight relative z-10">{{ specialty.label|default:specialty.name }}</span>
                 </a>
             {% empty %}
                 <div class="col-span-3 rounded-[1.25rem] border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center flex flex-col items-center justify-center gap-2">
@@ -67,7 +62,7 @@
 
     <!-- SECTION 2: SEARCH BY ORGAN -->
     <section id="organs" class="px-4 mt-8 scroll-mt-28">
-        <h3 class="text-sm font-extrabold text-textMain mb-4 tracking-tight">Find by affected organ</h3>
+        <h3 class="font-extrabold text-textMain mb-4 tracking-tight">Find by affected organ</h3>
 
         <div class="grid grid-cols-4 gap-x-2 gap-y-4">
             

@@ -1,18 +1,94 @@
 import math
+import tempfile
 from datetime import datetime, timezone as dt_timezone
-from io import StringIO
+from io import BytesIO, StringIO
 
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Business, Category, Doctor
+from PIL import Image
+
+from .models import Ambulance, Business, BusinessImage, Category, Doctor, Facility
 from .services import (
     business_open_status,
     doctor_schedule_availability,
     serialize_business,
 )
+
+
+class BusinessImageTests(TestCase):
+    def setUp(self):
+        self.media_directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.media_directory.cleanup)
+        media_override = override_settings(MEDIA_ROOT=self.media_directory.name)
+        media_override.enable()
+        self.addCleanup(media_override.disable)
+        self.business = Business.objects.create(name="Image Test Clinic")
+
+    @staticmethod
+    def upload(width=1200, height=600, name="clinic.jpg", image_format="JPEG"):
+        output = BytesIO()
+        Image.new("RGB", (width, height), "white").save(output, image_format)
+        return SimpleUploadedFile(
+            name,
+            output.getvalue(),
+            content_type=f"image/{image_format.lower()}",
+        )
+
+    def test_converts_compresses_and_resizes_image_to_webp(self):
+        business_image = BusinessImage.objects.create(
+            business=self.business,
+            image=self.upload(),
+        )
+
+        self.assertTrue(business_image.image.name.endswith(".webp"))
+        with Image.open(business_image.image.path) as saved_image:
+            self.assertEqual(saved_image.format, "WEBP")
+            self.assertEqual(saved_image.size, (768, 384))
+
+    def test_does_not_upscale_smaller_image(self):
+        business_image = BusinessImage.objects.create(
+            business=self.business,
+            image=self.upload(width=400, height=700),
+        )
+
+        with Image.open(business_image.image.path) as saved_image:
+            self.assertEqual(saved_image.size, (400, 700))
+
+    def test_rejects_file_that_is_not_an_image(self):
+        invalid_file = SimpleUploadedFile(
+            "not-an-image.jpg",
+            b"plain text",
+            content_type="image/jpeg",
+        )
+
+        with self.assertRaises(ValidationError):
+            BusinessImage.objects.create(
+                business=self.business,
+                image=invalid_file,
+            )
+
+    def test_selecting_thumbnail_updates_business_and_replaces_old_selection(self):
+        first = BusinessImage.objects.create(
+            business=self.business,
+            image=self.upload(name="first.jpg"),
+            is_thumbnail=True,
+        )
+        second = BusinessImage.objects.create(
+            business=self.business,
+            image=self.upload(name="second.jpg"),
+            is_thumbnail=True,
+        )
+
+        first.refresh_from_db()
+        self.business.refresh_from_db()
+        self.assertFalse(first.is_thumbnail)
+        self.assertTrue(second.is_thumbnail)
+        self.assertEqual(self.business.thumbnail_url, second.image.name)
 
 
 class BusinessOpenStatusTests(TestCase):
@@ -97,6 +173,18 @@ class DoctorScheduleAvailabilityTests(TestCase):
         self.assertTrue(result["is_today"])
         self.assertEqual(result["next_time"], "9AM - 1PM")
 
+    def test_ended_slot_today_returns_next_schedule(self):
+        schedule = {
+            "weekly": [{"weekdays": [0], "slots": [{"start": "09:00", "end": "12:00"}]}]
+        }
+        now = datetime(2026, 7, 13, 8, 30, tzinfo=dt_timezone.utc)  # Monday 2:00 PM IST
+
+        result = doctor_schedule_availability(schedule, now)
+
+        self.assertFalse(result["is_today"])
+        self.assertEqual(result["next_date"], "Mon, 20 Jul")
+        self.assertEqual(result["next_time"], "9AM - 12PM")
+
     def test_monthly_weekday_supports_last_occurrence(self):
         schedule = {
             "monthly_weekday": [
@@ -161,6 +249,46 @@ class AddDummyDoctorsCommandTests(TestCase):
             "No active doctor specialties exist",
         ):
             call_command("add_dummy_doctors", 1)
+
+
+class AddDummyAmbulancesCommandTests(TestCase):
+    def setUp(self):
+        self.business = Business.objects.create(name="Active Clinic")
+        Business.objects.create(
+            name="Testing Clinic",
+            is_testing=True,
+        )
+
+    def test_creates_requested_ambulances_for_eligible_businesses(self):
+        output = StringIO()
+
+        call_command("add_dummy_ambulances", 5, seed=42, stdout=output)
+
+        self.assertEqual(Ambulance.objects.count(), 5)
+        self.assertEqual(
+            set(Ambulance.objects.values_list("business_id", flat=True)),
+            {self.business.id},
+        )
+        self.assertEqual(
+            Ambulance.objects.values("phone").distinct().count(),
+            5,
+        )
+        self.assertEqual(Ambulance.objects.filter(is_active=True).count(), 5)
+        self.assertIn("Created 5 dummy ambulances", output.getvalue())
+
+    def test_requires_an_eligible_business(self):
+        self.business.is_active = False
+        self.business.save(update_fields=["is_active"])
+
+        with self.assertRaisesMessage(
+            CommandError,
+            "No active non-testing businesses exist",
+        ):
+            call_command("add_dummy_ambulances", 1)
+
+    def test_rejects_invalid_count(self):
+        with self.assertRaisesMessage(CommandError, "count must be at least 1"):
+            call_command("add_dummy_ambulances", 0)
 
 
 class AddRandomDoctorSchedulesCommandTests(TestCase):
@@ -398,6 +526,36 @@ class BusinessGeohashTests(TestCase):
         self.assertEqual(business.geohash, "tunbefpqec25")
 
 
+class BusinessSlugTests(TestCase):
+    def test_slug_combines_business_name_and_landmark(self):
+        business = Business.objects.create(
+            name="City Health Clinic",
+            landmark="Near Central Park",
+        )
+
+        self.assertEqual(
+            business.slug,
+            "city-health-clinic-near-central-park",
+        )
+
+    def test_slug_updates_when_landmark_changes(self):
+        business = Business.objects.create(
+            name="City Health Clinic",
+            landmark="Central Park",
+        )
+
+        business.landmark = "Railway Station"
+        business.save(update_fields=["landmark"])
+
+        self.assertEqual(business.slug, "city-health-clinic-railway-station")
+
+    def test_duplicate_business_and_landmark_gets_unique_slug(self):
+        Business.objects.create(name="City Clinic", landmark="Main Road")
+        duplicate = Business.objects.create(name="City Clinic", landmark="Main Road")
+
+        self.assertEqual(duplicate.slug, "city-clinic-main-road-2")
+
+
 class AddDummyBusinessesCommandTests(TestCase):
     def test_command_creates_geocoded_businesses_inside_radius(self):
         output = StringIO()
@@ -493,6 +651,80 @@ class AddRandomBusinessHoursCommandTests(TestCase):
 
         business.refresh_from_db()
         self.assertNotEqual(business.business_hours, existing)
+
+
+class SeedDirectoryCategoriesCommandTests(TestCase):
+    def test_creates_production_categories_with_plural_labels_and_slugs(self):
+        output = StringIO()
+
+        call_command("seed_directory_categories", stdout=output)
+
+        self.assertEqual(
+            Category.objects.filter(type=Category.Type.BUSINESS_CATEGORY).count(),
+            15,
+        )
+        self.assertEqual(
+            Category.objects.filter(type=Category.Type.DOCTOR_SPECIALTY).count(),
+            25,
+        )
+        pharmacy = Category.objects.get(name="Pharmacy")
+        cardiology = Category.objects.get(name="Cardiology")
+        self.assertEqual(pharmacy.label, "Pharmacies")
+        self.assertEqual(pharmacy.slug, "pharmacies")
+        self.assertEqual(cardiology.label, "Cardiologists")
+        self.assertEqual(cardiology.slug, "cardiologists")
+        self.assertIn("created 40", output.getvalue())
+
+    def test_is_idempotent(self):
+        call_command("seed_directory_categories", verbosity=0)
+        call_command("seed_directory_categories", verbosity=0)
+
+        self.assertEqual(Category.objects.count(), 40)
+
+    def test_dry_run_does_not_save_categories(self):
+        call_command("seed_directory_categories", dry_run=True, verbosity=0)
+
+        self.assertEqual(Category.objects.count(), 0)
+
+
+class AssignRandomBusinessCategoriesCommandTests(TestCase):
+    def setUp(self):
+        self.categories = [
+            Category.objects.create(name="Pharmacy"),
+            Category.objects.create(name="Clinic"),
+        ]
+        self.businesses = [
+            Business.objects.create(name=f"Business {number}")
+            for number in range(3)
+        ]
+
+    def test_assigns_a_category_to_every_uncategorized_business(self):
+        call_command("assign_random_business_categories", seed=42, verbosity=0)
+
+        for business in self.businesses:
+            self.assertEqual(business.categories.count(), 1)
+
+    def test_preserves_existing_categories_without_overwrite(self):
+        self.businesses[0].categories.set([self.categories[0]])
+
+        call_command("assign_random_business_categories", seed=42, verbosity=0)
+
+        self.assertEqual(
+            list(self.businesses[0].categories.all()),
+            [self.categories[0]],
+        )
+
+    def test_overwrite_replaces_existing_assignments_with_one_category(self):
+        self.businesses[0].categories.set(self.categories)
+
+        call_command(
+            "assign_random_business_categories",
+            seed=42,
+            overwrite=True,
+            verbosity=0,
+        )
+
+        self.assertEqual(self.businesses[0].categories.count(), 1)
 
 
 class BusinessListViewTests(TestCase):
@@ -687,6 +919,16 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "google.com/maps/dir/")
         self.assertNotContains(response, "Appt.")
 
+    def test_whatsapp_share_contains_business_profile_url(self):
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "Share City Pharmacy on WhatsApp")
+        self.assertContains(response, "https://api.whatsapp.com/send?text=")
+        self.assertContains(response, "%0A%0Ahttp%3A%2F%2Ftestserver")
+        self.assertContains(response, "%2Fplace%2Fcity-pharmacy-near-city-park")
+
     def test_displays_active_business_doctors_without_clinic_info_or_actions(self):
         specialty = Category.objects.create(
             name="Cardiology",
@@ -722,6 +964,8 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "Dr. Test Physician")
         self.assertContains(response, "MBBS, MD")
         self.assertContains(response, "Cardiology")
+        self.assertContains(response, "Consultation Fee")
+        self.assertContains(response, "₹500")
         self.assertContains(response, "fa-user-doctor")
         self.assertContains(response, "bg-indigo-50")
         self.assertContains(response, "Every Monday")
@@ -751,10 +995,7 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "marker=22.572600000%2C88.363900000")
         self.assertEqual(response.context["distance_km"], 1.1)
         self.assertContains(response, "1.1 km away from your selected location")
-        self.assertContains(
-            response,
-            "origin=22.5826%2C88.3639",
-        )
+        self.assertNotContains(response, "origin=")
         self.assertContains(response, "destination=22.572600000%2C88.363900000")
         self.assertNotContains(response, "Plot No. 24")
         self.assertNotContains(response, "1.2 km")
@@ -804,6 +1045,26 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "X-Ray")
         self.assertNotContains(response, "OPD Consultations")
         self.assertNotContains(response, "Pharmacy 24/7")
+
+    def test_displays_only_assigned_business_facilities(self):
+        wifi = Facility.objects.create(
+            name="Free Wi-Fi",
+            icon="fa-solid fa-wifi",
+        )
+        Facility.objects.create(
+            name="Unassigned Parking",
+            icon="fa-solid fa-square-parking",
+        )
+        self.business.facilities.add(wifi)
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "Facilities & Amenities")
+        self.assertContains(response, "Free Wi-Fi")
+        self.assertContains(response, "fa-solid fa-wifi")
+        self.assertNotContains(response, "Unassigned Parking")
 
     def test_displays_only_enabled_home_service_flags(self):
         self.business.is_home_delivery = True
@@ -920,6 +1181,7 @@ class DoctorListViewTests(TestCase):
         self.assertEqual(response.context["doctors"][0]["name"], "Dr. Nearby 0")
         self.assertNotContains(response, "Dr. Far")
         self.assertNotContains(response, "Dr. Draft")
+        self.assertContains(response, 'data-href="/doctor/dr-nearby-0"')
 
     def test_ajax_second_page_returns_remaining_doctors(self):
         response = self.client.get(
@@ -933,6 +1195,7 @@ class DoctorListViewTests(TestCase):
         self.assertEqual(len(payload["results"]), 2)
         self.assertFalse(payload["has_more"])
         self.assertEqual(payload["next_page"], 3)
+        self.assertIn("slug", payload["results"][0])
 
     def test_page_without_coordinate_cookies_requests_location(self):
         self.client.cookies.clear()
@@ -950,6 +1213,84 @@ class DoctorListViewTests(TestCase):
 
         response = self.client.get(
             reverse("doctors:list", kwargs={"slug": category.slug})
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+
+class DoctorDetailViewTests(TestCase):
+    def setUp(self):
+        self.specialty = Category.objects.create(
+            name="Cardiology",
+            type=Category.Type.DOCTOR_SPECIALTY,
+        )
+        self.business = Business.objects.create(
+            name="Heart Clinic",
+            address="12 Medical Road",
+            phone="9876543210",
+            latitude="22.572600000",
+            longitude="88.363900000",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        self.doctor = Doctor.objects.create(
+            name="Dr. Detail",
+            business=self.business,
+            qualification="MBBS, MD",
+            bio="Experienced heart specialist.",
+            fees="700",
+        )
+        self.doctor.specialties.add(self.specialty)
+
+    def test_displays_doctor_profile_by_slug(self):
+        response = self.client.get(
+            reverse("doctors:detail", kwargs={"slug": self.doctor.slug})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "directory/doctor_detail.html")
+        self.assertContains(response, "Dr. Detail")
+        self.assertContains(response, "MBBS, MD")
+        self.assertContains(response, "Experienced heart specialist.")
+        self.assertContains(response, "Cardiology")
+        self.assertContains(response, 'href="tel:9876543210"')
+        self.assertContains(response, "Share Dr. Detail on WhatsApp")
+        self.assertContains(response, "https://api.whatsapp.com/send?text=")
+        self.assertContains(response, "%0A%0Ahttp%3A%2F%2Ftestserver")
+        self.assertContains(response, "%2Fdoctor%2Fdr-detail")
+
+    def test_displays_at_most_ten_nearby_doctors_with_same_specialty(self):
+        for number in range(11):
+            business = Business.objects.create(
+                name=f"Similar Clinic {number}",
+                latitude=str(22.5727 + number * 0.00001),
+                longitude="88.363900000",
+                publication_status=Business.PublicationStatus.PUBLISHED,
+            )
+            similar = Doctor.objects.create(
+                name=f"Similar Doctor {number}",
+                business=business,
+                fees="500",
+            )
+            similar.specialties.add(self.specialty)
+        self.client.cookies["mednearby_location_lat"] = "22.5726"
+        self.client.cookies["mednearby_location_lng"] = "88.3639"
+
+        response = self.client.get(
+            reverse("doctors:detail", kwargs={"slug": self.doctor.slug})
+        )
+
+        self.assertEqual(len(response.context["similar_doctors"]), 10)
+        self.assertContains(response, "Similar Doctors Nearby")
+        self.assertContains(response, "Similar Doctor 0")
+        self.assertContains(response, "₹500")
+        self.assertNotContains(response, "Similar Doctor 10")
+
+    def test_inactive_doctor_is_not_public(self):
+        self.doctor.is_active = False
+        self.doctor.save(update_fields=["is_active"])
+
+        response = self.client.get(
+            reverse("doctors:detail", kwargs={"slug": self.doctor.slug})
         )
 
         self.assertEqual(response.status_code, 404)

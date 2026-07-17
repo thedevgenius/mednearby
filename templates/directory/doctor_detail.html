@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doctor.name }} | MedNearby{% endblock %}
+
+{% block content %}
+<main class="app-container min-h-dvh bg-gray-50 pb-10">
+    
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 flex items-center gap-3 border-b border-gray-100 bg-white/95 px-3 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-md">
+        <a href="{% url 'core:home' %}" data-back-button class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-100 bg-gray-50 text-textMain transition-transform active:scale-95 hover:bg-gray-100" aria-label="Go back">
+            <i class="fa-solid fa-arrow-left text-base" aria-hidden="true"></i>
+        </a>
+        <div class="min-w-0 flex-1">
+            <h1 class="truncate text-[15px] font-black text-textMain">{{ doctor.name }}</h1>
+            <p class="text-[10px] font-semibold text-textMuted">Consultation & schedule</p>
+        </div>
+        <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener noreferrer" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-indigo-100 bg-indigo-50 text-indigo-600 active:scale-95 transition-transform" aria-label="Share {{ doctor.name }} on WhatsApp">
+            <i class="fa-regular fa-share"></i>
+        </a>
+    </header>
+
+    <!-- PROFILE HERO SECTION -->
+    <section class="bg-white px-4 pt-6 pb-6 border-b border-gray-100/50 shadow-[0_4px_24px_rgba(0,0,0,0.02)] rounded-b-[1.5rem] relative z-10">
+        <div class="flex items-start gap-4">
+            
+            <!-- Avatar -->
+            <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.25rem] border bg-gradient-to-br to-white text-[32px] shadow-sm {% if doctor.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif doctor.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}">
+                <i class="fa-solid {% if doctor.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}"></i>
+            </div>
+            
+            <!-- Identity -->
+            <div class="min-w-0 flex-1 py-1">
+                <h1 class="text-[20px] font-black leading-tight text-textMain tracking-tight">{{ doctor.name }}</h1>
+                <p class="mt-1 text-[12px] font-extrabold text-gray-500">{% for specialty in specialties %}{{ specialty.name }}{% if not forloop.last %}, {% endif %}{% empty %}Specialty not specified{% endfor %}</p>
+                <p class="mt-0.5 text-[11px] font-medium text-gray-400">{{ doctor.qualification }}</p>
+                
+                {% if doctor.fees %}
+                <div class="mt-2.5 inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100/50 px-2 py-1 rounded-lg">
+                    <span class="text-[13px] font-black text-primary leading-none">₹{{ doctor.fees }}</span>
+                    <span class="text-[9px] font-medium text-gray-400 leading-none">(Consultation Fee)</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </section>
+
+    <!-- CLINIC & AVAILABILITY SECTION -->
+    <section class="px-4 mt-4">
+        <h3 class="text-[15px] font-black text-textMain tracking-tight mb-3">Where to consult</h3>
+        <div class="bg-white border border-gray-100/80 rounded-[1.25rem] p-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.03)]">
+            
+            <div class="p-3">
+                <!-- Clinic Info -->
+                <div class="flex items-start gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rose-100/60 bg-rose-50 text-[15px] text-rose-500 shadow-sm">
+                        <i class="fa-regular fa-hospital"></i>
+                    </div>
+                    <div class="min-w-0 flex-1 py-0.5">
+                        <h4 class="truncate text-[14px] font-black text-textMain">{{ doctor.business.name }}</h4>
+                        <p class="mt-0.5 text-[11px] font-semibold text-textMuted leading-snug">{{ doctor.business.address|default:doctor.business.locality }}</p>
+                    </div>
+                </div>
+
+                <div class="my-4 border-t border-gray-100/80"></div>
+
+                <!-- Schedule Status -->
+                <div class="flex items-center gap-1.5 text-[12px] font-extrabold {% if display_schedule.is_today %}text-emerald-600{% else %}text-indigo-600{% endif %}">
+                    <i class="fa-regular fa-clock"></i>
+                    {% if display_schedule.is_today %}
+                        <span>Available Today &bull; {{ display_schedule.next_time }}</span>
+                    {% else %}
+                        <span>Available on {{ display_schedule.next_date }}{% if display_schedule.next_date %} &bull; {% endif %}{{ display_schedule.next_time|default:"Schedule unavailable" }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Detailed Rows -->
+                {% if display_schedule.display_rows %}
+                <div class="mt-3 bg-gray-50/80 rounded-xl p-3 border border-gray-100/60">
+                    <ul class="flex flex-col gap-2">
+                        {% for row in display_schedule.display_rows %}
+                        <li class="flex justify-between items-center text-[11px]">
+                            <span class="font-extrabold text-gray-500">{{ row.label }}</span>
+                            <span class="font-bold text-gray-400">{{ row.time_text }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-2 p-1.5 pt-0">
+                {% if doctor.business.phone %}
+                <a href="tel:{{ doctor.business.phone }}" class="flex items-center justify-center gap-1.5 rounded-[14px] bg-primary py-3 text-[11px] font-black text-white shadow-sm transition-colors hover:bg-primaryDark active:scale-95">
+                    <i class="fa-solid fa-phone"></i> Enquiry
+                </a>
+                {% else %}
+                <span class="flex items-center justify-center gap-1.5 rounded-[14px] bg-gray-50 py-3 text-[11px] font-black text-gray-400 border border-gray-100 cursor-not-allowed">
+                    <i class="fa-solid fa-phone"></i> Enquiry
+                </span>
+                {% endif %}
+                
+                <a href="{% url 'businesses:detail' doctor.business.slug %}" class="flex items-center justify-center gap-1.5 rounded-[14px] border border-purple-200/80 bg-purple-50 py-3 text-[11px] font-black text-purple-700 shadow-sm transition-colors hover:bg-purple-100 active:scale-95">
+                    <i class="fa-regular fa-hospital"></i> Visit Clinic
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- BIO / ABOUT SECTION -->
+    {% if doctor.bio %}
+    <section class="px-4 mt-4">
+        <h3 class="text-[15px] font-black text-textMain tracking-tight mb-3">About Doctor</h3>
+        <div class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <p class="text-[12px] font-semibold leading-relaxed text-textMuted">{{ doctor.bio }}</p>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- SIMILAR DOCTORS -->
+    {% if similar_doctors %}
+    <section class="mt-5 px-4">
+        <div class="">
+            <h2 class="text-[15px] font-black text-textMain tracking-tight">Similar Doctors Nearby</h2>
+            <p class="text-[10px] font-bold text-gray-400 mt-0.5">Doctors with matching specialties</p>
+        </div>
+        
+        <div class="hide-scrollbar mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-3 -mx-1">
+            {% for similar in similar_doctors %}
+            <a href="{% url 'doctors:detail' similar.slug %}" class="min-w-[280px] max-w-[320px] snap-start rounded-[1.25rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] transition-all hover:border-emerald-100 hover:shadow-sm">
+                <div class="flex items-start gap-3">
+                    
+                    <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-xl shadow-sm {% if similar.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif similar.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}">
+                        <i class="fa-solid {% if similar.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}"></i>
+                    </div>
+                    
+                    <div class="min-w-0 flex-1">
+                        <h3 class="truncate text-[14px] font-black text-textMain">{{ similar.name }}</h3>
+                        <p class="mt-1 truncate text-[10px] font-extrabold text-gray-500">{{ similar.specialties|join:", " }}</p>
+                        <p class="mt-0.5 truncate text-[10px] font-medium text-gray-400">{{ similar.qualification }}</p>
+                        {% if similar.fees %}<p class="mt-1 flex items-baseline gap-1"><span class="text-[13px] font-black text-primary">₹{{ similar.fees }}</span><span class="text-[9px] font-medium text-gray-400">(Consultation Fee)</span></p>{% endif %}
+                        
+                        <div class="mt-2 border-t border-gray-100/80 pt-2">
+                            <p class="flex items-center gap-1.5 truncate text-[10px] font-semibold text-textMuted">
+                                <i class="fa-regular fa-hospital text-rose-400 text-[11px]"></i> {{ similar.business }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+</main>
+{% endblock %}

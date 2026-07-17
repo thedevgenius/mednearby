@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy{% endblock %}
+
+{% block content %}
+<div class="app-container relative z-0 bg-gray-50 min-h-screen pb-10">
+
+    <!-- HEADER -->
+    <header
+        class="sticky top-0 z-50 flex items-center gap-3 border-b border-gray-100/80 bg-white/95 px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-md">
+        <a href="{% url 'core:home' %}" data-back-button
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-100 bg-gray-50 text-textMain transition-transform active:scale-95 hover:bg-gray-100"
+            aria-label="Go back">
+            <i class="fa-solid fa-arrow-left text-base" aria-hidden="true"></i>
+        </a>
+        <div class="min-w-0 flex-1">
+            <h1 class="truncate text-[16px] font-black text-textMain tracking-tight">Privacy Policy</h1>
+            <p class="text-[10px] font-bold text-emerald-500">Last updated: July 17, 2026</p>
+        </div>
+    </header>
+
+    <!-- INTRO HEADER -->
+    <section class="px-4 mt-6">
+        <div class="flex items-start gap-3 mb-4">
+            <div
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100/50 text-emerald-500 shadow-[0_2px_8px_rgba(16,185,129,0.08)]">
+                <i class="fa-solid fa-shield-halved text-xl"></i>
+            </div>
+            <div class="flex-1 pt-1">
+                <p class="text-[12px] font-semibold text-gray-500 leading-relaxed">
+                    <span class="font-black text-textMain">MedNearby respects your privacy.</span> We do not collect
+                    personal information from general users such as name, phone number, email address, or medical
+                    information.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- POLICY CONTENT CARDS -->
+    <section class="px-4 mt-2 flex flex-col gap-4">
+
+        <!-- Section: Location Information -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div
+                    class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100/50">
+                    <i class="fa-solid fa-location-dot text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Location Information</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p>MedNearby may request access to your device location to:</p>
+                <ul class="flex flex-col gap-2 pl-1">
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Show healthcare businesses near you</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Calculate distance from your location</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Improve nearby search results</span>
+                    </li>
+                </ul>
+                <div class="mt-2 bg-blue-50/50 border border-blue-100/50 rounded-xl p-3">
+                    <p class="text-[11px] font-semibold text-blue-800">Your location is used only to provide
+                        location-based features and is not sold or shared for advertising purposes.</p>
+                </div>
+            </div>
+        </article>
+
+        <!-- Section: Location Permission -->
+        <article
+            class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div
+                    class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 border border-indigo-100/50">
+                    <i class="fa-solid fa-toggle-on text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Location Permission</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-2">
+                <p>Location access is optional. You can deny or disable location permission at any time through your
+                    browser or device settings.</p>
+                <p>Some nearby search features may not work properly without location access.</p>
+            </div>
+        </article>
+
+        <!-- Section: Business Information -->
+        <article
+            class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div
+                    class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 border border-emerald-100/50">
+                    <i class="fa-solid fa-store text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Business Information</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p>We may collect information from businesses, clinics, doctors, pharmacies, diagnostic centres,
+                    hospitals, and other healthcare service providers.</p>
+                <p>This information may include:</p>
+
+                <div class="mt-2 bg-gray-50 rounded-xl p-3 border border-gray-100/60">
+                    <ul class="flex flex-col gap-1.5 text-[11px] font-semibold text-gray-600">
+                        <li class="flex items-center gap-2">
+                            <div class="w-1 h-1 bg-gray-400 rounded-full"></div> Business or professional name
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <div class="w-1 h-1 bg-gray-400 rounded-full"></div> Address and location
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <div class="w-1 h-1 bg-gray-400 rounded-full"></div> Phone, WhatsApp, and email
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <div class="w-1 h-1 bg-gray-400 rounded-full"></div> Business hours and doctor schedules
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <div class="w-1 h-1 bg-gray-400 rounded-full"></div> Services, facilities, and amenities
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <div class="w-1 h-1 bg-gray-400 rounded-full"></div> Photos, descriptions, offers, and
+                            updates
+                        </li>
+                    </ul>
+                </div>
+
+                <p>Business information submitted to MedNearby may be displayed publicly on our Platform so that users
+                    can discover and contact the business or healthcare professional.</p>
+                <p
+                    class="text-[11px] font-semibold text-textMuted bg-gray-50 px-2 py-1.5 border-l-2 border-emerald-400">
+                    Businesses are responsible for ensuring that the information they provide is accurate, lawful, and
+                    up to date.</p>
+            </div>
+        </article>
+
+        <!-- Section: Third-Party Services -->
+        <article
+            class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div
+                    class="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center text-rose-500 border border-rose-100/50">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Third-Party Services</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-2">
+                <p>MedNearby may contain links or buttons that open third-party services such as map applications, phone
+                    calls, WhatsApp, or business websites.</p>
+                <p>These third-party services have their own privacy policies. MedNearby is not responsible for how
+                    those services collect or use information.</p>
+            </div>
+        </article>
+
+        <!-- Section: Changes to This Policy -->
+        <article
+            class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div
+                    class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/50">
+                    <i class="fa-solid fa-clock-rotate-left text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Changes to This Policy</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed">
+                <p>We may update this Privacy Policy when required. Any changes will be posted on this page with the
+                    updated date.</p>
+            </div>
+        </article>
+
+    </section>
+
+    <!-- CONTACT CTA -->
+    <section class="px-4 mt-6">
+        <div
+            class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-[1.5rem] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none">
+            </div>
+
+            <div class="relative z-10 text-center">
+                <h2 class="text-[16px] font-black text-white mb-1.5">Contact Us</h2>
+                <p class="text-[11px] font-medium text-gray-300 mb-4 px-2">For questions about this Privacy Policy,
+                    contact us at:</p>
+
+                <a href="mailto:mednearby.2026@gmail.com"
+                    class="inline-flex w-full items-center justify-center gap-2 bg-emerald-500 text-white py-3.5 rounded-[14px] text-[12px] font-extrabold shadow-md shadow-emerald-500/20 active:scale-95 transition-transform hover:bg-emerald-400">
+                    <i class="fa-solid fa-envelope"></i> mednearby.2026@gmail.com
+                </a>
+
+                <p class="mt-4 text-[10px] font-bold text-gray-400"><span class="text-white">MedNearby</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

@@ -1,6 +1,49 @@
 {% extends "base.html" %}
 
-{% block title %}Home | MedNearby{% endblock %}
+{% block title %}MedNearby – Find Doctors, Clinics, Pharmacies & Healthcare Nearby{% endblock %}
+
+{% block extra_head %}
+<!-- Primary SEO -->
+<meta name="description" content="Find nearby doctors, clinics, hospitals, pharmacies, diagnostic centres and other healthcare services with MedNearby.">
+<meta name="keywords" content="doctors near me, clinics near me, pharmacies near me, hospitals near me, diagnostic centres near me, healthcare nearby, MedNearby">
+<meta name="robots" content="index, follow">
+<meta name="author" content="MedNearby">
+<link rel="canonical" href="https://mednearby.in/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MedNearby">
+<meta property="og:title" content="MedNearby – Find Healthcare Services Near You">
+<meta property="og:description" content="Discover nearby doctors, clinics, hospitals, pharmacies and diagnostic centres quickly and easily.">
+<meta property="og:url" content="https://mednearby.in/">
+<meta property="og:image" content="https://mednearby.in/images/mednearby-social-preview.jpg">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MedNearby – Find Healthcare Services Near You">
+<meta name="twitter:description" content="Discover nearby doctors, clinics, hospitals, pharmacies and diagnostic centres.">
+<meta name="twitter:image" content="https://mednearby.in/images/mednearby-social-preview.jpg">
+
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "MedNearby",
+  "url": "https://mednearby.in/",
+  "description": "MedNearby helps users discover nearby doctors, clinics, hospitals, pharmacies, diagnostic centres and other healthcare services.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://mednearby.in/search?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+{% endblock %}
 
 {% block extra_js %}
 <script>
@@ -273,7 +316,7 @@
 {% endblock %}
 
 {% block content %}
-    <div class="app-container relative z-0 bg-white min-h-screen">
+<div class="app-container relative z-0 bg-white min-h-screen">
 
     <!-- Decorative Top Ambient Glow -->
     <div class="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-emerald-500/5 to-transparent -z-10 pointer-events-none"></div>
@@ -308,15 +351,15 @@
     </div>
 
     <!-- QUICK ACTIONS (4 Highlighted Boxes) -->
-    <section class="px-3 mt-5 mb-2 relative z-10">
+    <section class="px-3 mt-3 mb-2 relative z-10">
         <h2 class="text-[16px] font-black text-textMain mb-3 px-1 tracking-tight">What do you need today?</h2>
 
         <div class="grid grid-cols-2 gap-3">
             <!-- Box 1: Doctors -->
-            <a href="/doctors" class="relative w-full h-[105px] bg-gradient-to-br from-emerald-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-emerald-100/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-emerald-500/10 hover:border-emerald-200">
+            <a href="/doctors" class="relative w-full h-[105px] bg-gradient-to-br from-emerald-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-emerald-200/80 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-emerald-500/10 hover:border-emerald-200">
                 <div class="relative z-10 flex flex-col h-full justify-between">
-                    <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-emerald-500 text-xs">
-                        <i class="fa-solid fa-user-doctor"></i>
+                    <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm text-emerald-500 text-xs">
+                        <i class="fa-solid fa-user-doctor text-[17px]"></i>
                     </div>
                     <div>
                         <h3 class="font-black text-[15px] text-textMain leading-tight tracking-tight">Doctors</h3>
@@ -327,24 +370,24 @@
             </a>
 
             <!-- Box 2: Medicine -->
-            <a href="/category/pharmacies" class="relative w-full h-[105px] bg-gradient-to-br from-teal-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-teal-100/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-teal-500/10 hover:border-teal-200">
+            <a href="/category/pharmacies" class="relative w-full h-[105px] bg-gradient-to-br from-purple-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-purple-200/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-purple-500/10 hover:border-purple-200">
                 <div class="relative z-10 flex flex-col h-full justify-between">
-                    <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-teal-500 text-xs">
-                        <i class="fa-solid fa-capsules"></i>
+                    <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm text-purple-500 text-xs">
+                        <i class="fa-solid fa-capsules text-[17px]"></i>
                     </div>
                     <div>
                         <h3 class="font-black text-[15px] text-textMain leading-tight tracking-tight">Medicine</h3>
                         <p class="text-[10px] font-bold text-gray-500 mt-0.5">Local pharmacies</p>
                     </div>
                 </div>
-                <i class="fa-solid fa-capsules absolute -bottom-2 -right-2 text-6xl text-teal-500/10 group-hover:text-teal-500/20 transition-all duration-300 transform group-hover:scale-110 group-hover:-rotate-3"></i>
+                <i class="fa-solid fa-capsules absolute -bottom-2 -right-2 text-6xl text-purple-500/10 group-hover:text-purple-500/20 transition-all duration-300 transform group-hover:scale-110 group-hover:-rotate-3"></i>
             </a>
 
             <!-- Box 3: Diagnostics -->
-            <a href="/category/diagnostic-centers" class="relative w-full h-[105px] bg-gradient-to-br from-indigo-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-indigo-100/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-indigo-500/10 hover:border-indigo-200">
+            <a href="/category/diagnostic-centers" class="relative w-full h-[105px] bg-gradient-to-br from-indigo-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-indigo-200/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-indigo-500/10 hover:border-indigo-200">
                 <div class="relative z-10 flex flex-col h-full justify-between">
-                    <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-indigo-500 text-xs">
-                        <i class="fa-solid fa-microscope"></i>
+                    <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm text-indigo-500 text-xs">
+                        <i class="fa-solid fa-microscope text-[17px]"></i>
                     </div>
                     <div>
                         <h3 class="font-black text-[15px] text-textMain leading-tight tracking-tight">Diagnostics</h3>
@@ -355,10 +398,10 @@
             </a>
 
             <!-- Box 4: Urgent -->
-            <a href="#" class="relative w-full h-[105px] bg-gradient-to-br from-rose-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-rose-100/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-rose-500/10 hover:border-rose-200">
+            <a href="/emergency" class="relative w-full h-[105px] bg-gradient-to-br from-rose-50/80 to-white p-3.5 rounded-[1.25rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-rose-200/60 overflow-hidden active:scale-95 transition-all duration-300 group hover:shadow-lg hover:shadow-rose-500/10 hover:border-rose-200">
                 <div class="relative z-10 flex flex-col h-full justify-between">
-                    <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-rose-500 text-xs">
-                        <i class="fa-solid fa-truck-medical"></i>
+                    <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm text-rose-500 text-xs">
+                        <i class="fa-solid fa-truck-medical text-[17px]"></i>
                     </div>
                     <div>
                         <h3 class="font-black text-[15px] text-textMain leading-tight tracking-tight">Emmergency</h3>
@@ -371,9 +414,9 @@
     </section>
 
     <!-- POPULAR SPECIALTIES (With subtle background sectioning) -->
-    <section class="mt-6 pt-5 pb-3 bg-gradient-to-b from-gray-50/50 to-transparent border-t border-gray-50">
+    <section class="mt-6 pt-5 pb-3 bg-gradient-to-b from-gray-100/50 to-transparent border-t border-gray-50">
         <div class="px-3 flex justify-between items-center mb-4">
-            <h2 class="text-[16px] font-black text-textMain tracking-tight">Top Specialties</h2>
+            <h2 class="text-[16px] font-black text-textMain tracking-tight">Find a Specialist</h2>
             <a href="{% url 'doctors:specialties' %}" class="bg-white border border-gray-200 px-3 py-1.5 rounded-full text-[10px] font-extrabold text-textMain hover:bg-gray-50 transition-colors shadow-sm active:scale-95">
                 View All
             </a>
@@ -406,15 +449,16 @@
 
         <div class="hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 -mx-1">
             {% for doctor in available_doctors %}
-            <article class="w-[86%] max-w-[360px] shrink-0 snap-start rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm">
+            <article class="doctor-home-card w-[86%] max-w-[360px] shrink-0 snap-start cursor-pointer rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm" data-href="{% url 'doctors:detail' doctor.slug %}" role="link" tabindex="0" onclick="if (!event.target.closest('a, button')) window.location.href=this.dataset.href" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href=this.dataset.href; }">
                 <!-- Keep Card Interior Untouched -->
                 <div class="flex items-stretch gap-3">
                     <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] {% if doctor.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif doctor.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}"><i class="fa-solid {% if doctor.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}" aria-hidden="true"></i></div>
                     <div class="flex min-w-0 flex-1 flex-col justify-between py-0.5">
                         <div>
                             <h4 class="truncate text-[17px] font-black leading-none tracking-tight text-textMain">{{ doctor.name }}</h4>
-                            <p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">{{ doctor.qualification }}</p>
-                            <p class="mt-0.5 truncate text-[10px] font-bold text-gray-400">{{ doctor.specialties|join:", " }}</p>
+                            <p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">{{ doctor.specialties|join:", " }}</p>
+                            <p class="mt-0.5 truncate text-[10px] font-medium text-gray-400">{{ doctor.qualification }}</p>
+                            {% if doctor.fees %}<p class="mt-1 flex items-baseline gap-1"><span class="text-[13px] font-black text-primary">₹{{ doctor.fees }}</span><span class="text-[9px] font-medium text-gray-400">(Consultation Fee)</span></p>{% endif %}
                         </div>
                     </div>
                 </div>
@@ -432,8 +476,8 @@
 
                 <div class="mt-3 grid grid-cols-3 gap-1.5">
                     {% if doctor.phone %}<a href="tel:{{ doctor.phone }}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg bg-primary px-1 py-2.5 text-center text-[10px] font-extrabold text-white shadow-sm active:scale-95"><i class="fa-solid fa-phone"></i> Call Now</a>{% else %}<span class="flex min-w-0 cursor-not-allowed items-center justify-center gap-1 rounded-lg bg-gray-200 px-1 py-2.5 text-center text-[10px] font-extrabold text-gray-500"><i class="fa-solid fa-phone"></i> Call Now</span>{% endif %}
-                    <a href="{% url 'businesses:detail' doctor.business_slug %}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-primary bg-white px-1 py-2.5 text-center text-[10px] font-extrabold text-primary active:scale-95"><i class="fa-regular fa-hospital"></i> Visit Clinic</a>
-                    <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ doctor.latitude }},{{ doctor.longitude }}" target="_blank" rel="noopener noreferrer" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-primary bg-white px-1 py-2.5 text-center text-[10px] font-extrabold text-primary active:scale-95"><i class="fa-solid fa-diamond-turn-right"></i> Direction</a>
+                    <a href="{% url 'businesses:detail' doctor.business_slug %}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-purple-200 bg-purple-50 px-1 py-2.5 text-center text-[10px] font-extrabold text-purple-700 active:scale-95 hover:bg-purple-100"><i class="fa-regular fa-hospital"></i> Visit Clinic</a>
+                    <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ doctor.latitude }},{{ doctor.longitude }}" target="_blank" rel="noopener noreferrer" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-1 py-2.5 text-center text-[10px] font-extrabold text-gray-600 active:scale-95 hover:bg-gray-100"><i class="fa-solid fa-diamond-turn-right"></i> Direction</a>
                 </div>
             </article>
             {% endfor %}
@@ -492,31 +536,44 @@
     <!-- Businesses Near You -->
     <section class="mt-8 px-3">
         <div class="mb-4">
-            <h2 class="text-[16px] font-black text-textMain tracking-tight">Businesses Near You</h2>
+            <h2 class="text-[16px] font-black text-textMain tracking-tight">Healthcare Providers Near You</h2>
             <p class="mt-0.5 text-[10px] font-semibold text-textMuted">Open now near your selected location</p>
         </div>
 
         <div class="hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 -mx-1">
             {% for business in nearby_businesses %}
-            <article class="w-[86%] max-w-[360px] shrink-0 snap-start rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm">
-                <!-- Keep Card Interior Untouched -->
-                <div class="flex items-start gap-2.5">
-                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
-                        <img src="{{ business.thumbnail_url }}" alt="{{ business.name }}" class="h-full w-full object-cover" loading="lazy">
+            <article class="w-[86%] max-w-[360px] shrink-0 snap-start rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md active:scale-[0.99]">
+                <div class="flex gap-3">
+                    <div class="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[1rem] border border-gray-100/80 bg-gray-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                        <img src="{{ business.thumbnail_url }}" alt="{{ business.name }}" class="h-full w-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy">
                     </div>
-                    <div class="min-w-0 flex-1">
-                        <h4 class="mt-0.5 truncate text-[17px] font-extrabold leading-tight text-textMain"><a href="{% url 'businesses:detail' business.slug %}">{{ business.name }}</a></h4>
-                        <div class="mt-1 flex flex-wrap items-center gap-1">{% for name in business.categories %}<span class="rounded border border-gray-100 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-gray-600">{{ name }}</span>{% endfor %}</div>
-                        <div class="mt-1.5 flex items-start gap-1.5"><i class="fa-solid fa-location-dot mt-0.5 text-[11px] text-gray-400"></i><p class="min-w-0 truncate text-[11px] font-semibold text-textMuted" title="{{ business.full_address }}">{{ business.full_address }} &bull; <span class="font-bold text-primary">{{ business.distance_km }} km</span></p></div>
-                        <div class="mt-1.5 flex items-center gap-1.5"><span class="h-2 w-2 rounded-full {% if business.is_open %}bg-emerald-500{% else %}bg-red-600{% endif %}"></span><p class="text-[11px] font-extrabold {% if business.is_open %}text-emerald-600{% else %}text-red-600{% endif %}">{% if business.is_open %}Open Now{% else %}Closed{% endif %}{% if business.open_status %}<span class="ml-1 font-semibold text-gray-400">&bull; {{ business.open_status }}</span>{% endif %}</p></div>
+                    <div class="flex min-w-0 flex-1 flex-col justify-center py-0.5">
+                        <h2 class="mt-0.5 truncate text-[18px] font-black leading-none tracking-tight text-textMain"><a href="{% url 'businesses:detail' business.slug %}">{{ business.name }}</a></h2>
+                        <div class="mt-2 flex flex-wrap items-center gap-1">{% for name in business.categories %}<span class="rounded-md border border-gray-100/80 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-500 shadow-sm">{{ name }}</span>{% endfor %}</div>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <div class="h-2 w-2 shrink-0 rounded-full {% if business.is_open %}animate-pulse bg-emerald-500{% else %}bg-red-500{% endif %} shadow-sm"></div>
+                            <p class="text-[11px] font-extrabold {% if business.is_open %}text-emerald-600{% else %}text-red-500{% endif %}">{% if business.is_open %}Open Now{% else %}Closed{% endif %}{% if business.open_status %}<span class="ml-1 font-semibold text-gray-400">&bull; {{ business.open_status }}</span>{% endif %}</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mt-3 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-50 pt-3">
-                    {% if business.phone %}<a href="tel:{{ business.phone }}" class="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-2 py-3 text-xs font-extrabold text-primary"><i class="fa-solid fa-phone"></i><span>Call</span></a>{% endif %}
-                    {% if business.whatsapp %}<a href="https://wa.me/{{ business.whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-2 py-3 text-xs font-extrabold text-indigo-500"><i class="fa-brands fa-whatsapp"></i><span>Chat</span></a>{% endif %}
-                    <a href="{% url 'businesses:detail' business.slug %}" class="flex items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2 py-3 text-xs font-extrabold text-gray-600"><i class="fa-solid fa-store"></i><span>Details</span></a>
-                    {% if business.latitude is not None and business.longitude is not None %}<a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ business.latitude }},{{ business.longitude }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2 py-3 text-xs font-extrabold text-gray-600"><i class="fa-solid fa-diamond-turn-right"></i><span>Directions</span></a>{% endif %}
+                <div class="mt-2 flex flex-col gap-2.5 border-t border-gray-100/80 pt-2">
+                    <div class="flex items-start gap-1.5">
+                        <i class="fa-solid fa-location-dot mt-0.5 w-3 shrink-0 text-center text-[11px] text-gray-400" aria-hidden="true"></i>
+                        <p class="pr-1 text-[11px] font-semibold leading-snug text-textMuted">{{ business.full_address }} <span class="mx-0.5 text-gray-300">&bull;</span> <span class="whitespace-nowrap font-extrabold text-primary">{{ business.distance_km }} km</span></p>
+                    </div>
+                    {% if business.is_home_delivery or business.is_home_collection %}
+                    <div class="flex flex-wrap gap-2 pl-[18px]">
+                        {% if business.is_home_delivery %}<div class="inline-flex items-center gap-1 rounded-md border border-teal-100/60 bg-teal-50 px-1.5 py-0.5 shadow-sm"><i class="fa-solid fa-motorcycle text-[8px] text-teal-500"></i><span class="text-[8px] font-extrabold uppercase tracking-widest text-teal-700">Home Delivery</span></div>{% endif %}
+                        {% if business.is_home_collection %}<div class="inline-flex items-center gap-1 rounded-md border border-rose-100/60 bg-rose-50 px-1.5 py-0.5 shadow-sm"><i class="fa-solid fa-house-medical text-[8px] text-rose-500"></i><span class="text-[8px] font-extrabold uppercase tracking-widest text-rose-700">Blood Collection</span></div>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-2.5 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-100/80 pt-2.5">
+                    {% if business.phone %}<a href="tel:{{ business.phone }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-1 py-2.5 text-center text-[10px] font-black text-white shadow-sm transition-colors hover:bg-primaryDark active:scale-95"><i class="fa-solid fa-phone"></i><span>Call</span></a>{% endif %}
+                    {% if business.whatsapp %}<a href="https://wa.me/{{ business.whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50 px-1 py-2.5 text-center text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100/80 active:scale-95"><i class="fa-brands fa-whatsapp text-[12px]"></i><span>Chat</span></a>{% endif %}
+                    {% if business.latitude is not None and business.longitude is not None %}<a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ business.latitude }},{{ business.longitude }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-1 py-2.5 text-center text-[10px] font-black text-gray-600 shadow-sm transition-colors hover:bg-gray-100 active:scale-95"><i class="fa-solid fa-diamond-turn-right"></i><span>Directions</span></a>{% endif %}
                 </div>
             </article>
             {% endfor %}
@@ -525,7 +582,7 @@
     {% endif %}
 
     <!-- HEALTHCARE PROVIDER CTA -->
-    <section class="px-3 mt-8 mb-8">
+    <section class="px-3 mt-6 mb-8">
         <div class="relative w-full rounded-[1.5rem] bg-gradient-to-br from-gray-900 to-gray-800 p-5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden">
             <!-- Ambient Background Glow & Watermark -->
             <div class="absolute -right-6 -top-6 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl"></div>
@@ -534,18 +591,18 @@
             <div class="relative z-10">
                 <div class="inline-flex items-center gap-1.5 bg-white/10 border border-white/10 px-2.5 py-1 rounded-full mb-3 backdrop-blur-sm shadow-sm">
                     <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-emerald-50">For Providers</span>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-emerald-50">For Healthcare Providers</span>
                 </div>
 
                 <h2 class="text-[18px] font-black text-white leading-tight tracking-tight">
-                    Grow your healthcare practice.
+                    Grow your healthcare business.
                 </h2>
 
                 <p class="text-[11px] font-medium text-gray-300 mt-2 leading-relaxed pr-6">
-                    Join MedNearby to reach local patients searching for care. Setup takes 2 minutes and is <span class="text-emerald-400 font-extrabold underline decoration-emerald-400/30 underline-offset-2">100% free</span>.
+                    Join MedNearby to reach local patients searching for care.</span>
                 </p>
 
-                <a href="/provider/register" class="mt-5 w-full flex items-center justify-center gap-2 bg-emerald-500 text-white py-3.5 rounded-xl text-[12px] font-extrabold shadow-md shadow-emerald-500/20 active:scale-95 transition-all hover:bg-emerald-400">
+                <a href="https://wa.me/+917029005857?text=Hi%2C%20I%E2%80%99d%20like%20to%20add%20my%20business%20to%20MedNearby.%20Please%20share%20the%20next%20steps." target="_blank" class="mt-5 w-full flex items-center justify-center gap-2 bg-emerald-500 text-white py-3.5 rounded-xl text-[12px] font-extrabold shadow-md shadow-emerald-500/20 active:scale-95 transition-all hover:bg-emerald-400">
                     List Your Business for Free <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </a>
             </div>
@@ -555,19 +612,21 @@
     <!-- FOOTER SECTION -->
     <footer class="mt-2 border-t border-gray-100 bg-gray-50/80 px-4 pt-6 pb-8">
         <div class="flex flex-col items-center justify-center gap-3">
-            <div class="flex items-center gap-1.5 opacity-80">
-                <div class="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-50 text-[9px] text-primary shadow-sm border border-emerald-100/50">
-                    <i class="fa-solid fa-notes-medical"></i>
-                </div>
-                <span class="text-xs font-black text-textMain tracking-tight">MedNearby</span>
+            <a href="/" class="flex items-center gap-2 active:scale-95 transition-transform w-fit">
+            <div class="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 text-emerald-500 border border-emerald-100/50 shadow-sm">
+                <i class="fa-solid fa-notes-medical text-sm"></i>
             </div>
+            <span class="text-base font-black tracking-tight text-gray-900">
+                    Med<span class="text-emerald-500">Nearby</span>
+                </span>
+            </a>
 
             <nav class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-                <a href="#" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Support</a>
+                <a href="{% url 'core:support' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Support</a>
                 <div class="h-1 w-1 rounded-full bg-gray-300"></div>
-                <a href="#" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Privacy</a>
+                <a href="{% url 'core:privacy-policy' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Privacy Policy</a>
                 <div class="h-1 w-1 rounded-full bg-gray-300"></div>
-                <a href="#" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Terms</a>
+                <a href="{% url 'core:terms-of-use' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Terms of Use</a>
             </nav>
 
             <p class="mt-2 text-center text-[9px] font-semibold text-gray-400">

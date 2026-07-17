@@ -3,7 +3,7 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from directory.models import Business, Category, Doctor
+from directory.models import Ambulance, Business, Category, Doctor
 
 
 class HomeViewTests(TestCase):
@@ -84,6 +84,7 @@ class HomeAvailableDoctorsTests(TestCase):
         self.assertEqual(len(response.context["available_doctors"]), 10)
         self.assertContains(response, "Doctors Near You")
         self.assertContains(response, "Available Doctor 0")
+        self.assertContains(response, 'data-href="/doctor/available-doctor-0"')
         self.assertNotContains(response, "Available Doctor 10")
 
     def test_home_hides_available_doctors_without_a_selected_location(self):
@@ -153,3 +154,123 @@ class InternalTasksViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/internal_tasks.html")
         self.assertContains(response, "Internal Tasks")
+
+
+class InternalScheduleTaskViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            phone="9000000002", password="test-password", is_staff=True
+        )
+        self.business = Business.objects.create(name="Schedule Clinic")
+        self.doctor = Doctor.objects.create(name="Dr. Schedule", business=self.business)
+        self.client.force_login(self.user)
+
+    def test_business_hours_builder_saves_json(self):
+        hours = '{"0":[{"opens_at":"09:00","closes_at":"18:00"}]}'
+        response = self.client.post(
+            reverse("core:business-hours-task", kwargs={"business_id": self.business.pk}),
+            {"business_hours": hours},
+        )
+
+        self.business.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.business.business_hours["0"][0]["opens_at"], "09:00")
+        self.assertContains(response, "updated successfully")
+
+    def test_doctor_schedule_builder_saves_json(self):
+        schedule = '{"weekly":[{"weekdays":[0],"slots":[{"start":"09:00","end":"13:00"}],"note":"Available every Monday"}],"monthly_weekday":[],"monthly_dates":[]}'
+        response = self.client.post(
+            reverse("core:doctor-schedule-task", kwargs={"doctor_id": self.doctor.pk}),
+            {"schedule": schedule},
+        )
+
+        self.doctor.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.doctor.schedule["weekly"][0]["note"], "Available every Monday")
+        self.assertContains(response, "updated successfully")
+
+    def test_builders_require_staff_login(self):
+        self.client.logout()
+
+        response = self.client.get(
+            reverse("core:business-hours-task", kwargs={"business_id": self.business.pk})
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/admin/login/", response.url)
+from django.test import TestCase
+from django.urls import reverse
+
+
+class EmergencyViewTests(TestCase):
+    def test_emergency_page_uses_blank_template(self):
+        response = self.client.get(reverse("core:emergency"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/emergency.html")
+
+    def test_emergency_lists_at_most_ten_nearby_active_ambulances(self):
+        for number in range(11):
+            business = Business.objects.create(
+                name=f"Ambulance Provider {number}",
+                latitude=str(22.5726 + number * 0.00001),
+                longitude="88.363900000",
+                publication_status=Business.PublicationStatus.PUBLISHED,
+            )
+            Ambulance.objects.create(
+                business=business,
+                phone=f"9000000{number:03d}",
+            )
+
+        self.client.cookies["mednearby_location_lat"] = "22.5726"
+        self.client.cookies["mednearby_location_lng"] = "88.3639"
+        response = self.client.get(reverse("core:emergency"))
+
+        self.assertEqual(len(response.context["ambulances"]), 10)
+        self.assertContains(response, "Ambulance Provider 0")
+        self.assertNotContains(response, "Ambulance Provider 10")
+        self.assertContains(response, 'href="tel:9000000000"')
+
+    def test_emergency_requests_location_when_not_selected(self):
+        response = self.client.get(reverse("core:emergency"))
+
+        self.assertTrue(response.context["location_required"])
+        self.assertContains(response, "Select your location")
+
+
+class AmbulanceListViewTests(TestCase):
+    def test_lists_ambulances_ordered_by_business_distance(self):
+        farther_business = Business.objects.create(
+            name="Farther Ambulance",
+            latitude="22.582600000",
+            longitude="88.363900000",
+            address="Farther Road",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        nearer_business = Business.objects.create(
+            name="Nearer Ambulance",
+            latitude="22.572700000",
+            longitude="88.363900000",
+            address="Nearby Road",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        Ambulance.objects.create(business=farther_business, phone="9111111111")
+        Ambulance.objects.create(
+            business=nearer_business,
+            phone="9222222222",
+            is_24_7=True,
+        )
+        self.client.cookies["mednearby_location_lat"] = "22.5726"
+        self.client.cookies["mednearby_location_lng"] = "88.3639"
+
+        response = self.client.get(reverse("core:ambulances"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/ambulance_list.html")
+        self.assertEqual(
+            [item["business"] for item in response.context["ambulances"]],
+            ["Nearer Ambulance", "Farther Ambulance"],
+        )
+        self.assertContains(response, "Nearby Road")
+        self.assertContains(response, "Available 24x7")
+        self.assertNotContains(response, "Directions")
