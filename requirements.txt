@@ -7,6 +7,7 @@ pillow==12.3.0
 psycopg==3.3.4
 psycopg-binary==3.3.4
 pygeohash==3.3.0
+qrcode==8.2
 sqlparse==0.5.5
 tzdata==2026.3
 whitenoise==6.12.0

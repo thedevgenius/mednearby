@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found | MedNearby{% endblock %}
+
+{% block content %}
+<main class="app-container flex min-h-dvh items-center justify-center bg-gradient-to-b from-emerald-50/70 via-white to-gray-50 px-5 py-12">
+    <section class="w-full max-w-sm text-center" aria-labelledby="not-found-title">
+        <div class="relative mx-auto flex h-32 w-32 items-center justify-center">
+            <div class="absolute inset-0 animate-pulse rounded-full bg-emerald-100/70"></div>
+            <div class="absolute inset-4 rounded-full border border-emerald-200 bg-white shadow-[0_12px_35px_rgba(16,185,129,0.16)]"></div>
+            <i class="fa-solid fa-map-location-dot relative text-5xl text-primary" aria-hidden="true"></i>
+            <span class="absolute right-1 top-2 flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-rose-500 text-lg font-black text-white shadow-md">?</span>
+        </div>
+
+        <p class="mt-5 text-[11px] font-black uppercase tracking-[0.22em] text-primary">Error 404</p>
+        <h1 id="not-found-title" class="mt-2 text-2xl font-black tracking-tight text-textMain">This page wandered off</h1>
+        <p class="mx-auto mt-2 max-w-xs text-sm font-semibold leading-relaxed text-textMuted">The page you’re looking for isn’t available, but nearby healthcare is still easy to find.</p>
+
+        <div class="mt-7 grid grid-cols-2 gap-3">
+            <a href="{% url 'core:home' %}" class="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-white shadow-sm transition-transform active:scale-95 hover:bg-primaryDark"><i class="fa-solid fa-house" aria-hidden="true"></i> Home</a>
+            <a href="{% url 'doctors:specialties' %}" class="flex items-center justify-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm font-extrabold text-indigo-700 transition-transform active:scale-95"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Doctors</a>
+            <button type="button" data-bottom-sheet-target="#search-sheet" class="col-span-2 flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-extrabold text-textMain shadow-sm transition-transform active:scale-95 hover:border-emerald-200"><i class="fa-solid fa-magnifying-glass text-primary" aria-hidden="true"></i> Search MedNearby</button>
+        </div>
+    </section>
+</main>
+{% endblock %}

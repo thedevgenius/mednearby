@@ -7,7 +7,7 @@
         </div>
         {% if updates_show_all %}<a href="{% url 'core:updates' %}" class="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[10px] font-extrabold text-textMain shadow-sm">View All</a>{% endif %}
     </div>
-    <div class="{% if updates_horizontal %}hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 -mx-1{% else %}flex flex-col gap-3{% endif %}">
+    <div class="{% if updates_horizontal %}hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 {% else %}flex flex-col gap-3{% endif %}">
         {% include "includes/update_cards.html" %}
     </div>
 </section>

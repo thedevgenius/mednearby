@@ -1,18 +1,22 @@
 import random
+from io import BytesIO
+from pathlib import Path
 from datetime import datetime
 from decimal import Decimal
 from math import asin, cos, radians, sin, sqrt
 from urllib.parse import urlencode
 
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
+from django.conf import settings
 from django.views import View
 from locations.services import nearest_locality
 
-from .models import Business, Category, Doctor
+from .models import Business, BusinessImage, Category, Doctor
 from .services import (
     KOLKATA_TIMEZONE,
     business_thumbnail_url,
@@ -71,7 +75,9 @@ class DoctorSpecialtyListView(View):
                 type=Category.Type.DOCTOR_SPECIALTY,
                 is_active=True,
                 # is_featured=True,
-            ).only("name", "label", "slug", "icon", "display_order")
+            ).only(
+                "name", "label", "slug", "icon", "display_order"
+            ).order_by("display_order", "name")
         )
         color_offset = random.SystemRandom().uniform(0, 360)
         color_step = 360 / len(specialties) if specialties else 0
@@ -102,7 +108,9 @@ class BusinessListView(View):
             parent=category,
             type=Category.Type.BUSINESS_CATEGORY,
             is_active=True,
-        ).only("name", "label", "slug", "display_order")
+        ).only("name", "label", "slug", "display_order").order_by(
+            "display_order", "name"
+        )
         is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
         try:
             latitude = float(request.COOKIES["mednearby_location_lat"])
@@ -173,12 +181,25 @@ class BusinessDetailView(View):
                 "locality__city",
                 "locality__city__state",
             ).prefetch_related(
-                "categories",
+                Prefetch(
+                    "categories",
+                    queryset=Category.objects.order_by("display_order", "name"),
+                ),
+                Prefetch(
+                    "images",
+                    queryset=BusinessImage.objects.order_by(
+                        "-is_thumbnail", "created_at", "id"
+                    ),
+                    to_attr="detail_images",
+                ),
                 "facilities",
                 Prefetch(
                     "doctor_set",
                     queryset=Doctor.objects.filter(is_active=True).prefetch_related(
-                        "specialties"
+                        Prefetch(
+                            "specialties",
+                            queryset=Category.objects.order_by("display_order", "name"),
+                        )
                     ),
                     to_attr="active_doctors",
                 ),
@@ -355,6 +376,62 @@ class BusinessDetailView(View):
         )
 
 
+class BusinessQRCodeView(View):
+    http_method_names = ["get"]
+
+    def get(self, request, slug, *args, **kwargs):
+        import qrcode
+        from PIL import Image, ImageDraw
+
+        business = get_object_or_404(
+            Business,
+            slug=slug,
+            is_testing=False,
+            is_active=True,
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        business_url = request.build_absolute_uri(
+            reverse("businesses:detail", kwargs={"slug": business.slug})
+        )
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=12,
+            border=4,
+        )
+        qr.add_data(business_url)
+        qr.make(fit=True)
+        image = qr.make_image(fill_color="#111827", back_color="white").convert("RGB")
+
+        logo_path = Path(settings.BASE_DIR) / "static" / "images" / "profile-image.png"
+        if logo_path.exists():
+            with Image.open(logo_path) as source_logo:
+                logo = source_logo.convert("RGBA")
+                logo_size = max(48, image.width // 5)
+                logo.thumbnail((logo_size, logo_size), Image.Resampling.LANCZOS)
+                badge_size = max(logo.width, logo.height) + 20
+                badge = Image.new("RGBA", (badge_size, badge_size), "white")
+                ImageDraw.Draw(badge).rounded_rectangle(
+                    (0, 0, badge_size - 1, badge_size - 1),
+                    radius=12,
+                    fill="white",
+                )
+                badge.alpha_composite(
+                    logo,
+                    ((badge_size - logo.width) // 2, (badge_size - logo.height) // 2),
+                )
+                position = ((image.width - badge_size) // 2, (image.height - badge_size) // 2)
+                image.paste(badge.convert("RGB"), position)
+
+        output = BytesIO()
+        image.save(output, format="PNG", optimize=True)
+        response = HttpResponse(output.getvalue(), content_type="image/png")
+        response["Content-Disposition"] = (
+            f'attachment; filename="{business.slug}-mednearby-qr.png"'
+        )
+        return response
+
+
 class DoctorListView(View):
     http_method_names = ["get"]
 
@@ -428,7 +505,12 @@ class DoctorDetailView(View):
                 "business__locality",
                 "business__locality__city",
                 "business__locality__city__state",
-            ).prefetch_related("specialties"),
+            ).prefetch_related(
+                Prefetch(
+                    "specialties",
+                    queryset=Category.objects.order_by("display_order", "name"),
+                )
+            ),
             slug=slug,
             is_active=True,
             business__is_testing=False,

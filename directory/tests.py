@@ -944,6 +944,66 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, 'id="update-detail-sheet"')
         self.assertNotContains(response, "Draft announcement")
 
+    def test_downloads_branded_business_qr_code(self):
+        detail_response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+        qr_url = reverse("businesses:qr-code", kwargs={"slug": self.business.slug})
+        self.assertNotContains(detail_response, f'href="{qr_url}"')
+        self.assertNotContains(detail_response, ">QR Code</span>")
+
+        response = self.client.get(qr_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertEqual(
+            response["Content-Disposition"],
+            f'attachment; filename="{self.business.slug}-mednearby-qr.png"',
+        )
+        self.assertTrue(response.content.startswith(b"\x89PNG\r\n\x1a\n"))
+        with Image.open(BytesIO(response.content)) as qr_image:
+            self.assertEqual(qr_image.format, "PNG")
+            self.assertEqual(qr_image.width, qr_image.height)
+            self.assertGreaterEqual(qr_image.width, 300)
+
+    def test_business_detail_renders_image_slider_for_multiple_images(self):
+        BusinessImage.objects.bulk_create(
+            [
+                BusinessImage(
+                    business=self.business,
+                    image="businesses/first.webp",
+                    is_thumbnail=True,
+                ),
+                BusinessImage(
+                    business=self.business,
+                    image="businesses/second.webp",
+                ),
+            ]
+        )
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, 'id="business-image-track"')
+        self.assertContains(response, "businesses/first.webp")
+        self.assertContains(response, "businesses/second.webp")
+        self.assertContains(response, 'data-slide-index="0"')
+        self.assertContains(response, 'data-slide-index="1"')
+        self.assertContains(response, "setInterval(() => showSlide(activeSlide + 1), 4000)")
+
+    def test_business_detail_omits_pagination_for_single_image(self):
+        BusinessImage.objects.bulk_create(
+            [BusinessImage(business=self.business, image="businesses/only.webp")]
+        )
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "businesses/only.webp")
+        self.assertNotContains(response, 'id="business-image-dots"')
+
     def test_displays_assigned_categories_without_placeholder_categories(self):
         diagnostics = Category.objects.create(name="Diagnostic Centre")
         self.business.categories.add(diagnostics)
@@ -1033,7 +1093,7 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "bg-indigo-50")
         self.assertContains(response, "Every Monday")
         self.assertContains(response, "10AM - 12PM")
-        self.assertContains(response, "Call for Enquiry")
+        self.assertContains(response, "Enquiry")
         self.assertContains(response, 'href="tel:9876543210"')
         self.assertContains(response, 'data-specialty-filter="all"')
         self.assertContains(
