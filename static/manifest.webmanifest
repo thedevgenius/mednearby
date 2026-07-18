@@ -1,0 +1,26 @@
+{
+  "name": "MedNearby",
+  "short_name": "MedNearby",
+  "description": "Find nearby doctors, clinics, pharmacies and healthcare services.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f9fafb",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

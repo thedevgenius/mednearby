@@ -6,6 +6,7 @@
     const STORAGE_KEY = "mednearby_selected_locality";
     const LAT_COOKIE = "mednearby_location_lat";
     const LNG_COOKIE = "mednearby_location_lng";
+    const LOCALITY_REFRESH_DISTANCE_METERS = 200;
     const pickerName = document.getElementById("selected-location-name");
     const input = document.getElementById("locality-search");
     const results = document.getElementById("locality-search-results");
@@ -36,13 +37,13 @@
         return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
     };
 
-    const hasSavedCoordinates = () => {
+    const getSavedCoordinates = () => {
         const savedLatitude = getCookie(LAT_COOKIE);
         const savedLongitude = getCookie(LNG_COOKIE);
-        if (savedLatitude === null || savedLongitude === null) return false;
+        if (savedLatitude === null || savedLongitude === null) return null;
         const latitude = Number(savedLatitude);
         const longitude = Number(savedLongitude);
-        return (
+        const isValid = (
             Number.isFinite(latitude)
             && Number.isFinite(longitude)
             && latitude >= -90
@@ -50,6 +51,22 @@
             && longitude >= -180
             && longitude <= 180
         );
+        return isValid ? { latitude, longitude } : null;
+    };
+
+    const distanceInMeters = (from, to) => {
+        const earthRadiusMeters = 6371000;
+        const toRadians = (degrees) => degrees * Math.PI / 180;
+        const latitudeDelta = toRadians(to.latitude - from.latitude);
+        const longitudeDelta = toRadians(to.longitude - from.longitude);
+        const fromLatitude = toRadians(from.latitude);
+        const toLatitude = toRadians(to.latitude);
+        const haversine = (
+            Math.sin(latitudeDelta / 2) ** 2
+            + Math.cos(fromLatitude) * Math.cos(toLatitude)
+            * Math.sin(longitudeDelta / 2) ** 2
+        );
+        return 2 * earthRadiusMeters * Math.asin(Math.sqrt(haversine));
     };
 
     const saveLocality = (locality, updateCoordinateCookies = true) => {
@@ -135,8 +152,6 @@
     };
 
     const findNearest = async (latitude, longitude, showFeedback) => {
-        setCookie(LAT_COOKIE, latitude);
-        setCookie(LNG_COOKIE, longitude);
         const url = new URL(sheet.dataset.nearestUrl, location.origin);
         url.searchParams.set("lat", latitude);
         url.searchParams.set("lng", longitude);
@@ -155,6 +170,31 @@
         }
     };
 
+    const processCurrentCoordinates = (latitude, longitude, showFeedback) => {
+        const savedCoordinates = getSavedCoordinates();
+        const currentCoordinates = { latitude, longitude };
+
+        // Always retain the latest device coordinates, even when the locality
+        // is close enough that another backend lookup is unnecessary.
+        setCookie(LAT_COOKIE, latitude);
+        setCookie(LNG_COOKIE, longitude);
+
+        const shouldRefreshLocality = (
+            !savedCoordinates
+            || distanceInMeters(savedCoordinates, currentCoordinates) > LOCALITY_REFRESH_DISTANCE_METERS
+        );
+        if (shouldRefreshLocality) {
+            return findNearest(latitude, longitude, showFeedback);
+        }
+
+        showStatus("");
+        document.dispatchEvent(new CustomEvent("location:coordinates-updated", {
+            detail: currentCoordinates,
+        }));
+        if (showFeedback) closeBottomSheet("location-sheet");
+        return Promise.resolve();
+    };
+
     const requestCurrentLocation = (showFeedback = true) => {
         if (!navigator.geolocation) {
             if (showFeedback) showStatus("Location is not supported by this browser.", true);
@@ -164,7 +204,7 @@
         currentLabel.textContent = "Finding your location…";
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                findNearest(position.coords.latitude, position.coords.longitude, showFeedback)
+                processCurrentCoordinates(position.coords.latitude, position.coords.longitude, showFeedback)
                     .finally(() => {
                         currentButton.disabled = false;
                         currentLabel.textContent = "Use current location";
@@ -175,7 +215,7 @@
                 currentLabel.textContent = "Use current location";
                 if (showFeedback) showStatus("Location permission was denied or unavailable.", true);
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     };
 
@@ -185,5 +225,5 @@
     });
     currentButton.addEventListener("click", () => requestCurrentLocation(true));
     restoreLocality();
-    if (!hasSavedCoordinates()) requestCurrentLocation(false);
+    requestCurrentLocation(false);
 })();

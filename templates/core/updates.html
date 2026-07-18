@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Nearby Updates & Offers | MedNearby{% endblock %}
+
+{% block content %}
+<main class="app-container min-h-dvh bg-gray-50 pb-10">
+    <header class="sticky top-0 z-50 flex items-center gap-3 border-b border-gray-100 bg-white/95 px-3 py-3 backdrop-blur-md">
+        <a href="{% url 'core:home' %}" data-back-button class="grid h-10 w-10 place-items-center rounded-full border border-gray-100 bg-gray-50" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <div><h1 class="text-base font-black text-textMain">Updates & Offers</h1><p class="text-[10px] font-bold text-primary">From healthcare providers near you</p></div>
+    </header>
+    {% if location_required %}
+    <section class="mx-3 mt-5 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm">
+        <i class="fa-solid fa-location-dot text-3xl text-primary"></i><h2 class="mt-3 text-lg font-extrabold">Select your location</h2>
+        <p class="mt-1 text-sm text-textMuted">Choose a location to see nearby updates and offers.</p>
+        <button type="button" data-bottom-sheet-target="#location-sheet" class="mt-4 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white">Choose location</button>
+    </section>
+    {% elif updates %}
+    <section class="mt-6 px-3">
+        <div class="mb-4"><h2 class="text-[16px] font-black tracking-tight text-textMain">All Nearby Updates & Offers</h2><p class="mt-0.5 text-[10px] font-semibold text-textMuted">Announcements from nearby healthcare providers</p></div>
+        <div id="updates-list" class="flex flex-col gap-3">{% include "includes/update_cards.html" with updates_horizontal=False %}</div>
+        <button id="load-more-updates" type="button" data-page="{{ next_page }}" {% if not has_more %}hidden{% endif %} class="mt-5 w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-black text-primary disabled:opacity-60">Load more updates</button>
+        <p id="updates-load-status" class="mt-3 hidden text-center text-xs font-bold text-textMuted" aria-live="polite"></p>
+    </section>
+    {% else %}
+    <section class="px-4 py-16 text-center"><i class="fa-regular fa-bell-slash text-3xl text-gray-300"></i><h2 class="mt-3 font-black">No updates nearby</h2><p class="mt-1 text-xs text-textMuted">New announcements and offers will appear here.</p></section>
+    {% endif %}
+</main>
+{% include "includes/update_detail_sheet.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const button = document.getElementById("load-more-updates");
+    const list = document.getElementById("updates-list");
+    const status = document.getElementById("updates-load-status");
+    if (!button || !list) return;
+
+    button.addEventListener("click", async () => {
+        button.disabled = true;
+        status.textContent = "Loading updates...";
+        status.classList.remove("hidden");
+        const url = new URL(location.href);
+        url.searchParams.set("page", button.dataset.page);
+        try {
+            const response = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+            if (!response.ok) throw new Error("Unable to load updates");
+            const data = await response.json();
+            list.insertAdjacentHTML("beforeend", data.html);
+            button.dataset.page = data.next_page;
+            button.hidden = !data.has_more;
+            status.classList.add("hidden");
+        } catch (error) {
+            status.textContent = "Unable to load more updates right now.";
+        } finally {
+            button.disabled = false;
+        }
+    });
+})();
+</script>
+{% endblock %}

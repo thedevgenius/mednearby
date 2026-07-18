@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}{{ specialty.label|default:specialty.name }} near you | MedNearby{% endblock %}
+{% block title %}Best {{ specialty.label|default:specialty.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="Find experienced {{ specialty.name }} doctors{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %}. View profiles, clinic details, consultation hours, contact information, and nearby availability on MedNearby.">
+<meta name="keywords" content="{{ specialty.name }} doctor{% if selected_location %} in {{ selected_location.name }}{% endif %}, best {{ specialty.name }} doctors{% if selected_location %} in {{ selected_location.city.name }}{% endif %}, {{ specialty.name }} specialist near me, nearby {{ specialty.name }} doctor">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MedNearby">
+<meta property="og:title" content="Best {{ specialty.label|default:specialty.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby">
+<meta property="og:description" content="Find experienced {{ specialty.name }} doctors{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %}. Compare profiles, clinics, hours, and availability.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Best {{ specialty.label|default:specialty.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby">
+<meta name="twitter:description" content="Find experienced {{ specialty.name }} doctors{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %} on MedNearby.">
+{% endblock %}
 
 {% block content %}
 <main class="app-container min-h-screen bg-gray-50 pb-8">
@@ -36,7 +51,8 @@
     {% else %}
     <section id="doctor-list" class="px-3 pb-6 pt-4" aria-live="polite">
         {% for doctor in doctors %}
-        <article class="doctor-card {% if doctor.schedule.is_today %}available-today{% endif %} mb-3 cursor-pointer rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md" data-href="{% url 'doctors:detail' doctor.slug %}" role="link" tabindex="0">
+        <article class="doctor-card relative {% if doctor.schedule.is_today %}available-today{% endif %} mb-3 cursor-pointer rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md" data-href="{% url 'doctors:detail' doctor.slug %}" role="link" tabindex="0">
+            <button type="button" data-save-item data-save-type="doctor" data-save-slug="{{ doctor.slug }}" data-save-name="{{ doctor.name }}" class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-sm" aria-label="Save {{ doctor.name }}"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button>
     
             <!-- Top Profile Section -->
             <div class="flex gap-3 items-stretch">
@@ -174,6 +190,9 @@
         const article = document.createElement("article"); article.className = `doctor-card ${today ? "available-today" : ""} mb-3 cursor-pointer rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md`; article.dataset.href = `/doctor/${encodeURIComponent(d.slug)}`; article.setAttribute("role", "link"); article.tabIndex = 0;
         const availability = today ? `Available Today • ${d.schedule.next_time}` : `Available on ${d.schedule?.next_date || ""}${d.schedule?.next_date ? " • " : ""}${d.schedule?.next_time || "Schedule unavailable"}`;
         article.innerHTML = `<div class="flex items-stretch gap-3"><div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${profile.classes}"><i class="fa-solid ${profile.icon}" aria-hidden="true"></i></div><div class="flex min-w-0 flex-1 flex-col justify-between py-0.5"><div><h2 class="truncate text-[17px] font-black leading-none tracking-tight text-textMain">${esc(d.name)}</h2><p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">${esc((d.specialties || []).join(", "))}</p><p class="mt-0.5 truncate text-[10px] font-medium text-gray-400">${esc(d.qualification)}</p>${d.fees ? `<p class="mt-1 flex items-baseline gap-1 leading-none"><span class="text-[14px] font-black text-primary">₹${esc(d.fees)}</span><span class="text-[9px] font-medium text-gray-400">(Consultation Fee)</span></p>` : ""}</div></div></div><div class="mt-4 rounded-[1.25rem] border border-gray-100/60 bg-gradient-to-br from-gray-50/80 to-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.01)]"><div class="flex items-start gap-2.5"><div class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-rose-100/50 bg-rose-50 text-[10px] text-rose-500 shadow-sm"><i class="fa-regular fa-hospital"></i></div><div class="min-w-0 flex-1"><h3 class="truncate text-[12px] font-black leading-tight text-textMain">${esc(d.business)}</h3><p class="mt-0.5 truncate text-[11px] font-semibold text-textMuted">${esc(d.address || d.locality)} • <span class="font-extrabold text-primary">${esc(d.distance_km)} km</span></p></div></div><div class="my-2.5 border-t border-gray-100/80"></div><div class="flex items-center gap-1.5 text-[11px] font-extrabold ${today ? "text-emerald-600" : "text-indigo-600"}"><i class="fa-regular fa-clock text-[11px]"></i><span>${esc(availability)}</span></div>${rows.length ? `<div class="mt-2.5 border-t border-gray-100/80 pt-2.5"><ul class="flex flex-col gap-1.5">${rows.map(r => `<li class="flex items-center justify-between gap-3 text-[10px]"><span class="font-extrabold text-gray-500">${esc(r.label)}</span><span class="shrink-0 text-right font-bold text-gray-400">${esc(r.time_text)}</span></li>`).join("")}</ul></div>` : ""}</div>${clinicActions(d)}`;
+        article.classList.add("relative");
+        article.insertAdjacentHTML("afterbegin", `<button type="button" data-save-item data-save-type="doctor" data-save-slug="${esc(d.slug)}" data-save-name="${esc(d.name)}" class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-sm" aria-label="Save ${esc(d.name)}"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button>`);
+        window.MedNearbySaved?.refresh(article);
         return article;
     };
     const applyFilter = () => list.querySelectorAll(".doctor-card").forEach(c => c.hidden = filter.getAttribute("aria-pressed") === "true" && !c.classList.contains("available-today"));

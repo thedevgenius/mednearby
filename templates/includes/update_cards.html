@@ -1,0 +1,61 @@
+{% for update in updates %}
+<article class="update-card {% if updates_horizontal %}w-[82%] max-w-[340px] shrink-0 snap-start{% endif %} rounded-[1.25rem] border p-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-transform active:scale-[0.99] {% if update.kind == 'offer' %}border-amber-100/80 bg-gradient-to-br from-amber-50 to-white{% elif update.kind == 'doctor_availability' %}border-rose-100/80 bg-gradient-to-br from-rose-50 to-white{% elif update.kind == 'new_doctor' %}border-indigo-100/80 bg-gradient-to-br from-indigo-50 to-white{% else %}border-emerald-100/80 bg-gradient-to-br from-emerald-50 to-white{% endif %}">
+    
+    <!-- Top Row: Icon, Category, Date & Title -->
+    <div class="flex items-start gap-2.5">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.85rem] border shadow-sm {% if update.kind == 'offer' %}bg-amber-100/50 border-amber-200/50 text-amber-600{% elif update.kind == 'doctor_availability' %}bg-rose-100/50 border-rose-200/50 text-rose-600{% elif update.kind == 'new_doctor' %}bg-indigo-100/50 border-indigo-200/50 text-indigo-600{% else %}bg-emerald-100/50 border-emerald-200/50 text-emerald-600{% endif %}">
+            <i class="fa-solid {% if update.kind == 'offer' %}fa-tags{% elif update.kind == 'doctor_availability' %}fa-user-clock{% elif update.kind == 'new_doctor' %}fa-user-doctor{% else %}fa-bullhorn{% endif %} text-[13px]" aria-hidden="true"></i>
+        </div>
+        
+        <div class="min-w-0 flex-1 pt-0.5">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-[8px] font-black uppercase tracking-widest {% if update.kind == 'offer' %}text-amber-600{% elif update.kind == 'doctor_availability' %}text-rose-600{% elif update.kind == 'new_doctor' %}text-indigo-600{% else %}text-emerald-600{% endif %}">
+                    {{ update.get_kind_display }}
+                </span>
+                <time class="shrink-0 text-[8px] font-bold text-gray-400" datetime="{{ update.created_at|date:'c' }}">
+                    {{ update.created_at|timesince }} ago
+                </time>
+            </div>
+            <h3 class="mt-0.5 truncate text-[14px] font-black text-textMain leading-tight">{{ update.title }}</h3>
+        </div>
+    </div>
+
+    <!-- Middle Row: Summary -->
+    <p class="mt-2 line-clamp-2 text-[11px] font-semibold leading-relaxed text-gray-500">
+        {{ update.summary }}
+    </p>
+
+    <!-- Bottom Row: Prominent Business Link & Action Button -->
+    <div class="mt-3 flex items-center justify-between gap-3 border-t border-black/5 pt-3">
+        
+        <!-- Business Link Profile -->
+        <a href="{% url 'businesses:detail' update.business.slug %}" class="flex items-center gap-2 min-w-0 flex-1 group">
+            <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white border border-gray-100 shadow-sm text-[10px] text-primary group-hover:border-emerald-200 transition-colors">
+                <i class="fa-solid fa-hospital" aria-hidden="true"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+                <span class="block text-[8px] font-extrabold uppercase tracking-widest text-gray-400 leading-none mb-0.5">From</span>
+                <span class="block truncate text-[12px] font-black text-textMain group-hover:text-primary transition-colors leading-none">
+                    {{ update.business.name }}
+                </span>
+            </div>
+        </a>
+        
+        <!-- View More Button -->
+        <button type="button" class="update-detail-trigger shrink-0 rounded-[0.6rem] bg-white border border-gray-100 px-3 py-2 text-[9px] font-black text-primary shadow-sm hover:bg-gray-50 active:scale-95 transition-all" 
+            data-update-title="{{ update.title }}" 
+            data-update-kind="{{ update.get_kind_display }}" 
+            data-update-business="{{ update.business.name }}" 
+            data-update-business-url="{% url 'businesses:detail' update.business.slug %}" 
+            data-update-business-phone="{{ update.business.phone }}" 
+            data-update-business-whatsapp="{{ update.business.whatsapp }}" 
+            data-update-business-latitude="{{ update.business.latitude|default_if_none:'' }}" 
+            data-update-business-longitude="{{ update.business.longitude|default_if_none:'' }}" 
+            data-update-details="{{ update.details }}" 
+            data-update-date="{{ update.created_at|date:'M j, Y' }}">
+            View more
+        </button>
+
+    </div>
+</article>
+{% endfor %}

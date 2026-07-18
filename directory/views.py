@@ -1,17 +1,22 @@
 import random
+from io import BytesIO
+from pathlib import Path
 from datetime import datetime
 from decimal import Decimal
 from math import asin, cos, radians, sin, sqrt
 from urllib.parse import urlencode
 
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
+from django.conf import settings
 from django.views import View
+from locations.services import nearest_locality
 
-from .models import Business, Category, Doctor
+from .models import Business, BusinessImage, Category, Doctor
 from .services import (
     KOLKATA_TIMEZONE,
     business_thumbnail_url,
@@ -19,6 +24,7 @@ from .services import (
     businesses_near_category,
     doctor_schedule_availability,
     doctors_near_specialty,
+    published_updates,
     search_categories,
     serialize_business,
     serialize_category,
@@ -69,7 +75,9 @@ class DoctorSpecialtyListView(View):
                 type=Category.Type.DOCTOR_SPECIALTY,
                 is_active=True,
                 # is_featured=True,
-            ).only("name", "label", "slug", "icon", "display_order")
+            ).only(
+                "name", "label", "slug", "icon", "display_order"
+            ).order_by("display_order", "name")
         )
         color_offset = random.SystemRandom().uniform(0, 360)
         color_step = 360 / len(specialties) if specialties else 0
@@ -100,7 +108,9 @@ class BusinessListView(View):
             parent=category,
             type=Category.Type.BUSINESS_CATEGORY,
             is_active=True,
-        ).only("name", "label", "slug", "display_order")
+        ).only("name", "label", "slug", "display_order").order_by(
+            "display_order", "name"
+        )
         is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
         try:
             latitude = float(request.COOKIES["mednearby_location_lat"])
@@ -123,6 +133,7 @@ class BusinessListView(View):
                     "businesses": [],
                     "total_count": 0,
                     "location_required": True,
+                    "canonical_url": request.build_absolute_uri(request.path),
                 },
             )
 
@@ -142,6 +153,7 @@ class BusinessListView(View):
                     "total_count": total_count,
                 }
             )
+        selected_location = nearest_locality(latitude, longitude)
         return render(
             request,
             "directory/business_list.html",
@@ -153,6 +165,8 @@ class BusinessListView(View):
                 "has_more": has_more,
                 "next_page": page + 1,
                 "location_required": False,
+                "selected_location": selected_location,
+                "canonical_url": request.build_absolute_uri(request.path),
             },
         )
 
@@ -167,12 +181,25 @@ class BusinessDetailView(View):
                 "locality__city",
                 "locality__city__state",
             ).prefetch_related(
-                "categories",
+                Prefetch(
+                    "categories",
+                    queryset=Category.objects.order_by("display_order", "name"),
+                ),
+                Prefetch(
+                    "images",
+                    queryset=BusinessImage.objects.order_by(
+                        "-is_thumbnail", "created_at", "id"
+                    ),
+                    to_attr="detail_images",
+                ),
                 "facilities",
                 Prefetch(
                     "doctor_set",
                     queryset=Doctor.objects.filter(is_active=True).prefetch_related(
-                        "specialties"
+                        Prefetch(
+                            "specialties",
+                            queryset=Category.objects.order_by("display_order", "name"),
+                        )
                     ),
                     to_attr="active_doctors",
                 ),
@@ -296,8 +323,19 @@ class BusinessDetailView(View):
                     1,
                 )
         similar_businesses = similar_businesses_nearby(business, limit=10)
+        business_updates = published_updates().filter(business=business)
         business_url = request.build_absolute_uri(
             reverse("businesses:detail", kwargs={"slug": business.slug})
+        )
+        thumbnail_url = business_thumbnail_url(business)
+        business_thumbnail_absolute_url = request.build_absolute_uri(thumbnail_url)
+        seo_categories = ", ".join(
+            category.label or category.name for category in business.categories.all()
+        )
+        seo_location = (
+            f"{business.locality.name}, {business.locality.city.name}"
+            if business.locality
+            else ""
         )
         whatsapp_share_url = "https://api.whatsapp.com/send?" + urlencode(
             {
@@ -313,7 +351,8 @@ class BusinessDetailView(View):
             "directory/business_detail.html",
             {
                 "business": business,
-                "business_thumbnail_url": business_thumbnail_url(business),
+                "business_thumbnail_url": thumbnail_url,
+                "business_thumbnail_absolute_url": business_thumbnail_absolute_url,
                 "business_services": business_services,
                 "available_specialties": available_specialties,
                 "hours_rows": hours_rows,
@@ -328,9 +367,69 @@ class BusinessDetailView(View):
                 "google_directions_url": google_directions_url,
                 "distance_km": distance_km,
                 "similar_businesses": similar_businesses,
+                "business_updates": business_updates,
                 "whatsapp_share_url": whatsapp_share_url,
+                "canonical_url": business_url,
+                "seo_categories": seo_categories,
+                "seo_location": seo_location,
             },
         )
+
+
+class BusinessQRCodeView(View):
+    http_method_names = ["get"]
+
+    def get(self, request, slug, *args, **kwargs):
+        import qrcode
+        from PIL import Image, ImageDraw
+
+        business = get_object_or_404(
+            Business,
+            slug=slug,
+            is_testing=False,
+            is_active=True,
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        business_url = request.build_absolute_uri(
+            reverse("businesses:detail", kwargs={"slug": business.slug})
+        )
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=12,
+            border=4,
+        )
+        qr.add_data(business_url)
+        qr.make(fit=True)
+        image = qr.make_image(fill_color="#111827", back_color="white").convert("RGB")
+
+        logo_path = Path(settings.BASE_DIR) / "static" / "images" / "profile-image.png"
+        if logo_path.exists():
+            with Image.open(logo_path) as source_logo:
+                logo = source_logo.convert("RGBA")
+                logo_size = max(48, image.width // 5)
+                logo.thumbnail((logo_size, logo_size), Image.Resampling.LANCZOS)
+                badge_size = max(logo.width, logo.height) + 20
+                badge = Image.new("RGBA", (badge_size, badge_size), "white")
+                ImageDraw.Draw(badge).rounded_rectangle(
+                    (0, 0, badge_size - 1, badge_size - 1),
+                    radius=12,
+                    fill="white",
+                )
+                badge.alpha_composite(
+                    logo,
+                    ((badge_size - logo.width) // 2, (badge_size - logo.height) // 2),
+                )
+                position = ((image.width - badge_size) // 2, (image.height - badge_size) // 2)
+                image.paste(badge.convert("RGB"), position)
+
+        output = BytesIO()
+        image.save(output, format="PNG", optimize=True)
+        response = HttpResponse(output.getvalue(), content_type="image/png")
+        response["Content-Disposition"] = (
+            f'attachment; filename="{business.slug}-mednearby-qr.png"'
+        )
+        return response
 
 
 class DoctorListView(View):
@@ -359,7 +458,13 @@ class DoctorListView(View):
             return render(
                 request,
                 "directory/doctor_list.html",
-                {"specialty": specialty, "doctors": [], "total_count": 0, "location_required": True},
+                {
+                    "specialty": specialty,
+                    "doctors": [],
+                    "total_count": 0,
+                    "location_required": True,
+                    "canonical_url": request.build_absolute_uri(request.path),
+                },
             )
 
         doctors, has_more, total_count = doctors_near_specialty(
@@ -373,6 +478,7 @@ class DoctorListView(View):
             return JsonResponse(
                 {"results": serialized, "has_more": has_more, "next_page": page + 1, "total_count": total_count}
             )
+        selected_location = nearest_locality(latitude, longitude)
         return render(
             request,
             "directory/doctor_list.html",
@@ -383,6 +489,8 @@ class DoctorListView(View):
                 "has_more": has_more,
                 "next_page": page + 1,
                 "location_required": False,
+                "selected_location": selected_location,
+                "canonical_url": request.build_absolute_uri(request.path),
             },
         )
 
@@ -395,7 +503,14 @@ class DoctorDetailView(View):
             Doctor.objects.select_related(
                 "business",
                 "business__locality",
-            ).prefetch_related("specialties"),
+                "business__locality__city",
+                "business__locality__city__state",
+            ).prefetch_related(
+                Prefetch(
+                    "specialties",
+                    queryset=Category.objects.order_by("display_order", "name"),
+                )
+            ),
             slug=slug,
             is_active=True,
             business__is_testing=False,
@@ -419,6 +534,15 @@ class DoctorDetailView(View):
         doctor_url = request.build_absolute_uri(
             reverse("doctors:detail", kwargs={"slug": doctor.slug})
         )
+        specialties = list(doctor.specialties.all())
+        seo_specialties = ", ".join(
+            specialty.label or specialty.name for specialty in specialties
+        )
+        seo_location = (
+            f"{doctor.business.locality.name}, {doctor.business.locality.city.name}"
+            if doctor.business.locality
+            else ""
+        )
         whatsapp_share_url = "https://api.whatsapp.com/send?" + urlencode(
             {
                 "text": (
@@ -432,9 +556,12 @@ class DoctorDetailView(View):
             "directory/doctor_detail.html",
             {
                 "doctor": doctor,
-                "specialties": list(doctor.specialties.all()),
+                "specialties": specialties,
                 "display_schedule": doctor_schedule_availability(doctor.schedule),
                 "similar_doctors": similar_doctors,
                 "whatsapp_share_url": whatsapp_share_url,
+                "canonical_url": doctor_url,
+                "seo_specialties": seo_specialties,
+                "seo_location": seo_location,
             },
         )

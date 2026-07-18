@@ -1,24 +1,62 @@
 {% extends "base.html" %}
 
-{% block title %}{{ business.name }} | MedNearby{% endblock %}
+{% block title %}{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %}{% if seo_categories %} offers {{ seo_categories }}{% endif %}. View services, business hours, address, contact details, and directions on MedNearby.">
+<meta name="keywords" content="{{ business.name }}{% if seo_location %} {{ seo_location }}{% endif %}{% if seo_categories %}, {{ seo_categories }}{% endif %}, healthcare business near me">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="business.business">
+<meta property="og:site_name" content="MedNearby">
+<meta property="og:title" content="{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby">
+<meta property="og:description" content="View services, hours, address, contact details, and directions for {{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %}.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:image" content="{{ business_thumbnail_absolute_url }}">
+<meta property="og:image:secure_url" content="{{ business_thumbnail_absolute_url }}">
+<meta property="og:image:alt" content="{{ business.name }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby">
+<meta name="twitter:description" content="View services, hours, address, and contact details for {{ business.name }} on MedNearby.">
+<meta name="twitter:image" content="{{ business_thumbnail_absolute_url }}">
+<meta name="twitter:image:alt" content="{{ business.name }}">
+{% endblock %}
 
 {% block content %}
 <div class="app-container">
 
-        <!-- THUMBNAIL IMAGE -->
-        <div class="relative h-60 bg-gray-200">
-            <!-- Background Image -->
-            <img src="{{ business_thumbnail_url }}" alt="{{ business.name }}" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/30"></div>
+        <!-- BUSINESS IMAGE SLIDER -->
+        <div id="business-image-slider" class="relative h-60 overflow-hidden bg-gray-200">
+            <div id="business-image-track" class="hide-scrollbar flex h-full snap-x snap-mandatory overflow-x-auto scroll-smooth">
+                {% for business_image in business.detail_images %}
+                <div class="h-full w-full shrink-0 snap-center">
+                    <img src="{{ business_image.image.url }}" alt="{{ business.name }} image {{ forloop.counter }}" class="h-full w-full object-cover" {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+                </div>
+                {% empty %}
+                <div class="h-full w-full shrink-0 snap-center"><img src="{{ business_thumbnail_url }}" alt="{{ business.name }}" class="h-full w-full object-cover" fetchpriority="high"></div>
+                {% endfor %}
+            </div>
+            <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/30"></div>
+
+            {% if business.detail_images|length > 1 %}
+            <div id="business-image-dots" class="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5" aria-label="Image pagination">
+                {% for business_image in business.detail_images %}
+                <button type="button" data-slide-index="{{ forloop.counter0 }}" class="h-1.5 rounded-full bg-white/60 transition-all {% if forloop.first %}w-5 bg-white{% else %}w-1.5{% endif %}" aria-label="Show image {{ forloop.counter }}" {% if forloop.first %}aria-current="true"{% endif %}></button>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             <!-- Floating Back & Action Buttons -->
             <div class="absolute top-4 left-3 right-3 flex justify-between items-center z-10">
                 <a href="{% url 'core:home' %}" data-back-button aria-label="Back" class="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full text-white active:scale-95 transition-transform border border-white/30">
                     <i class="fa-solid fa-arrow-left text-sm"></i>
                 </a>
+                <div class="flex gap-2">
+                <button type="button" data-save-item data-save-type="business" data-save-slug="{{ business.slug }}" data-save-name="{{ business.name }}" aria-label="Save {{ business.name }}" class="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full text-white active:scale-95 transition-transform border border-white/30"><i class="fa-regular fa-bookmark text-sm" aria-hidden="true"></i></button>
                 <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener noreferrer" aria-label="Share {{ business.name }} on WhatsApp" class="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full text-white active:scale-95 transition-transform border border-white/30">
                     <i class="fa-solid fa-share-nodes text-sm"></i>
                 </a>
+                </div>
                 <!-- <div class="flex gap-2">
                     <button class="w-9 h-9 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full text-white active:scale-95 transition-transform border border-white/30 hover:bg-rose-500 hover:border-rose-500">
                         <i class="fa-regular fa-heart text-sm"></i>
@@ -144,7 +182,6 @@
             {% endif %}
 
             <!-- 8. ACTION BUTTONS (Fluid Horizontal Scroll) -->
-            {% if business.phone or business.whatsapp or business.website or business.latitude != None and business.longitude != None %}
             <div class="flex gap-2 overflow-x-auto hide-scrollbar snap-x pt-3.5 pb-1 -mx-1 px-1">
                 {% if business.phone %}
                 <a href="tel:{{ business.phone }}" class="snap-start flex-[0_0_70px] flex flex-col items-center justify-center gap-1 rounded-[0.85rem] border border-primary bg-primary py-2 text-white shadow-sm transition-colors hover:bg-primaryDark active:scale-95">
@@ -173,8 +210,8 @@
                     <span class="text-[8px] font-extrabold text-textMain uppercase tracking-wide">Website</span>
                 </a>
                 {% endif %}
+
             </div>
-            {% endif %}
 
         </section>
 
@@ -213,7 +250,8 @@
             
             <div class="flex flex-col gap-2.5">
                 {% for doctor in business.active_doctors %}
-                <article class="doctor-card rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm" data-doctor-specialties="{% for specialty in doctor.specialties.all %}{{ specialty.slug }} {% endfor %}">
+                <article class="doctor-card relative rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm" data-doctor-specialties="{% for specialty in doctor.specialties.all %}{{ specialty.slug }} {% endfor %}">
+                    <button type="button" data-save-item data-save-type="doctor" data-save-slug="{{ doctor.slug }}" data-save-name="{{ doctor.name }}" class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-sm" aria-label="Save {{ doctor.name }}"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button>
                     <div class="flex items-stretch gap-3">
                         <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] {% if doctor.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif doctor.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}">
                             <i class="fa-solid {% if doctor.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}" aria-hidden="true"></i>
@@ -262,7 +300,7 @@
 
                     {% if business.phone %}
                     <a href="tel:{{ business.phone }}" class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-[12px] font-extrabold text-white shadow-sm transition-colors hover:bg-primaryDark active:scale-95">
-                        <i class="fa-solid fa-phone" aria-hidden="true"></i> Call for Enquiry
+                        <i class="fa-solid fa-phone" aria-hidden="true"></i> Enquiry
                     </a>
                     {% else %}
                     <span class="mt-3 flex w-full cursor-not-allowed items-center justify-center rounded-lg border border-gray-200 bg-white py-2.5 text-[12px] font-extrabold text-gray-400">Enquiry phone unavailable</span>
@@ -361,6 +399,8 @@
         {% endif %}
 
 
+        {% include "includes/updates_section.html" with updates=business_updates updates_heading="Updates & Offers" updates_horizontal=True updates_show_all=False %}
+
         <!-- RELATED BUSINESSES -->
         {% if similar_businesses %}
         <section class="mt-8 bg-surface border-y border-gray-100 py-5 px-3">
@@ -369,7 +409,7 @@
             </div>
             <div class="flex overflow-x-auto gap-3 snap-x hide-scrollbar pb-2">
                 {% for nearby in similar_businesses %}
-                <article class="business-card min-w-[310px] max-w-[340px] snap-start rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm">
+                <article class="business-card relative min-w-[310px] max-w-[340px] snap-start rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm">
                     <div class="flex gap-2.5">
                         <div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
                             <img src="{{ nearby.thumbnail_url }}" alt="{{ nearby.name }}" class="h-full w-full object-cover" loading="lazy">
@@ -445,9 +485,51 @@
     </div>
 {% endblock %}
 
+{% block bottom_nav %}{% endblock %}
+
 {% block extra_js %}
+{% include "includes/update_detail_sheet.html" %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const imageTrack = document.getElementById("business-image-track");
+    const imageDots = [...document.querySelectorAll("#business-image-dots [data-slide-index]")];
+    if (imageTrack && imageDots.length > 1) {
+        let activeSlide = 0;
+        let autoplayTimer;
+        const showSlide = index => {
+            activeSlide = (index + imageDots.length) % imageDots.length;
+            imageTrack.scrollTo({ left: activeSlide * imageTrack.clientWidth, behavior: "smooth" });
+            imageDots.forEach((dot, dotIndex) => {
+                const active = dotIndex === activeSlide;
+                dot.classList.toggle("w-5", active);
+                dot.classList.toggle("w-1.5", !active);
+                dot.classList.toggle("bg-white", active);
+                dot.classList.toggle("bg-white/60", !active);
+                dot.toggleAttribute("aria-current", active);
+            });
+        };
+        const startAutoplay = () => {
+            clearInterval(autoplayTimer);
+            autoplayTimer = setInterval(() => showSlide(activeSlide + 1), 4000);
+        };
+        let scrollTimer;
+        imageTrack.addEventListener("scroll", () => {
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(() => {
+                const next = Math.round(imageTrack.scrollLeft / imageTrack.clientWidth);
+                if (next !== activeSlide) showSlide(next);
+            }, 80);
+        }, { passive: true });
+        imageDots.forEach(dot => dot.addEventListener("click", () => {
+            showSlide(Number(dot.dataset.slideIndex));
+            startAutoplay();
+        }));
+        imageTrack.addEventListener("pointerdown", () => clearInterval(autoplayTimer));
+        imageTrack.addEventListener("pointerup", startAutoplay);
+        imageTrack.addEventListener("pointercancel", startAutoplay);
+        document.addEventListener("visibilitychange", () => document.hidden ? clearInterval(autoplayTimer) : startAutoplay());
+        startAutoplay();
+    }
     const bottomBar = document.getElementById("sticky-bottom-bar");
     if (bottomBar) window.addEventListener("scroll", () => bottomBar.classList.toggle("translate-y-full", window.scrollY <= 300));
     const toggle = document.getElementById("hours-toggle"), content = document.getElementById("hours-content"), chevron = document.getElementById("hours-chevron");

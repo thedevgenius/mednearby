@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from PIL import Image
 
-from .models import Ambulance, Business, BusinessImage, Category, Doctor, Facility
+from .models import Ambulance, Business, BusinessImage, BusinessUpdate, Category, Doctor, Facility
 from .services import (
     business_open_status,
     doctor_schedule_availability,
@@ -249,6 +249,45 @@ class AddDummyDoctorsCommandTests(TestCase):
             "No active doctor specialties exist",
         ):
             call_command("add_dummy_doctors", 1)
+
+
+class AddDummyUpdatesCommandTests(TestCase):
+    def setUp(self):
+        self.business = Business.objects.create(
+            name="Published Clinic",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        Business.objects.create(
+            name="Draft Clinic",
+            publication_status=Business.PublicationStatus.DRAFT,
+        )
+
+    def test_adds_requested_updates_to_published_businesses_idempotently(self):
+        output = StringIO()
+
+        call_command("add_dummy_updates", 4, seed=7, stdout=output)
+        call_command("add_dummy_updates", 4, seed=7, stdout=output)
+
+        updates = BusinessUpdate.objects.filter(business=self.business)
+        self.assertEqual(updates.count(), 4)
+        self.assertTrue(updates.filter(kind=BusinessUpdate.Kind.OFFER).exists())
+        self.assertEqual(BusinessUpdate.objects.filter(business__name="Draft Clinic").count(), 0)
+        self.assertIn("already existed", output.getvalue())
+
+    def test_can_target_a_business_by_slug(self):
+        other = Business.objects.create(
+            name="Other Published Clinic",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+
+        call_command("add_dummy_updates", 2, business_slug=other.slug, verbosity=0)
+
+        self.assertEqual(BusinessUpdate.objects.filter(business=other).count(), 2)
+        self.assertFalse(BusinessUpdate.objects.filter(business=self.business).exists())
+
+    def test_rejects_non_positive_count(self):
+        with self.assertRaises(CommandError):
+            call_command("add_dummy_updates", 0)
 
 
 class AddDummyAmbulancesCommandTests(TestCase):
@@ -881,6 +920,90 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "marker=22.572600000%2C88.363900000")
         self.assertNotContains(response, "Apollo Multispeciality Hospital")
 
+    def test_displays_only_published_current_business_updates(self):
+        BusinessUpdate.objects.create(
+            business=self.business,
+            kind=BusinessUpdate.Kind.NEW_DOCTOR,
+            title="New physician joined",
+            summary="A new physician is now consulting.",
+            details="Appointments are available from Monday.",
+        )
+        BusinessUpdate.objects.create(
+            business=self.business,
+            title="Draft announcement",
+            summary="Not public",
+            details="Not public",
+            is_published=False,
+        )
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "New physician joined")
+        self.assertContains(response, 'id="update-detail-sheet"')
+        self.assertNotContains(response, "Draft announcement")
+
+    def test_downloads_branded_business_qr_code(self):
+        detail_response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+        qr_url = reverse("businesses:qr-code", kwargs={"slug": self.business.slug})
+        self.assertNotContains(detail_response, f'href="{qr_url}"')
+        self.assertNotContains(detail_response, ">QR Code</span>")
+
+        response = self.client.get(qr_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertEqual(
+            response["Content-Disposition"],
+            f'attachment; filename="{self.business.slug}-mednearby-qr.png"',
+        )
+        self.assertTrue(response.content.startswith(b"\x89PNG\r\n\x1a\n"))
+        with Image.open(BytesIO(response.content)) as qr_image:
+            self.assertEqual(qr_image.format, "PNG")
+            self.assertEqual(qr_image.width, qr_image.height)
+            self.assertGreaterEqual(qr_image.width, 300)
+
+    def test_business_detail_renders_image_slider_for_multiple_images(self):
+        BusinessImage.objects.bulk_create(
+            [
+                BusinessImage(
+                    business=self.business,
+                    image="businesses/first.webp",
+                    is_thumbnail=True,
+                ),
+                BusinessImage(
+                    business=self.business,
+                    image="businesses/second.webp",
+                ),
+            ]
+        )
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, 'id="business-image-track"')
+        self.assertContains(response, "businesses/first.webp")
+        self.assertContains(response, "businesses/second.webp")
+        self.assertContains(response, 'data-slide-index="0"')
+        self.assertContains(response, 'data-slide-index="1"')
+        self.assertContains(response, "setInterval(() => showSlide(activeSlide + 1), 4000)")
+
+    def test_business_detail_omits_pagination_for_single_image(self):
+        BusinessImage.objects.bulk_create(
+            [BusinessImage(business=self.business, image="businesses/only.webp")]
+        )
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "businesses/only.webp")
+        self.assertNotContains(response, 'id="business-image-dots"')
+
     def test_displays_assigned_categories_without_placeholder_categories(self):
         diagnostics = Category.objects.create(name="Diagnostic Centre")
         self.business.categories.add(diagnostics)
@@ -970,7 +1093,7 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "bg-indigo-50")
         self.assertContains(response, "Every Monday")
         self.assertContains(response, "10AM - 12PM")
-        self.assertContains(response, "Call for Enquiry")
+        self.assertContains(response, "Enquiry")
         self.assertContains(response, 'href="tel:9876543210"')
         self.assertContains(response, 'data-specialty-filter="all"')
         self.assertContains(
@@ -1102,6 +1225,16 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(
             response,
             'src="https://cdn.example/thumbnails/clinics/city-pharmacy.jpg"',
+        )
+        self.assertContains(
+            response,
+            '<meta property="og:image" content="https://cdn.example/thumbnails/clinics/city-pharmacy.jpg">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<meta name="twitter:image" content="https://cdn.example/thumbnails/clinics/city-pharmacy.jpg">',
+            html=True,
         )
 
     def test_draft_business_is_not_public(self):

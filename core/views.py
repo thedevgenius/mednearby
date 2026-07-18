@@ -1,9 +1,15 @@
 import json
 from datetime import datetime
+from io import BytesIO
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpResponseBadRequest
+from django.db.models import Prefetch
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import TemplateView
@@ -12,7 +18,9 @@ from directory.models import Business, Category, Doctor
 from directory.services import (
     ambulances_nearby,
     businesses_nearby,
+    business_thumbnail_url,
     doctors_nearby_available_today,
+    nearby_updates,
 )
 
 
@@ -36,9 +44,12 @@ class HomeView(TemplateView):
             type=Category.Type.DOCTOR_SPECIALTY,
             is_active=True,
             is_featured=True,
-        ).only("name", "label", "slug", "icon", "color", "display_order")
+        ).only(
+            "name", "label", "slug", "icon", "color", "display_order"
+        ).order_by("display_order", "name")
         context["available_doctors"] = []
         context["nearby_businesses"] = []
+        context["nearby_updates"] = []
         try:
             latitude = float(self.request.COOKIES["mednearby_location_lat"])
             longitude = float(self.request.COOKIES["mednearby_location_lng"])
@@ -53,7 +64,56 @@ class HomeView(TemplateView):
             context["nearby_businesses"] = businesses_nearby(
                 latitude, longitude, limit=10
             )
+            context["nearby_updates"] = nearby_updates(latitude, longitude, limit=10)
         return context
+
+
+class UpdatesView(TemplateView):
+    template_name = "core/updates.html"
+    page_size = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        location = _selected_location(self.request)
+        context["location_required"] = location is None
+        context["updates"] = []
+        context["has_more"] = False
+        context["next_page"] = 2
+        if location:
+            items = list(nearby_updates(*location)[: self.page_size + 1])
+            context["updates"] = items[: self.page_size]
+            context["has_more"] = len(items) > self.page_size
+        return context
+
+    def get(self, request, *args, **kwargs):
+        is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        if not is_ajax:
+            return super().get(request, *args, **kwargs)
+
+        location = _selected_location(request)
+        if location is None:
+            return JsonResponse({"error": "A valid selected location is required."}, status=400)
+        try:
+            page = int(request.GET.get("page", 2))
+            if page < 1:
+                raise ValueError
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "A valid page is required."}, status=400)
+
+        start = (page - 1) * self.page_size
+        items = list(nearby_updates(*location)[start : start + self.page_size + 1])
+        updates = items[: self.page_size]
+        return JsonResponse(
+            {
+                "html": render_to_string(
+                    "includes/update_cards.html",
+                    {"updates": updates, "updates_horizontal": False},
+                    request=request,
+                ),
+                "has_more": len(items) > self.page_size,
+                "next_page": page + 1,
+            }
+        )
 
 
 class PrivacyPolicyView(TemplateView):
@@ -66,6 +126,121 @@ class TermsOfUseView(TemplateView):
 
 class SupportView(TemplateView):
     template_name = "core/support.html"
+
+
+class AboutUsView(TemplateView):
+    template_name = "core/about_us.html"
+
+
+class SavedView(TemplateView):
+    template_name = "core/saved.html"
+
+
+class CategoriesView(TemplateView):
+    template_name = "core/categories.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        active_children = Category.objects.filter(is_active=True).order_by(
+            "display_order", "name"
+        )
+        roots = Category.objects.filter(
+            is_active=True, parent__isnull=True
+        ).order_by("display_order", "name").prefetch_related(
+            Prefetch("category_set", queryset=active_children, to_attr="active_children")
+        )
+        context["business_categories"] = roots.filter(
+            type=Category.Type.BUSINESS_CATEGORY
+        )
+        context["doctor_categories"] = roots.filter(
+            type=Category.Type.DOCTOR_SPECIALTY
+        )
+        return context
+
+
+class ServiceWorkerView(TemplateView):
+    template_name = "core/service-worker.js"
+    content_type = "application/javascript"
+
+    def render_to_response(self, context, **response_kwargs):
+        response = super().render_to_response(context, **response_kwargs)
+        response["Service-Worker-Allowed"] = "/"
+        response["Cache-Control"] = "no-cache"
+        return response
+
+
+class SavedItemsView(View):
+    max_items_per_type = 100
+
+    def get(self, request, *args, **kwargs):
+        doctor_slugs = list(dict.fromkeys(request.GET.getlist("doctor")))[: self.max_items_per_type]
+        business_slugs = list(dict.fromkeys(request.GET.getlist("business")))[: self.max_items_per_type]
+
+        doctors_by_slug = {
+            doctor.slug: doctor
+            for doctor in Doctor.objects.filter(
+                slug__in=doctor_slugs,
+                is_active=True,
+                business__is_active=True,
+                business__is_testing=False,
+                business__publication_status=Business.PublicationStatus.PUBLISHED,
+            ).prefetch_related(
+                Prefetch(
+                    "specialties",
+                    queryset=Category.objects.order_by("display_order", "name"),
+                )
+            )
+        }
+        businesses_by_slug = {
+            business.slug: business
+            for business in Business.objects.filter(
+                slug__in=business_slugs,
+                is_active=True,
+                is_testing=False,
+                publication_status=Business.PublicationStatus.PUBLISHED,
+            ).select_related("locality", "locality__city").prefetch_related(
+                Prefetch(
+                    "categories",
+                    queryset=Category.objects.order_by("display_order", "name"),
+                )
+            )
+        }
+
+        doctors = []
+        for slug in doctor_slugs:
+            doctor = doctors_by_slug.get(slug)
+            if doctor:
+                doctors.append({
+                    "slug": doctor.slug,
+                    "name": doctor.name,
+                    "url": reverse("doctors:detail", kwargs={"slug": doctor.slug}),
+                    "qualification": doctor.qualification,
+                    "specialty": ", ".join(item.name for item in doctor.specialties.all()),
+                    "fees": doctor.fees or "",
+                })
+
+        businesses = []
+        for slug in business_slugs:
+            business = businesses_by_slug.get(slug)
+            if business:
+                locality = business.locality
+                address = ", ".join(filter(None, [
+                    business.address,
+                    business.landmark,
+                    locality.name if locality else "",
+                    locality.city.name if locality and locality.city else "",
+                    business.pincode,
+                ]))
+                businesses.append({
+                    "slug": business.slug,
+                    "name": business.name,
+                    "url": reverse("businesses:detail", kwargs={"slug": business.slug}),
+                    "address": address or "Address unavailable",
+                    "category": ", ".join(item.name for item in business.categories.all()),
+                    "image": business_thumbnail_url(business),
+                })
+
+        return JsonResponse({"doctors": doctors, "businesses": businesses})
 
 
 class EmergencyView(TemplateView):
@@ -96,11 +271,64 @@ class InternalTasksView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["businesses"] = Business.objects.only("id", "name").order_by("name")
+        context["businesses"] = Business.objects.only(
+            "id", "name", "slug"
+        ).order_by("name")
         context["doctors"] = Doctor.objects.select_related("business").only(
             "id", "name", "business__name"
         ).order_by("name")
         return context
+
+
+@method_decorator(staff_member_required, name="dispatch")
+class InternalBusinessQRCodeView(View):
+    http_method_names = ["get"]
+
+    def get(self, request, business_id, *args, **kwargs):
+        import qrcode
+        from PIL import Image, ImageDraw
+
+        business = get_object_or_404(Business, pk=business_id)
+        business_url = request.build_absolute_uri(
+            reverse("businesses:detail", kwargs={"slug": business.slug})
+        )
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=12,
+            border=4,
+        )
+        qr.add_data(business_url)
+        qr.make(fit=True)
+        image = qr.make_image(fill_color="#111827", back_color="white").convert("RGB")
+
+        logo_path = Path(settings.BASE_DIR) / "static" / "images" / "logo-icon.png"
+        if logo_path.exists():
+            with Image.open(logo_path) as source_logo:
+                logo = source_logo.convert("RGBA")
+                logo_size = max(48, image.width // 5)
+                logo.thumbnail((logo_size, logo_size), Image.Resampling.LANCZOS)
+                badge_size = max(logo.width, logo.height) + 20
+                badge = Image.new("RGBA", (badge_size, badge_size), "white")
+                ImageDraw.Draw(badge).rounded_rectangle(
+                    (0, 0, badge_size - 1, badge_size - 1), radius=12, fill="white"
+                )
+                badge.alpha_composite(
+                    logo,
+                    ((badge_size - logo.width) // 2, (badge_size - logo.height) // 2),
+                )
+                image.paste(
+                    badge.convert("RGB"),
+                    ((image.width - badge_size) // 2, (image.height - badge_size) // 2),
+                )
+
+        output = BytesIO()
+        image.save(output, format="PNG", optimize=True)
+        response = HttpResponse(output.getvalue(), content_type="image/png")
+        response["Content-Disposition"] = (
+            f'attachment; filename="{business.slug}-mednearby-qr.png"'
+        )
+        return response
 
 
 def _valid_time(value):

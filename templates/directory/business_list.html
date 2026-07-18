@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}{{ category.label|default:category.name }} near you | MedNearby{% endblock %}
+{% block title %}Best {{ category.label|default:category.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="Find the best {{ category.label|default:category.name }}{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %}. Compare nearby healthcare businesses, services, hours, and contact details on MedNearby.">
+<meta name="keywords" content="{{ category.name }}{% if selected_location %} in {{ selected_location.name }}{% endif %}, best {{ category.name }} near me, nearby {{ category.name }}, healthcare services{% if selected_location %} in {{ selected_location.city.name }}{% endif %}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MedNearby">
+<meta property="og:title" content="Best {{ category.label|default:category.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby">
+<meta property="og:description" content="Discover {{ category.label|default:category.name }}{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %}, with services, hours, and contact details.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Best {{ category.label|default:category.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby">
+<meta name="twitter:description" content="Find nearby {{ category.label|default:category.name }}{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} on MedNearby.">
+{% endblock %}
 
 {% block content %}
 <main class="app-container min-h-dvh bg-gray-50 pb-8">
@@ -74,7 +89,7 @@
 
     <section id="business-list" class="px-3 pb-6 pt-3" aria-live="polite">
         {% for business in businesses %}
-            <article class="business-card {% if business.is_open %}open{% else %}closed{% endif %} mb-3 cursor-pointer rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md active:scale-[0.99]" data-href="{% url 'businesses:detail' business.slug %}" role="link" tabindex="0">
+            <article class="business-card relative {% if business.is_open %}open{% else %}closed{% endif %} mb-3 cursor-pointer rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md active:scale-[0.99]" data-href="{% url 'businesses:detail' business.slug %}" role="link" tabindex="0">
     
                 <div class="flex gap-3">
                     <div class="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[1rem] border border-gray-100/80 bg-gray-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -87,7 +102,7 @@
                         </h2>
                         
                         <div class="mt-2 flex flex-wrap items-center gap-1">
-                            {% for name in business.categories %}
+                            {% for name in business.categories|slice:":3" %}
                             <span class="rounded-md border border-gray-100/80 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-500 shadow-sm">{{ name }}</span>
                             {% endfor %}
                         </div>
@@ -222,7 +237,7 @@
         card.tabIndex = 0;
         card.setAttribute("role", "link");
         const fullAddress = business.full_address || "Address unavailable";
-        const categories = (business.categories || []).map(name => `<span class="rounded-md border border-gray-100/80 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-500 shadow-sm">${escapeHtml(name)}</span>`).join("");
+        const categories = (business.categories || []).slice(0, 3).map(name => `<span class="rounded-md border border-gray-100/80 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-500 shadow-sm">${escapeHtml(name)}</span>`).join("");
         const status = `${business.is_open ? "Open Now" : "Closed"}${business.open_status ? `<span class="ml-1 font-semibold text-gray-400">• ${escapeHtml(business.open_status)}</span>` : ""}`;
         const flags = business.is_home_delivery || business.is_home_collection
             ? `<div class="flex flex-wrap gap-2 pl-[18px]">${business.is_home_delivery ? '<div class="inline-flex items-center gap-1 rounded-md border border-teal-100/60 bg-teal-50 px-1.5 py-0.5 shadow-sm"><i class="fa-solid fa-motorcycle text-[8px] text-teal-500"></i><span class="text-[8px] font-extrabold uppercase tracking-widest text-teal-700">Home Delivery</span></div>' : ""}${business.is_home_collection ? '<div class="inline-flex items-center gap-1 rounded-md border border-rose-100/60 bg-rose-50 px-1.5 py-0.5 shadow-sm"><i class="fa-solid fa-house-medical text-[8px] text-rose-500"></i><span class="text-[8px] font-extrabold uppercase tracking-widest text-rose-700">Blood Collection</span></div>' : ""}</div>`
@@ -231,6 +246,7 @@
         const chat = business.whatsapp ? `<a href="https://wa.me/${encodeURIComponent(business.whatsapp)}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50 px-1 py-2.5 text-center text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100/80 active:scale-95"><i class="fa-brands fa-whatsapp text-[12px]"></i><span>Chat</span></a>` : "";
         const directions = business.latitude !== null && business.longitude !== null ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${business.latitude},${business.longitude}`)}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-1 py-2.5 text-center text-[10px] font-black text-gray-600 shadow-sm transition-colors hover:bg-gray-100 active:scale-95"><i class="fa-solid fa-diamond-turn-right"></i><span>Directions</span></a>` : "";
         card.innerHTML = `<div class="flex gap-3"><div class="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[1rem] border border-gray-100/80 bg-gray-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)]"><img src="${escapeHtml(business.thumbnail_url)}" alt="${escapeHtml(business.name)}" class="h-full w-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy"></div><div class="flex min-w-0 flex-1 flex-col justify-center py-0.5"><h2 class="mt-0.5 truncate text-[18px] font-black leading-none tracking-tight text-textMain"><a href="${detailUrl}">${escapeHtml(business.name)}</a></h2><div class="mt-2 flex flex-wrap items-center gap-1">${categories}</div><div class="mt-2.5 flex items-center gap-1.5"><div class="h-2 w-2 shrink-0 rounded-full ${business.is_open ? "bg-emerald-500 animate-pulse" : "bg-red-500"} shadow-sm"></div><p class="text-[11px] font-extrabold ${business.is_open ? "text-emerald-600" : "text-red-500"}">${status}</p></div></div></div><div class="mt-2 flex flex-col gap-2.5 border-t border-gray-100/80 pt-2"><div class="flex items-start gap-1.5"><i class="fa-solid fa-location-dot mt-0.5 w-3 shrink-0 text-center text-[11px] text-gray-400" aria-hidden="true"></i><p class="pr-1 text-[11px] font-semibold leading-snug text-textMuted">${escapeHtml(fullAddress)} <span class="mx-0.5 text-gray-300">•</span> <span class="whitespace-nowrap font-extrabold text-primary">${escapeHtml(business.distance_km)} km</span></p></div>${flags}</div><div class="mt-2.5 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-100/80 pt-2.5">${call}${chat}${directions}</div>`;
+        card.classList.add("relative");
         return card;
     };
 

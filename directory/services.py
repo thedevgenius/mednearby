@@ -12,7 +12,7 @@ from django.db.models import Value
 from django.db.models.functions import Cast
 from django.utils import timezone
 
-from .models import Ambulance, Business, Category, Doctor
+from .models import Ambulance, Business, BusinessUpdate, Category, Doctor
 
 
 SEARCH_RESULT_LIMIT = 10
@@ -22,6 +22,51 @@ MINUTES_PER_DAY = 24 * 60
 MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY
 WEEKDAY_NAMES = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 KOLKATA_TIMEZONE = ZoneInfo("Asia/Kolkata")
+
+
+def published_updates():
+    """Return updates that are published and within their optional display window."""
+    now = timezone.now()
+    return BusinessUpdate.objects.filter(
+        is_published=True,
+        business__is_testing=False,
+        business__is_active=True,
+        business__publication_status=Business.PublicationStatus.PUBLISHED,
+    ).filter(Q(starts_at__isnull=True) | Q(starts_at__lte=now)).filter(
+        Q(ends_at__isnull=True) | Q(ends_at__gte=now)
+    )
+
+
+def nearby_updates(latitude, longitude, limit=None):
+    """Return current business updates ordered by business proximity and recency."""
+    latitude = float(latitude)
+    longitude = float(longitude)
+    center_hash = pgh.encode(latitude, longitude, precision=5)
+    prefixes = neighboring_geohashes(center_hash)
+    geohash_filter = Q()
+    for prefix in prefixes:
+        geohash_filter |= Q(business__geohash__startswith=prefix)
+
+    lat = Cast("business__latitude", FloatField())
+    lng = Cast("business__longitude", FloatField())
+    lat_delta = lat - Value(latitude)
+    lng_delta = (lng - Value(longitude)) * Value(cos(radians(latitude)))
+    distance = ExpressionWrapper(
+        lat_delta * lat_delta + lng_delta * lng_delta,
+        output_field=FloatField(),
+    )
+    queryset = (
+        published_updates()
+        .filter(
+            business__latitude__isnull=False,
+            business__longitude__isnull=False,
+        )
+        .filter(geohash_filter)
+        .select_related("business", "business__locality", "business__locality__city")
+        .annotate(distance_degrees=distance)
+        .order_by("distance_degrees", "-created_at", "-id")
+    )
+    return queryset[:limit] if limit is not None else queryset
 
 
 def search_categories(query, limit=SEARCH_RESULT_LIMIT):
