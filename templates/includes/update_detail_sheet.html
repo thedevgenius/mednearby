@@ -1,27 +1,138 @@
 <section id="update-detail-sheet" class="bottom-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="update-detail-title">
     <button class="bottom-sheet__backdrop" type="button" data-bottom-sheet-dismiss tabindex="-1" aria-label="Close update"></button>
-    <div class="bottom-sheet__panel" role="document">
-        <button class="bottom-sheet__close" type="button" data-bottom-sheet-dismiss aria-label="Close update"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-        <div class="h-full overflow-y-auto">
-            <span id="update-detail-kind" class="text-[10px] font-black uppercase tracking-wider text-primary"></span>
-            <h2 id="update-detail-title" class="mt-1 text-xl font-extrabold text-textMain"></h2>
-            <p id="update-detail-business" class="mt-1 text-xs font-bold text-textMuted"></p>
-            <p id="update-detail-summary" class="mt-5 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-900"></p>
-            <p id="update-detail-details" class="mt-4 whitespace-pre-line text-sm font-semibold leading-relaxed text-gray-600"></p>
-            <p id="update-detail-date" class="mt-5 border-t border-gray-100 pt-3 text-[10px] font-bold text-gray-400"></p>
+    
+    <div class="bottom-sheet__panel bg-gray-50" role="document">
+        
+        <!-- ORIGINAL CLOSE BUTTON RESTORED -->
+        <button class="bottom-sheet__close" type="button" data-bottom-sheet-dismiss aria-label="Close update">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+        
+        <!-- Added overflow-x-hidden to prevent horizontal scrolling -->
+        <div class="h-full overflow-y-auto overflow-x-hidden pb-6">
+            
+            <!-- Dynamic Hero Banner Header (Classes injected via JS) -->
+            <div id="update-detail-header" class="relative px-5 pt-7 pb-11 overflow-hidden bg-gradient-to-br from-emerald-50 to-emerald-100/50">
+                <!-- Ambient Watermark/Glow (Kept inside overflow-hidden) -->
+                <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/60 blur-3xl pointer-events-none"></div>
+                
+                <div class="relative z-10 pr-6"> <!-- pr-6 ensures text doesn't hit close button -->
+                    <span id="update-detail-kind" class="inline-flex rounded-md border px-2.5 py-1 text-[9px] font-black uppercase tracking-widest shadow-sm"></span>
+                    <h2 id="update-detail-title" class="mt-3 text-[22px] font-black leading-tight tracking-tight text-textMain"></h2>
+                    <p id="update-detail-date" class="mt-2 text-[11px] font-bold text-gray-500"></p>
+                </div>
+            </div>
+
+            <!-- Overlapping Business Card -->
+            <div class="relative z-20 -mt-6 mx-4 rounded-[1.25rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.85rem] border border-gray-100 bg-gray-50 text-[15px] text-primary shadow-sm">
+                        <i class="fa-solid fa-hospital" aria-hidden="true"></i>
+                    </div>
+                    <div class="min-w-0 flex-1 py-0.5">
+                        <p class="mb-0.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400">Posted by</p>
+                        <a id="update-detail-business" href="#" class="block truncate text-[15px] font-black text-textMain hover:text-primary transition-colors"></a>
+                    </div>
+                </div>
+                
+                <!-- Fluid Action Buttons -->
+                <div class="mt-3.5 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-100/80 pt-3.5">
+                    <a id="update-business-profile" href="#" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200/80 bg-gray-50 px-1 py-2.5 text-[10px] font-black text-gray-700 shadow-sm transition-all hover:bg-gray-100 active:scale-95">
+                        <i class="fa-solid fa-store" aria-hidden="true"></i> Profile
+                    </a>
+                    <a id="update-business-call" href="#" class="flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-1 py-2.5 text-[10px] font-black text-white shadow-[0_4px_12px_rgba(37,99,235,0.2)] transition-transform active:scale-95">
+                        <i class="fa-solid fa-phone" aria-hidden="true"></i> Call
+                    </a>
+                    <a id="update-business-chat" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50 px-1 py-2.5 text-[10px] font-black text-indigo-700 shadow-sm transition-all hover:bg-indigo-100/80 active:scale-95">
+                        <i class="fa-brands fa-whatsapp text-[12px]" aria-hidden="true"></i> Chat
+                    </a>
+                    <a id="update-business-direction" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200/80 bg-emerald-50 px-1 py-2.5 text-[10px] font-black text-emerald-700 shadow-sm transition-all hover:bg-emerald-100/80 active:scale-95">
+                        <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Route
+                    </a>
+                </div>
+            </div>
+
+            <!-- Update Content Sections -->
+            <div class="px-4 mt-5 flex flex-col gap-3">
+                
+                <!-- Highlighted Summary -->
+                <div class="rounded-[1.25rem] border border-gray-100/80 bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                    <p id="update-detail-summary" class="text-[14px] font-black leading-relaxed text-textMain"></p>
+                </div>
+                
+                <!-- Full Details -->
+                <div class="rounded-[1.25rem] border border-gray-100/80 bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                    <p class="mb-3 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <i class="fa-solid fa-align-left"></i> Full details
+                    </p>
+                    <p id="update-detail-details" class="whitespace-pre-line text-[13px] font-semibold leading-relaxed text-gray-600"></p>
+                </div>
+
+            </div>
         </div>
     </div>
 </section>
+
 <script>
 document.addEventListener("click", (event) => {
     const trigger = event.target.closest(".update-detail-trigger");
     if (!trigger) return;
-    document.getElementById("update-detail-kind").textContent = trigger.dataset.updateKind;
+    
+    const kindDisplay = trigger.dataset.updateKind;
+    const kindText = kindDisplay.toLowerCase();
+    
+    // Dynamic Header Backgrounds based on Update Type
+    const header = document.getElementById("update-detail-header");
+    const kindBadge = document.getElementById("update-detail-kind");
+    
+    // Default Styling (Emerald)
+    let bgClasses = "from-emerald-50 to-emerald-100/50 border-emerald-100";
+    let badgeClasses = "bg-emerald-100 border-emerald-200 text-emerald-700";
+    
+    if (kindText.includes("offer")) {
+        bgClasses = "from-amber-50 to-amber-100/50 border-amber-100";
+        badgeClasses = "bg-amber-100 border-amber-200 text-amber-700";
+    } else if (kindText.includes("availability") || kindText.includes("schedule")) {
+        bgClasses = "from-rose-50 to-rose-100/50 border-rose-100";
+        badgeClasses = "bg-rose-100 border-rose-200 text-rose-700";
+    } else if (kindText.includes("new doctor") || kindText.includes("doctor")) {
+        bgClasses = "from-indigo-50 to-indigo-100/50 border-indigo-100";
+        badgeClasses = "bg-indigo-100 border-indigo-200 text-indigo-700";
+    }
+
+    // Apply the dynamic classes
+    header.className = `relative px-5 pt-7 pb-11 overflow-hidden bg-gradient-to-br ${bgClasses}`;
+    kindBadge.className = `inline-flex rounded-md border px-2.5 py-1 text-[9px] font-black uppercase tracking-widest shadow-sm ${badgeClasses}`;
+    
+    // Populate Data
+    kindBadge.textContent = kindDisplay;
     document.getElementById("update-detail-title").textContent = trigger.dataset.updateTitle;
-    document.getElementById("update-detail-business").textContent = trigger.dataset.updateBusiness;
+    
+    const businessLink = document.getElementById("update-detail-business");
+    const profileLink = document.getElementById("update-business-profile");
+    
+    businessLink.textContent = trigger.dataset.updateBusiness;
+    businessLink.href = trigger.dataset.updateBusinessUrl;
+    profileLink.href = trigger.dataset.updateBusinessUrl;
+    
     document.getElementById("update-detail-summary").textContent = trigger.dataset.updateSummary;
     document.getElementById("update-detail-details").textContent = trigger.dataset.updateDetails;
     document.getElementById("update-detail-date").textContent = `Posted ${trigger.dataset.updateDate}`;
+    
+    // Action Buttons
+    const setAction = (id, href) => {
+        const action = document.getElementById(id);
+        action.hidden = !href;
+        if (href) action.href = href;
+    };
+    
+    setAction("update-business-call", trigger.dataset.updateBusinessPhone ? `tel:${trigger.dataset.updateBusinessPhone}` : "");
+    setAction("update-business-chat", trigger.dataset.updateBusinessWhatsapp ? `https://wa.me/${trigger.dataset.updateBusinessWhatsapp}` : "");
+    
+    const latitude = trigger.dataset.updateBusinessLatitude;
+    const longitude = trigger.dataset.updateBusinessLongitude;
+    setAction("update-business-direction", latitude && longitude ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${latitude},${longitude}`)}` : "");
+    
     window.openBottomSheet("update-detail-sheet");
 });
 </script>
