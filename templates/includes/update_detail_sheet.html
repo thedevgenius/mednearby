@@ -55,11 +55,6 @@
             <!-- Update Content Sections -->
             <div class="px-4 mt-5 flex flex-col gap-3">
                 
-                <!-- Highlighted Summary -->
-                <div class="rounded-[1.25rem] border border-gray-100/80 bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-                    <p id="update-detail-summary" class="text-[14px] font-black leading-relaxed text-textMain"></p>
-                </div>
-                
                 <!-- Full Details -->
                 <div class="rounded-[1.25rem] border border-gray-100/80 bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <p class="mb-3 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">
@@ -115,7 +110,6 @@ document.addEventListener("click", (event) => {
     businessLink.href = trigger.dataset.updateBusinessUrl;
     profileLink.href = trigger.dataset.updateBusinessUrl;
     
-    document.getElementById("update-detail-summary").textContent = trigger.dataset.updateSummary;
     document.getElementById("update-detail-details").textContent = trigger.dataset.updateDetails;
     document.getElementById("update-detail-date").textContent = `Posted ${trigger.dataset.updateDate}`;
     
