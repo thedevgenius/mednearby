@@ -12,10 +12,14 @@
 <meta property="og:title" content="{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby">
 <meta property="og:description" content="View services, hours, address, contact details, and directions for {{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %}.">
 <meta property="og:url" content="{{ canonical_url }}">
-<meta property="og:image" content="{{ business_thumbnail_url }}">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="{{ business_thumbnail_absolute_url }}">
+<meta property="og:image:secure_url" content="{{ business_thumbnail_absolute_url }}">
+<meta property="og:image:alt" content="{{ business.name }}">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby">
 <meta name="twitter:description" content="View services, hours, address, and contact details for {{ business.name }} on MedNearby.">
+<meta name="twitter:image" content="{{ business_thumbnail_absolute_url }}">
+<meta name="twitter:image:alt" content="{{ business.name }}">
 {% endblock %}
 
 {% block content %}

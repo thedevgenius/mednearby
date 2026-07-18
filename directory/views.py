@@ -306,6 +306,8 @@ class BusinessDetailView(View):
         business_url = request.build_absolute_uri(
             reverse("businesses:detail", kwargs={"slug": business.slug})
         )
+        thumbnail_url = business_thumbnail_url(business)
+        business_thumbnail_absolute_url = request.build_absolute_uri(thumbnail_url)
         seo_categories = ", ".join(
             category.label or category.name for category in business.categories.all()
         )
@@ -328,7 +330,8 @@ class BusinessDetailView(View):
             "directory/business_detail.html",
             {
                 "business": business,
-                "business_thumbnail_url": business_thumbnail_url(business),
+                "business_thumbnail_url": thumbnail_url,
+                "business_thumbnail_absolute_url": business_thumbnail_absolute_url,
                 "business_services": business_services,
                 "available_specialties": available_specialties,
                 "hours_rows": hours_rows,

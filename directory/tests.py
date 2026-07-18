@@ -1166,6 +1166,16 @@ class BusinessDetailViewTests(TestCase):
             response,
             'src="https://cdn.example/thumbnails/clinics/city-pharmacy.jpg"',
         )
+        self.assertContains(
+            response,
+            '<meta property="og:image" content="https://cdn.example/thumbnails/clinics/city-pharmacy.jpg">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<meta name="twitter:image" content="https://cdn.example/thumbnails/clinics/city-pharmacy.jpg">',
+            html=True,
+        )
 
     def test_draft_business_is_not_public(self):
         self.business.publication_status = Business.PublicationStatus.DRAFT
