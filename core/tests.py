@@ -53,6 +53,9 @@ class HomeViewTests(TestCase):
         self.assertContains(response, "manifest.webmanifest")
         self.assertContains(response, "navigator.serviceWorker.register")
         self.assertContains(response, reverse("core:service-worker"))
+        self.assertContains(response, "/static/icons/icon-192x192.png")
+        self.assertContains(response, 'id="pwa-install-cta"')
+        self.assertContains(response, 'id="pwa-install-button"')
 
     def test_serves_root_scoped_javascript_without_http_cache(self):
         response = self.client.get(reverse("core:service-worker"))
@@ -61,8 +64,10 @@ class HomeViewTests(TestCase):
         self.assertEqual(response["Content-Type"], "application/javascript")
         self.assertEqual(response["Service-Worker-Allowed"], "/")
         self.assertEqual(response["Cache-Control"], "no-cache")
-        self.assertContains(response, 'const CACHE_NAME = "mednearby-static-v1"')
+        self.assertContains(response, 'const CACHE_NAME = "mednearby-static-v2"')
         self.assertContains(response, "/static/css/style.css")
+        self.assertContains(response, "/static/icons/icon-192x192.png")
+        self.assertContains(response, "/static/icons/icon-512x512.png")
 
     def test_home_page_includes_bottom_navigation(self):
         response = self.client.get(reverse("core:home"))

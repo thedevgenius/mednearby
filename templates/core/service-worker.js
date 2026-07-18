@@ -1,5 +1,5 @@
 {% load static %}
-const CACHE_NAME = "mednearby-static-v1";
+const CACHE_NAME = "mednearby-static-v2";
 const STATIC_ASSETS = [
     "{% static 'manifest.webmanifest' %}",
     "{% static 'css/style.css' %}",
@@ -8,8 +8,8 @@ const STATIC_ASSETS = [
     "{% static 'js/category-search.js' %}",
     "{% static 'js/location-picker.js' %}",
     "{% static 'js/saved-items.js' %}",
-    "{% static 'images/logo-icon.png' %}",
-    "{% static 'images/med-favicon.png' %}"
+    "{% static 'icons/icon-192x192.png' %}",
+    "{% static 'icons/icon-512x512.png' %}"
 ];
 
 self.addEventListener("install", event => {
