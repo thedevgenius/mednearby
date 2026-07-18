@@ -1,6 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}{{ business.name }} | MedNearby{% endblock %}
+{% block title %}{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %}{% if seo_categories %} offers {{ seo_categories }}{% endif %}. View services, business hours, address, contact details, and directions on MedNearby.">
+<meta name="keywords" content="{{ business.name }}{% if seo_location %} {{ seo_location }}{% endif %}{% if seo_categories %}, {{ seo_categories }}{% endif %}, healthcare business near me">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="business.business">
+<meta property="og:site_name" content="MedNearby">
+<meta property="og:title" content="{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby">
+<meta property="og:description" content="View services, hours, address, contact details, and directions for {{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %}.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:image" content="{{ business_thumbnail_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ business.name }}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby">
+<meta name="twitter:description" content="View services, hours, address, and contact details for {{ business.name }} on MedNearby.">
+{% endblock %}
 
 {% block content %}
 <div class="app-container">
@@ -361,6 +377,8 @@
         {% endif %}
 
 
+        {% include "includes/updates_section.html" with updates=business_updates updates_heading="Updates & Offers" updates_horizontal=True updates_show_all=False %}
+
         <!-- RELATED BUSINESSES -->
         {% if similar_businesses %}
         <section class="mt-8 bg-surface border-y border-gray-100 py-5 px-3">
@@ -446,6 +464,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{% include "includes/update_detail_sheet.html" %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const bottomBar = document.getElementById("sticky-bottom-bar");

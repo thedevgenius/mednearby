@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}{{ category.label|default:category.name }} near you | MedNearby{% endblock %}
+{% block title %}Best {{ category.label|default:category.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="Find the best {{ category.label|default:category.name }}{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %}. Compare nearby healthcare businesses, services, hours, and contact details on MedNearby.">
+<meta name="keywords" content="{{ category.name }}{% if selected_location %} in {{ selected_location.name }}{% endif %}, best {{ category.name }} near me, nearby {{ category.name }}, healthcare services{% if selected_location %} in {{ selected_location.city.name }}{% endif %}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MedNearby">
+<meta property="og:title" content="Best {{ category.label|default:category.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby">
+<meta property="og:description" content="Discover {{ category.label|default:category.name }}{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %}, with services, hours, and contact details.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Best {{ category.label|default:category.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby">
+<meta name="twitter:description" content="Find nearby {{ category.label|default:category.name }}{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} on MedNearby.">
+{% endblock %}
 
 {% block content %}
 <main class="app-container min-h-dvh bg-gray-50 pb-8">

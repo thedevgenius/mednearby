@@ -8,21 +8,21 @@
 <meta name="keywords" content="doctors near me, clinics near me, pharmacies near me, hospitals near me, diagnostic centres near me, healthcare nearby, MedNearby">
 <meta name="robots" content="index, follow">
 <meta name="author" content="MedNearby">
-<link rel="canonical" href="https://mednearby.in/">
+<link rel="canonical" href="https://mednearby.online/">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MedNearby">
 <meta property="og:title" content="MedNearby – Find Healthcare Services Near You">
 <meta property="og:description" content="Discover nearby doctors, clinics, hospitals, pharmacies and diagnostic centres quickly and easily.">
-<meta property="og:url" content="https://mednearby.in/">
+<meta property="og:url" content="https://mednearby.online/">
 <meta property="og:image" content="https://mednearby.in/images/mednearby-social-preview.jpg">
 
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="MedNearby – Find Healthcare Services Near You">
 <meta name="twitter:description" content="Discover nearby doctors, clinics, hospitals, pharmacies and diagnostic centres.">
-<meta name="twitter:image" content="https://mednearby.in/images/mednearby-social-preview.jpg">
+<meta name="twitter:image" content="https://mednearby.online/images/mednearby-social-preview.jpg">
 
 
 <!-- Structured Data -->
@@ -313,6 +313,7 @@
         requestCurrentLocation(false);
     })();
 </script>
+{% include "includes/update_detail_sheet.html" %}
 {% endblock %}
 
 {% block content %}
@@ -412,6 +413,8 @@
             </a>
         </div>
     </section>
+
+    {% include "includes/updates_section.html" with updates=nearby_updates updates_heading="Updates & Offers Near You" updates_horizontal=True updates_show_all=True %}
 
     <!-- POPULAR SPECIALTIES (With subtle background sectioning) -->
     <section class="mt-6 pt-5 pb-3 bg-gradient-to-b from-gray-100/50 to-transparent border-t border-gray-50">
@@ -622,6 +625,8 @@
             </a>
 
             <nav class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+                <a href="{% url 'core:about-us' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">About</a>
+                <div class="h-1 w-1 rounded-full bg-gray-300"></div>
                 <a href="{% url 'core:support' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Support</a>
                 <div class="h-1 w-1 rounded-full bg-gray-300"></div>
                 <a href="{% url 'core:privacy-policy' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Privacy Policy</a>

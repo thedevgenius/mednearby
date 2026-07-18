@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}About Us | MedNearby{% endblock %}
+
+{% block content %}
+    <div class="app-container relative z-0 bg-gray-50 min-h-screen pb-10">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 flex items-center gap-3 border-b border-gray-100/80 bg-white/95 px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-md">
+        <a href="javascript:history.back()" class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-gray-50 text-gray-600 active:scale-95 transition-transform hover:bg-gray-100" aria-label="Go back">
+            <i class="fa-solid fa-arrow-left text-sm"></i>
+        </a>
+        <div class="min-w-0 flex-1">
+            <h1 class="truncate text-[16px] font-black text-textMain tracking-tight">About Us</h1>
+            <p class="text-[10px] font-bold text-teal-500">Our story and mission</p>
+        </div>
+    </header>
+
+    <!-- INTRO HERO -->
+    <section class="px-4 mt-6">
+        <div class="flex items-start gap-3 mb-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-100/50 text-teal-500 shadow-[0_2px_8px_rgba(20,184,166,0.08)]">
+                <i class="fa-solid fa-heart-pulse text-xl"></i>
+            </div>
+            <div class="flex-1 pt-0.5">
+                <h2 class="text-[18px] font-black text-textMain leading-tight mb-2">About MedNearby</h2>
+                <p class="text-[12px] font-medium text-gray-500 leading-relaxed">
+                    MedNearby is a community-focused platform created to help people find nearby doctors, clinics, pharmacies, diagnostic centres, and other essential medical services more easily.
+                </p>
+                <p class="text-[12px] font-medium text-gray-500 leading-relaxed mt-2">
+                    <span class="font-black text-textMain">Our purpose is simple:</span> to make local healthcare information easier to discover, especially when someone needs help quickly.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTENT CARDS -->
+    <section class="px-4 mt-2 flex flex-col gap-4">
+        
+        <!-- Section: Built to Help -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100/50">
+                    <i class="fa-solid fa-users text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Built to Help the Community</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p>MedNearby is not a conventional profit-focused business. It is a community-help initiative designed to make useful local medical information more accessible.</p>
+                <p>We want people to spend less time searching and find suitable medical support near them more easily.</p>
+            </div>
+        </article>
+
+        <!-- Section: Not a Medical Provider (CRITICAL HIGHLIGHT) -->
+        <article class="bg-rose-50 border border-rose-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(244,63,94,0.04)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-rose-100/80 flex items-center justify-center text-rose-600 border border-rose-200/50">
+                    <i class="fa-solid fa-user-doctor text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-rose-900 tracking-tight">We Are Not a Medical Provider</h2>
+            </div>
+            <div class="text-[12px] font-semibold text-rose-800 leading-relaxed space-y-3">
+                <p>MedNearby does not provide medical treatment, diagnosis, emergency services, or medical advice. We only help people discover and connect with listed medical providers by displaying information submitted by providers or collected from publicly available sources.</p>
+                <div class="mt-2 bg-white/60 rounded-xl p-3 border border-rose-200/50">
+                    <p class="text-[11px] font-extrabold text-rose-700">Patients should always contact the medical provider directly to confirm availability, consultation fees, services, timings, qualifications, and other details before visiting.</p>
+                </div>
+            </div>
+        </article>
+
+        <!-- Section: Support & Pricing -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 border border-indigo-100/50">
+                    <i class="fa-solid fa-hand-holding-heart text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">We Need Provider Support</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed space-y-3">
+                <p>Running and maintaining MedNearby requires continuous effort, including:</p>
+                
+                <div class="mt-2 bg-gray-50 rounded-xl p-3 border border-gray-100/60">
+                    <ul class="flex flex-col gap-1.5 text-[11px] font-semibold text-gray-600">
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Adding and updating medical listings</li>
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Maintaining the website and mobile platform</li>
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Improving search and location-based discovery</li>
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Verifying provider information</li>
+                        <li class="flex items-center gap-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div> Expanding the platform to more communities</li>
+                    </ul>
+                </div>
+                
+                <p>To continue this initiative, we need support from doctors, clinics, pharmacies, diagnostic centres, hospitals, and other medical providers.</p>
+
+                <!-- Highlighted Pricing Section -->
+                <div class="mt-4 bg-emerald-50 border border-emerald-100/60 rounded-xl p-3.5">
+                    <div class="flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-tag text-emerald-600 text-[11px]"></i>
+                        <h3 class="text-[13px] font-black text-emerald-800">No Monthly or Yearly Charges</h3>
+                    </div>
+                    <div class="text-[11px] font-medium text-emerald-700/80 leading-relaxed space-y-2">
+                        <p>MedNearby does not charge medical providers any monthly or yearly subscription fee.</p>
+                        <p>We request only a small <strong class="text-emerald-700 font-extrabold">one-time support contribution</strong> from medical providers. This is not a recurring charge, and providers will not be required to pay every month or every year for their listing.</p>
+                        <p>This one-time contribution helps us cover the cost of maintaining the platform and making local medical information available to more people. By supporting MedNearby, medical providers also help us continue a useful service for the wider community.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Section: How Providers Can Help -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 border border-amber-100/50">
+                    <i class="fa-solid fa-handshake-angle text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">How Medical Providers Can Help</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed">
+                <p class="mb-2">Medical providers can support MedNearby by:</p>
+                <ul class="flex flex-col gap-2 pl-1">
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Creating or claiming their listing</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Providing accurate and updated information</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Informing us when their details change</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Contributing the one-time support amount</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-500 text-[10px] mt-1 shrink-0"></i>
+                        <span>Helping patients discover reliable local medical services</span>
+                    </li>
+                </ul>
+            </div>
+        </article>
+
+        <!-- Section: Our Commitment -->
+        <article class="bg-white border border-gray-100/80 rounded-[1.25rem] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500 border border-purple-100/50">
+                    <i class="fa-solid fa-bullseye text-[11px]"></i>
+                </div>
+                <h2 class="text-[14px] font-black text-textMain tracking-tight">Our Commitment</h2>
+            </div>
+            <div class="text-[12px] font-medium text-gray-500 leading-relaxed">
+                <p class="mb-2">We aim to:</p>
+                <ul class="flex flex-col gap-2 pl-1">
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-star text-purple-400 text-[10px] mt-1 shrink-0"></i>
+                        <span>Make nearby healthcare information easier to find</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-star text-purple-400 text-[10px] mt-1 shrink-0"></i>
+                        <span>Keep listings clear, useful, and updated</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-star text-purple-400 text-[10px] mt-1 shrink-0"></i>
+                        <span>Give medical providers better local visibility</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-star text-purple-400 text-[10px] mt-1 shrink-0"></i>
+                        <span>Help patients connect directly with providers</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-star text-purple-400 text-[10px] mt-1 shrink-0"></i>
+                        <span>Avoid unnecessary recurring charges for providers</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-star text-purple-400 text-[10px] mt-1 shrink-0"></i>
+                        <span>Build a trusted community healthcare directory</span>
+                    </li>
+                </ul>
+            </div>
+        </article>
+
+    </section>
+
+    <!-- CLOSING VISION CTA -->
+    <section class="px-4 mt-6">
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-[1.5rem] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.12)] relative overflow-hidden text-center">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-teal-500/20 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="relative z-10 flex flex-col items-center">
+                <i class="fa-solid fa-hands-holding-circle text-2xl text-teal-400 mb-3"></i>
+                <p class="text-[13px] font-bold text-white leading-relaxed mb-3">
+                    MedNearby is built on the belief that access to clear and reliable local healthcare information can make a meaningful difference.
+                </p>
+                <div class="w-8 h-1 bg-teal-500/50 rounded-full mb-3"></div>
+                <p class="text-[11px] font-semibold text-gray-300 leading-relaxed">
+                    With the support of medical providers and the community, we can make nearby medical help easier to find for everyone.
+                </p>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

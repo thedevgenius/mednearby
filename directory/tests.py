@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from PIL import Image
 
-from .models import Ambulance, Business, BusinessImage, Category, Doctor, Facility
+from .models import Ambulance, Business, BusinessImage, BusinessUpdate, Category, Doctor, Facility
 from .services import (
     business_open_status,
     doctor_schedule_availability,
@@ -249,6 +249,45 @@ class AddDummyDoctorsCommandTests(TestCase):
             "No active doctor specialties exist",
         ):
             call_command("add_dummy_doctors", 1)
+
+
+class AddDummyUpdatesCommandTests(TestCase):
+    def setUp(self):
+        self.business = Business.objects.create(
+            name="Published Clinic",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        Business.objects.create(
+            name="Draft Clinic",
+            publication_status=Business.PublicationStatus.DRAFT,
+        )
+
+    def test_adds_requested_updates_to_published_businesses_idempotently(self):
+        output = StringIO()
+
+        call_command("add_dummy_updates", 4, seed=7, stdout=output)
+        call_command("add_dummy_updates", 4, seed=7, stdout=output)
+
+        updates = BusinessUpdate.objects.filter(business=self.business)
+        self.assertEqual(updates.count(), 4)
+        self.assertTrue(updates.filter(kind=BusinessUpdate.Kind.OFFER).exists())
+        self.assertEqual(BusinessUpdate.objects.filter(business__name="Draft Clinic").count(), 0)
+        self.assertIn("already existed", output.getvalue())
+
+    def test_can_target_a_business_by_slug(self):
+        other = Business.objects.create(
+            name="Other Published Clinic",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+
+        call_command("add_dummy_updates", 2, business_slug=other.slug, verbosity=0)
+
+        self.assertEqual(BusinessUpdate.objects.filter(business=other).count(), 2)
+        self.assertFalse(BusinessUpdate.objects.filter(business=self.business).exists())
+
+    def test_rejects_non_positive_count(self):
+        with self.assertRaises(CommandError):
+            call_command("add_dummy_updates", 0)
 
 
 class AddDummyAmbulancesCommandTests(TestCase):
@@ -880,6 +919,30 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "openstreetmap.org/export/embed.html")
         self.assertContains(response, "marker=22.572600000%2C88.363900000")
         self.assertNotContains(response, "Apollo Multispeciality Hospital")
+
+    def test_displays_only_published_current_business_updates(self):
+        BusinessUpdate.objects.create(
+            business=self.business,
+            kind=BusinessUpdate.Kind.NEW_DOCTOR,
+            title="New physician joined",
+            summary="A new physician is now consulting.",
+            details="Appointments are available from Monday.",
+        )
+        BusinessUpdate.objects.create(
+            business=self.business,
+            title="Draft announcement",
+            summary="Not public",
+            details="Not public",
+            is_published=False,
+        )
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "New physician joined")
+        self.assertContains(response, 'id="update-detail-sheet"')
+        self.assertNotContains(response, "Draft announcement")
 
     def test_displays_assigned_categories_without_placeholder_categories(self):
         diagnostics = Category.objects.create(name="Diagnostic Centre")

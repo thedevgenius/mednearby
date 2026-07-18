@@ -3,7 +3,15 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from directory.models import Ambulance, Business, Category, Doctor
+from directory.models import Ambulance, Business, BusinessUpdate, Category, Doctor
+
+
+class AboutUsViewTests(SimpleTestCase):
+    def test_about_us_page_uses_expected_template(self):
+        response = self.client.get(reverse("core:about-us"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/about_us.html")
 
 
 class HomeViewTests(TestCase):
@@ -20,6 +28,85 @@ class HomeViewTests(TestCase):
         self.assertContains(response, "window.closeBottomSheet")
         self.assertContains(response, 'id="location-sheet"')
         self.assertContains(response, "js/location-picker.js")
+
+
+class NearbyUpdatesTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.business = Business.objects.create(
+            name="Community Clinic",
+            latitude="22.572600000",
+            longitude="88.363900000",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        cls.update = BusinessUpdate.objects.create(
+            business=cls.business,
+            kind=BusinessUpdate.Kind.OFFER,
+            title="Free health check",
+            summary="A complimentary health check this weekend.",
+            details="Visit the clinic between 9 AM and 1 PM.",
+        )
+        BusinessUpdate.objects.create(
+            business=cls.business,
+            title="Hidden update",
+            summary="Not public",
+            details="Not public",
+            is_published=False,
+        )
+
+    def setUp(self):
+        self.client.cookies["mednearby_location_lat"] = "22.5726"
+        self.client.cookies["mednearby_location_lng"] = "88.3639"
+
+    def test_home_shows_nearby_published_updates_and_detail_sheet(self):
+        response = self.client.get(reverse("core:home"))
+
+        self.assertEqual(list(response.context["nearby_updates"]), [self.update])
+        self.assertContains(response, "Free health check")
+        self.assertContains(response, 'id="update-detail-sheet"')
+        self.assertNotContains(response, "Hidden update")
+
+    def test_updates_page_lists_nearby_updates(self):
+        response = self.client.get(reverse("core:updates"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Free health check")
+        self.assertContains(response, "View more")
+
+    def test_updates_page_requests_location_when_missing(self):
+        self.client.cookies.clear()
+        response = self.client.get(reverse("core:updates"))
+
+        self.assertTrue(response.context["location_required"])
+        self.assertContains(response, "Choose a location")
+
+    def test_updates_page_loads_twenty_then_returns_more_with_ajax(self):
+        for number in range(24):
+            BusinessUpdate.objects.create(
+                business=self.business,
+                title=f"Update {number}",
+                summary=f"Summary {number}",
+                details=f"Details {number}",
+            )
+
+        response = self.client.get(reverse("core:updates"))
+
+        self.assertEqual(len(response.context["updates"]), 20)
+        self.assertTrue(response.context["has_more"])
+        self.assertContains(response, 'id="load-more-updates"')
+        self.assertContains(response, "bg-gradient-to-br")
+
+        ajax_response = self.client.get(
+            reverse("core:updates"),
+            {"page": 2},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        payload = ajax_response.json()
+        self.assertEqual(ajax_response.status_code, 200)
+        self.assertEqual(payload["html"].count('class="update-card '), 5)
+        self.assertIn("from-amber-50/90", payload["html"])
+        self.assertFalse(payload["has_more"])
+        self.assertEqual(payload["next_page"], 3)
 
 
 class HomeFeaturedSpecialtyTests(TestCase):

@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}{{ doctor.name }} | MedNearby{% endblock %}
+{% block title %}{{ doctor.name }}{% if seo_specialties %} - {{ seo_specialties }}{% endif %}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="Consult {{ doctor.name }}{% if seo_specialties %}, {{ seo_specialties }}{% endif %}{% if seo_location %} in {{ seo_location }}{% endif %}. View qualifications, clinic details, consultation fees, schedule, and availability on MedNearby.">
+<meta name="keywords" content="{{ doctor.name }}{% if seo_location %} {{ seo_location }}{% endif %}{% if seo_specialties %}, {{ seo_specialties }} doctor{% endif %}, doctor near me, book doctor consultation">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="MedNearby">
+<meta property="og:title" content="{{ doctor.name }}{% if seo_specialties %} - {{ seo_specialties }}{% endif %}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby">
+<meta property="og:description" content="View qualifications, clinic details, consultation fees, schedule, and availability for {{ doctor.name }}{% if seo_location %} in {{ seo_location }}{% endif %}.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ doctor.name }}{% if seo_specialties %} - {{ seo_specialties }}{% endif %}{% if seo_location %} in {{ seo_location }}{% endif %} | MedNearby">
+<meta name="twitter:description" content="View {{ doctor.name }}'s profile, clinic, fees, schedule, and availability on MedNearby.">
+{% endblock %}
 
 {% block content %}
 <main class="app-container min-h-dvh bg-gray-50 pb-10">

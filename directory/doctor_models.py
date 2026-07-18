@@ -28,7 +28,7 @@ class Doctor(models.Model):
         related_name="doctors",
         limit_choices_to={"type": Category.Type.DOCTOR_SPECIALTY},
     )
-    qualification = models.CharField(max_length=100, blank=True)
+    qualification = models.TextField(blank=True)
     gender = models.CharField(max_length=10, choices=GenderChoices.choices, blank=True)
     bio = models.TextField(max_length=1000, blank=True)
     is_active = models.BooleanField(default=True)

@@ -1,0 +1,19 @@
+{% for update in updates %}
+<article class="update-card {% if updates_horizontal %}w-[82%] max-w-[340px] shrink-0 snap-start{% endif %} rounded-[1.25rem] border p-3.5 shadow-sm {% if update.kind == 'offer' %}border-amber-100 bg-gradient-to-br from-amber-50/90 to-white{% elif update.kind == 'doctor_availability' %}border-rose-100 bg-gradient-to-br from-rose-50/90 to-white{% elif update.kind == 'new_doctor' %}border-indigo-100 bg-gradient-to-br from-indigo-50/90 to-white{% else %}border-emerald-100 bg-gradient-to-br from-emerald-50/80 to-white{% endif %}">
+    <div class="flex items-start gap-3">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full {% if update.kind == 'offer' %}bg-amber-100/80 text-amber-600{% elif update.kind == 'doctor_availability' %}bg-rose-100/80 text-rose-600{% elif update.kind == 'new_doctor' %}bg-indigo-100/80 text-indigo-600{% else %}bg-emerald-100/80 text-emerald-600{% endif %}">
+            <i class="fa-solid {% if update.kind == 'offer' %}fa-tags{% elif update.kind == 'doctor_availability' %}fa-user-clock{% elif update.kind == 'new_doctor' %}fa-user-doctor{% else %}fa-bullhorn{% endif %}" aria-hidden="true"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+            <span class="text-[9px] font-black uppercase tracking-wider text-primary">{{ update.get_kind_display }}</span>
+            <h3 class="mt-0.5 truncate text-[14px] font-black text-textMain">{{ update.title }}</h3>
+            <p class="mt-0.5 truncate text-[10px] font-bold text-gray-400">{{ update.business.name }}</p>
+        </div>
+    </div>
+    <p class="mt-3 line-clamp-2 text-[11px] font-semibold leading-relaxed text-textMuted">{{ update.summary }}</p>
+    <div class="mt-3 flex items-center justify-between border-t border-white/70 pt-2.5">
+        <time class="text-[9px] font-bold text-gray-400" datetime="{{ update.created_at|date:'c' }}">{{ update.created_at|timesince }} ago</time>
+        <button type="button" class="update-detail-trigger text-[10px] font-black text-primary" data-update-title="{{ update.title }}" data-update-kind="{{ update.get_kind_display }}" data-update-business="{{ update.business.name }}" data-update-summary="{{ update.summary }}" data-update-details="{{ update.details }}" data-update-date="{{ update.created_at|date:'M j, Y' }}">View more <i class="fa-solid fa-arrow-right ml-1 text-[8px]"></i></button>
+    </div>
+</article>
+{% endfor %}

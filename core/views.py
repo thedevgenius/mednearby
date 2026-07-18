@@ -2,8 +2,9 @@ import json
 from datetime import datetime
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import TemplateView
@@ -13,6 +14,7 @@ from directory.services import (
     ambulances_nearby,
     businesses_nearby,
     doctors_nearby_available_today,
+    nearby_updates,
 )
 
 
@@ -39,6 +41,7 @@ class HomeView(TemplateView):
         ).only("name", "label", "slug", "icon", "color", "display_order")
         context["available_doctors"] = []
         context["nearby_businesses"] = []
+        context["nearby_updates"] = []
         try:
             latitude = float(self.request.COOKIES["mednearby_location_lat"])
             longitude = float(self.request.COOKIES["mednearby_location_lng"])
@@ -53,7 +56,56 @@ class HomeView(TemplateView):
             context["nearby_businesses"] = businesses_nearby(
                 latitude, longitude, limit=10
             )
+            context["nearby_updates"] = nearby_updates(latitude, longitude, limit=10)
         return context
+
+
+class UpdatesView(TemplateView):
+    template_name = "core/updates.html"
+    page_size = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        location = _selected_location(self.request)
+        context["location_required"] = location is None
+        context["updates"] = []
+        context["has_more"] = False
+        context["next_page"] = 2
+        if location:
+            items = list(nearby_updates(*location)[: self.page_size + 1])
+            context["updates"] = items[: self.page_size]
+            context["has_more"] = len(items) > self.page_size
+        return context
+
+    def get(self, request, *args, **kwargs):
+        is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        if not is_ajax:
+            return super().get(request, *args, **kwargs)
+
+        location = _selected_location(request)
+        if location is None:
+            return JsonResponse({"error": "A valid selected location is required."}, status=400)
+        try:
+            page = int(request.GET.get("page", 2))
+            if page < 1:
+                raise ValueError
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "A valid page is required."}, status=400)
+
+        start = (page - 1) * self.page_size
+        items = list(nearby_updates(*location)[start : start + self.page_size + 1])
+        updates = items[: self.page_size]
+        return JsonResponse(
+            {
+                "html": render_to_string(
+                    "includes/update_cards.html",
+                    {"updates": updates, "updates_horizontal": False},
+                    request=request,
+                ),
+                "has_more": len(items) > self.page_size,
+                "next_page": page + 1,
+            }
+        )
 
 
 class PrivacyPolicyView(TemplateView):
@@ -66,6 +118,10 @@ class TermsOfUseView(TemplateView):
 
 class SupportView(TemplateView):
     template_name = "core/support.html"
+
+
+class AboutUsView(TemplateView):
+    template_name = "core/about_us.html"
 
 
 class EmergencyView(TemplateView):

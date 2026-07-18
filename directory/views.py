@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views import View
+from locations.services import nearest_locality
 
 from .models import Business, Category, Doctor
 from .services import (
@@ -19,6 +20,7 @@ from .services import (
     businesses_near_category,
     doctor_schedule_availability,
     doctors_near_specialty,
+    published_updates,
     search_categories,
     serialize_business,
     serialize_category,
@@ -123,6 +125,7 @@ class BusinessListView(View):
                     "businesses": [],
                     "total_count": 0,
                     "location_required": True,
+                    "canonical_url": request.build_absolute_uri(request.path),
                 },
             )
 
@@ -142,6 +145,7 @@ class BusinessListView(View):
                     "total_count": total_count,
                 }
             )
+        selected_location = nearest_locality(latitude, longitude)
         return render(
             request,
             "directory/business_list.html",
@@ -153,6 +157,8 @@ class BusinessListView(View):
                 "has_more": has_more,
                 "next_page": page + 1,
                 "location_required": False,
+                "selected_location": selected_location,
+                "canonical_url": request.build_absolute_uri(request.path),
             },
         )
 
@@ -296,8 +302,17 @@ class BusinessDetailView(View):
                     1,
                 )
         similar_businesses = similar_businesses_nearby(business, limit=10)
+        business_updates = published_updates().filter(business=business)
         business_url = request.build_absolute_uri(
             reverse("businesses:detail", kwargs={"slug": business.slug})
+        )
+        seo_categories = ", ".join(
+            category.label or category.name for category in business.categories.all()
+        )
+        seo_location = (
+            f"{business.locality.name}, {business.locality.city.name}"
+            if business.locality
+            else ""
         )
         whatsapp_share_url = "https://api.whatsapp.com/send?" + urlencode(
             {
@@ -328,7 +343,11 @@ class BusinessDetailView(View):
                 "google_directions_url": google_directions_url,
                 "distance_km": distance_km,
                 "similar_businesses": similar_businesses,
+                "business_updates": business_updates,
                 "whatsapp_share_url": whatsapp_share_url,
+                "canonical_url": business_url,
+                "seo_categories": seo_categories,
+                "seo_location": seo_location,
             },
         )
 
@@ -359,7 +378,13 @@ class DoctorListView(View):
             return render(
                 request,
                 "directory/doctor_list.html",
-                {"specialty": specialty, "doctors": [], "total_count": 0, "location_required": True},
+                {
+                    "specialty": specialty,
+                    "doctors": [],
+                    "total_count": 0,
+                    "location_required": True,
+                    "canonical_url": request.build_absolute_uri(request.path),
+                },
             )
 
         doctors, has_more, total_count = doctors_near_specialty(
@@ -373,6 +398,7 @@ class DoctorListView(View):
             return JsonResponse(
                 {"results": serialized, "has_more": has_more, "next_page": page + 1, "total_count": total_count}
             )
+        selected_location = nearest_locality(latitude, longitude)
         return render(
             request,
             "directory/doctor_list.html",
@@ -383,6 +409,8 @@ class DoctorListView(View):
                 "has_more": has_more,
                 "next_page": page + 1,
                 "location_required": False,
+                "selected_location": selected_location,
+                "canonical_url": request.build_absolute_uri(request.path),
             },
         )
 
@@ -395,6 +423,8 @@ class DoctorDetailView(View):
             Doctor.objects.select_related(
                 "business",
                 "business__locality",
+                "business__locality__city",
+                "business__locality__city__state",
             ).prefetch_related("specialties"),
             slug=slug,
             is_active=True,
@@ -419,6 +449,15 @@ class DoctorDetailView(View):
         doctor_url = request.build_absolute_uri(
             reverse("doctors:detail", kwargs={"slug": doctor.slug})
         )
+        specialties = list(doctor.specialties.all())
+        seo_specialties = ", ".join(
+            specialty.label or specialty.name for specialty in specialties
+        )
+        seo_location = (
+            f"{doctor.business.locality.name}, {doctor.business.locality.city.name}"
+            if doctor.business.locality
+            else ""
+        )
         whatsapp_share_url = "https://api.whatsapp.com/send?" + urlencode(
             {
                 "text": (
@@ -432,9 +471,12 @@ class DoctorDetailView(View):
             "directory/doctor_detail.html",
             {
                 "doctor": doctor,
-                "specialties": list(doctor.specialties.all()),
+                "specialties": specialties,
                 "display_schedule": doctor_schedule_availability(doctor.schedule),
                 "similar_doctors": similar_doctors,
                 "whatsapp_share_url": whatsapp_share_url,
+                "canonical_url": doctor_url,
+                "seo_specialties": seo_specialties,
+                "seo_location": seo_location,
             },
         )

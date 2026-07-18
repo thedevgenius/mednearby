@@ -1,0 +1,27 @@
+<section id="update-detail-sheet" class="bottom-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="update-detail-title">
+    <button class="bottom-sheet__backdrop" type="button" data-bottom-sheet-dismiss tabindex="-1" aria-label="Close update"></button>
+    <div class="bottom-sheet__panel" role="document">
+        <button class="bottom-sheet__close" type="button" data-bottom-sheet-dismiss aria-label="Close update"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        <div class="h-full overflow-y-auto">
+            <span id="update-detail-kind" class="text-[10px] font-black uppercase tracking-wider text-primary"></span>
+            <h2 id="update-detail-title" class="mt-1 text-xl font-extrabold text-textMain"></h2>
+            <p id="update-detail-business" class="mt-1 text-xs font-bold text-textMuted"></p>
+            <p id="update-detail-summary" class="mt-5 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-900"></p>
+            <p id="update-detail-details" class="mt-4 whitespace-pre-line text-sm font-semibold leading-relaxed text-gray-600"></p>
+            <p id="update-detail-date" class="mt-5 border-t border-gray-100 pt-3 text-[10px] font-bold text-gray-400"></p>
+        </div>
+    </div>
+</section>
+<script>
+document.addEventListener("click", (event) => {
+    const trigger = event.target.closest(".update-detail-trigger");
+    if (!trigger) return;
+    document.getElementById("update-detail-kind").textContent = trigger.dataset.updateKind;
+    document.getElementById("update-detail-title").textContent = trigger.dataset.updateTitle;
+    document.getElementById("update-detail-business").textContent = trigger.dataset.updateBusiness;
+    document.getElementById("update-detail-summary").textContent = trigger.dataset.updateSummary;
+    document.getElementById("update-detail-details").textContent = trigger.dataset.updateDetails;
+    document.getElementById("update-detail-date").textContent = `Posted ${trigger.dataset.updateDate}`;
+    window.openBottomSheet("update-detail-sheet");
+});
+</script>

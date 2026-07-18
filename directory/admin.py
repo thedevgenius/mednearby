@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils import timezone
 
-from .models import Ambulance, Business, BusinessImage, Category, Doctor, Facility
+from .models import Ambulance, Business, BusinessImage, BusinessUpdate, Category, Doctor, Facility
 
 
 @admin.register(Category)
@@ -51,9 +51,16 @@ class BusinessImageInline(admin.TabularInline):
     readonly_fields = ("created_at",)
 
 
+class BusinessUpdateInline(admin.StackedInline):
+    model = BusinessUpdate
+    extra = 0
+    fields = ("kind", "title", "summary", "details", "starts_at", "ends_at", "is_published")
+    show_change_link = True
+
+
 @admin.register(Business)
 class BusinessAdmin(admin.ModelAdmin):
-    inlines = (BusinessImageInline,)
+    inlines = (BusinessImageInline, BusinessUpdateInline)
     list_display = (
         "name",
         "locality",
@@ -155,6 +162,18 @@ class BusinessAdmin(admin.ModelAdmin):
     @admin.action(description="Suspend selected businesses")
     def mark_suspended(self, request, queryset):
         queryset.update(publication_status=Business.PublicationStatus.SUSPENDED)
+
+
+@admin.register(BusinessUpdate)
+class BusinessUpdateAdmin(admin.ModelAdmin):
+    list_display = ("title", "business", "kind", "is_published", "starts_at", "ends_at", "created_at")
+    list_filter = ("kind", "is_published", "created_at")
+    list_editable = ("is_published",)
+    search_fields = ("title", "summary", "details", "business__name")
+    autocomplete_fields = ("business",)
+    list_select_related = ("business",)
+    date_hierarchy = "created_at"
+    ordering = ("-created_at",)
 
 
 @admin.register(Ambulance)

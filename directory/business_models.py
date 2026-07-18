@@ -176,6 +176,51 @@ class Business(models.Model):
         )
 
 
+class BusinessUpdate(models.Model):
+    class Kind(models.TextChoices):
+        ANNOUNCEMENT = "announcement", "Announcement"
+        OFFER = "offer", "Offer"
+        DOCTOR_AVAILABILITY = "doctor_availability", "Doctor availability"
+        NEW_DOCTOR = "new_doctor", "New doctor"
+        OTHER = "other", "Other"
+
+    business = models.ForeignKey(
+        Business,
+        on_delete=models.CASCADE,
+        related_name="updates",
+    )
+    kind = models.CharField(
+        max_length=24,
+        choices=Kind.choices,
+        default=Kind.ANNOUNCEMENT,
+        db_index=True,
+    )
+    title = models.CharField(max_length=160)
+    summary = models.CharField(max_length=240)
+    details = models.TextField(max_length=3000)
+    starts_at = models.DateTimeField(blank=True, null=True)
+    ends_at = models.DateTimeField(blank=True, null=True)
+    is_published = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+        indexes = [
+            models.Index(
+                fields=("is_published", "starts_at", "ends_at"),
+                name="update_publish_window_idx",
+            ),
+            models.Index(
+                fields=("business", "-created_at"),
+                name="update_business_created_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.business.name}: {self.title}"
+
+
 class BusinessImage(models.Model):
     business = models.ForeignKey(
         Business,

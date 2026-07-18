@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}{{ specialty.label|default:specialty.name }} near you | MedNearby{% endblock %}
+{% block title %}Best {{ specialty.label|default:specialty.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="Find experienced {{ specialty.name }} doctors{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %}. View profiles, clinic details, consultation hours, contact information, and nearby availability on MedNearby.">
+<meta name="keywords" content="{{ specialty.name }} doctor{% if selected_location %} in {{ selected_location.name }}{% endif %}, best {{ specialty.name }} doctors{% if selected_location %} in {{ selected_location.city.name }}{% endif %}, {{ specialty.name }} specialist near me, nearby {{ specialty.name }} doctor">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MedNearby">
+<meta property="og:title" content="Best {{ specialty.label|default:specialty.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby">
+<meta property="og:description" content="Find experienced {{ specialty.name }} doctors{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %}. Compare profiles, clinics, hours, and availability.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Best {{ specialty.label|default:specialty.name }} near you{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% endif %} | MedNearby">
+<meta name="twitter:description" content="Find experienced {{ specialty.name }} doctors{% if selected_location %} in {{ selected_location.name }}, {{ selected_location.city.name }}{% else %} near you{% endif %} on MedNearby.">
+{% endblock %}
 
 {% block content %}
 <main class="app-container min-h-screen bg-gray-50 pb-8">
