@@ -144,6 +144,7 @@ class CategoriesViewTests(TestCase):
         specialty = Category.objects.create(
             name="Cardiology",
             type=Category.Type.DOCTOR_SPECIALTY,
+            synonyms="Heart doctor, Heart specialist",
         )
         Category.objects.create(name="Hidden Category", is_active=False)
 
@@ -154,6 +155,7 @@ class CategoriesViewTests(TestCase):
         self.assertContains(response, "Diagnostics")
         self.assertContains(response, "Blood Tests")
         self.assertContains(response, "Cardiology")
+        self.assertContains(response, "Heart doctor, Heart specialist")
         self.assertContains(response, reverse("businesses:list", kwargs={"slug": child.slug}))
         self.assertContains(response, reverse("doctors:list", kwargs={"slug": specialty.slug}))
         self.assertNotContains(response, "Hidden Category")
@@ -268,6 +270,7 @@ class HomeFeaturedSpecialtyTests(TestCase):
             type=Category.Type.DOCTOR_SPECIALTY,
             icon="fa-solid fa-heart-pulse",
             color="rose-500",
+            synonyms="Heart doctor, Heart specialist",
             is_featured=True,
         )
         Category.objects.create(
@@ -285,6 +288,7 @@ class HomeFeaturedSpecialtyTests(TestCase):
 
         self.assertQuerySetEqual(response.context["featured_specialties"], [featured])
         self.assertContains(response, "Cardiologists")
+        self.assertContains(response, "Heart doctor, Heart specialist")
         self.assertContains(response, "text-rose-500")
         self.assertContains(response, "fa-solid fa-heart-pulse")
         self.assertNotContains(response, "Neurology")

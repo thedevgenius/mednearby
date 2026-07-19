@@ -17,7 +17,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ("name",)
     list_editable = ("display_order", "is_featured", "is_active")
     list_filter = ("type", "is_featured", "is_active")
-    search_fields = ("name", "slug", "aliases", "label")
+    search_fields = ("name", "slug", "aliases", "synonyms", "label")
     ordering = ("type", "display_order", "name")
     autocomplete_fields = ("parent",)
     prepopulated_fields = {"slug": ("label",)}
@@ -36,6 +36,7 @@ class CategoryAdmin(admin.ModelAdmin):
                     "slug",
                     "parent",
                     "aliases",
+                    "synonyms",
                 )
             },
         ),

@@ -82,8 +82,9 @@ def search_categories(query, limit=SEARCH_RESULT_LIMIT):
             | Q(label__icontains=term)
             | Q(slug__icontains=term)
             | Q(aliases__icontains=term)
+            | Q(synonyms__icontains=term)
         )
-        .only("name", "label", "slug", "type", "icon", "display_order")
+        .only("name", "label", "slug", "type", "icon", "synonyms", "display_order")
         .order_by("display_order", "name")
     )[:limit]
 
@@ -97,6 +98,7 @@ def serialize_category(category):
         "type": category.type,
         "type_label": category.get_type_display(),
         "icon": category.icon,
+        "synonyms": category.synonyms if category.type == Category.Type.DOCTOR_SPECIALTY else "",
         "url": f"/{destination}/{category.slug}",
     }
 
@@ -151,9 +153,14 @@ def businesses_near_category(category, latitude, longitude, page=1):
         .order_by("distance_degrees", "id")
     )
     total_count = queryset.count()
+    open_now_count = sum(
+        1
+        for hours in queryset.values_list("business_hours", flat=True).iterator(chunk_size=100)
+        if business_open_status(hours)[0]
+    )
     start = (page - 1) * BUSINESS_PAGE_SIZE
     items = list(queryset[start : start + BUSINESS_PAGE_SIZE + 1])
-    return items[:BUSINESS_PAGE_SIZE], len(items) > BUSINESS_PAGE_SIZE, total_count
+    return items[:BUSINESS_PAGE_SIZE], len(items) > BUSINESS_PAGE_SIZE, total_count, open_now_count
 
 
 def businesses_nearby(latitude, longitude, limit=10):
@@ -454,9 +461,14 @@ def doctors_near_specialty(specialty, latitude, longitude, page=1):
         .order_by("distance_degrees", "id")
     )
     total_count = queryset.count()
+    available_today_count = sum(
+        1
+        for schedule in queryset.values_list("schedule", flat=True).iterator(chunk_size=100)
+        if doctor_schedule_availability(schedule)["is_today"]
+    )
     start = (page - 1) * DOCTOR_PAGE_SIZE
     items = list(queryset[start : start + DOCTOR_PAGE_SIZE + 1])
-    return items[:DOCTOR_PAGE_SIZE], len(items) > DOCTOR_PAGE_SIZE, total_count
+    return items[:DOCTOR_PAGE_SIZE], len(items) > DOCTOR_PAGE_SIZE, total_count, available_today_count
 
 
 def doctors_nearby_available_today(latitude, longitude, limit=10):
@@ -630,7 +642,7 @@ def doctor_schedule_availability(schedule, now=None):
         next_date = start.strftime("%a, %d %b")
     else:
         is_today = False
-        next_time = "Schedule unavailable"
+        next_time = ""
         next_date = ""
 
     enriched.update(

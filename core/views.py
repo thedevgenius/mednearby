@@ -45,7 +45,7 @@ class HomeView(TemplateView):
             is_active=True,
             is_featured=True,
         ).only(
-            "name", "label", "slug", "icon", "color", "display_order"
+            "name", "label", "slug", "icon", "color", "synonyms", "display_order"
         ).order_by("display_order", "name")
         context["available_doctors"] = []
         context["nearby_businesses"] = []

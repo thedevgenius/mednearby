@@ -132,12 +132,13 @@ class BusinessListView(View):
                     "subcategories": subcategories,
                     "businesses": [],
                     "total_count": 0,
+                    "open_now_count": 0,
                     "location_required": True,
                     "canonical_url": request.build_absolute_uri(request.path),
                 },
             )
 
-        businesses, has_more, total_count = businesses_near_category(
+        businesses, has_more, total_count, open_now_count = businesses_near_category(
             category,
             latitude,
             longitude,
@@ -151,6 +152,7 @@ class BusinessListView(View):
                     "has_more": has_more,
                     "next_page": page + 1,
                     "total_count": total_count,
+                    "open_now_count": open_now_count,
                 }
             )
         selected_location = nearest_locality(latitude, longitude)
@@ -162,6 +164,7 @@ class BusinessListView(View):
                 "subcategories": subcategories,
                 "businesses": serialized,
                 "total_count": total_count,
+                "open_now_count": open_now_count,
                 "has_more": has_more,
                 "next_page": page + 1,
                 "location_required": False,
@@ -463,12 +466,13 @@ class DoctorListView(View):
                     "specialty": specialty,
                     "doctors": [],
                     "total_count": 0,
+                    "available_today_count": 0,
                     "location_required": True,
                     "canonical_url": request.build_absolute_uri(request.path),
                 },
             )
 
-        doctors, has_more, total_count = doctors_near_specialty(
+        doctors, has_more, total_count, available_today_count = doctors_near_specialty(
             specialty,
             latitude,
             longitude,
@@ -477,7 +481,7 @@ class DoctorListView(View):
         serialized = [serialize_doctor(doctor) for doctor in doctors]
         if is_ajax:
             return JsonResponse(
-                {"results": serialized, "has_more": has_more, "next_page": page + 1, "total_count": total_count}
+                {"results": serialized, "has_more": has_more, "next_page": page + 1, "total_count": total_count, "available_today_count": available_today_count}
             )
         selected_location = nearest_locality(latitude, longitude)
         return render(
@@ -487,6 +491,7 @@ class DoctorListView(View):
                 "specialty": specialty,
                 "doctors": serialized,
                 "total_count": total_count,
+                "available_today_count": available_today_count,
                 "has_more": has_more,
                 "next_page": page + 1,
                 "location_required": False,

@@ -32,6 +32,11 @@ class Category(models.Model):
         blank=True,
         help_text="Comma-separated search terms",
     )
+    synonyms = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Comma-separated familiar names displayed under doctor specialties",
+    )
     icon = models.CharField(
         max_length=50,
         blank=True,

@@ -41,7 +41,7 @@
         <!-- Grid -->
         <div class="grid grid-cols-3 gap-3">
             {% for specialty in specialties %}
-                <a href="{% url 'doctors:list' specialty.slug %}" class="bg-white border border-gray-100/80 shadow-[0_4px_16px_rgba(0,0,0,0.05)] rounded-[1.25rem] px-3 py-3.5 flex flex-col items-center text-center gap-2.5 group hover:border-emerald-200 hover:shadow-[0_8px_24px_rgba(16,185,129,0.08)] active:scale-95 transition-all duration-300 relative overflow-hidden">
+                <a href="{% url 'doctors:list' specialty.slug %}" class="bg-white border border-gray-100/80 shadow-[0_4px_16px_rgba(0,0,0,0.05)] rounded-[1.25rem] px-1.5 py-3.5 flex flex-col items-center text-center gap-2.5 group hover:border-emerald-200 hover:shadow-[0_8px_24px_rgba(16,185,129,0.08)] active:scale-95 transition-all duration-300 relative overflow-hidden">
                     <!-- Subtle Hover Glow -->
                     <div class="absolute inset-0 bg-gradient-to-b from-transparent to-gray-50/50 pointer-events-none group-hover:to-emerald-50/30 transition-colors"></div>
                     
@@ -49,7 +49,7 @@
                     <div class="relative z-10 w-12 h-12 flex items-center justify-center rounded-2xl bg-[{{specialty.color}}]/15 group-hover:bg-white group-hover:shadow-sm transition-all duration-300 border border-transparent group-hover:border-gray-100">
                         <i class="{{ specialty.icon|default:'fa-solid fa-user-doctor' }} text-[26px] text-[{{specialty.color}}]" aria-hidden="true"></i>
                     </div>
-                    <span class="text-[11px] font-bold text-textMain leading-tight relative z-10">{{ specialty.label|default:specialty.name }}</span>
+                    <span class="relative z-10"><span class="block text-[11px] font-bold leading-tight text-textMain">{{ specialty.label|default:specialty.name }}</span>{% if specialty.synonyms %}<small class="mt-1 block line-clamp-2 text-[8px] font-semibold leading-tight text-gray-400">{{ specialty.synonyms }}</small>{% endif %}</span>
                 </a>
             {% empty %}
                 <div class="col-span-3 rounded-[1.25rem] border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center flex flex-col items-center justify-center gap-2">
@@ -94,7 +94,7 @@
                 <span class="text-[10px] font-extrabold text-textMain">Stomach</span>
             </a>
 
-            <a href="/doctors/orthopedists" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
+            <a href="/doctors/orthopedics" class="flex flex-col items-center text-center group active:scale-95 transition-transform duration-300">
                 <div class="w-[60px] h-[60px] bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[1.25rem] flex items-center justify-center text-orange-500 text-[22px] transition-all duration-300 mb-2 border border-white">
                     <i class="fa-solid fa-bone"></i>
                 </div>
