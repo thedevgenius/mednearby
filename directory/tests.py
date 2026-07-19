@@ -3,6 +3,7 @@ import tempfile
 from datetime import datetime, timezone as dt_timezone
 from io import BytesIO, StringIO
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -595,6 +596,42 @@ class BusinessSlugTests(TestCase):
         self.assertEqual(duplicate.slug, "city-clinic-main-road-2")
 
 
+class BusinessPhoneTests(TestCase):
+    def test_missing_phone_uses_owner_phone_with_india_country_code(self):
+        owner = get_user_model().objects.create_user(
+            phone="9876543210",
+            full_name="Clinic Owner",
+        )
+
+        business = Business.objects.create(name="City Clinic", owner=owner)
+
+        self.assertEqual(business.phone, "+919876543210")
+
+    def test_owner_phone_with_country_code_is_not_prefixed_twice(self):
+        owner = get_user_model().objects.create_user(
+            phone="+919876543210",
+            full_name="Clinic Owner",
+        )
+
+        business = Business.objects.create(name="City Clinic", owner=owner)
+
+        self.assertEqual(business.phone, "+919876543210")
+
+    def test_provided_business_phone_is_preserved(self):
+        owner = get_user_model().objects.create_user(
+            phone="9876543210",
+            full_name="Clinic Owner",
+        )
+
+        business = Business.objects.create(
+            name="City Clinic",
+            owner=owner,
+            phone="9123456780",
+        )
+
+        self.assertEqual(business.phone, "9123456780")
+
+
 class AddDummyBusinessesCommandTests(TestCase):
     def test_command_creates_geocoded_businesses_inside_radius(self):
         output = StringIO()
@@ -886,6 +923,7 @@ class BusinessDetailViewTests(TestCase):
             address="12 Main Road",
             landmark="Near City Park",
             phone="9876543210",
+            alternate_phone="9876543211",
             whatsapp="919876543210",
             email="hello@citypharmacy.example",
             website="https://citypharmacy.example",
@@ -919,6 +957,30 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "openstreetmap.org/export/embed.html")
         self.assertContains(response, "marker=22.572600000%2C88.363900000")
         self.assertNotContains(response, "Apollo Multispeciality Hospital")
+
+    def test_displays_alternate_phone_in_contact_information(self):
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "Contact Information")
+        self.assertContains(response, "Alternate Phone Number")
+        self.assertContains(response, 'href="tel:9876543211"')
+
+    def test_displays_business_tags_without_category_chips(self):
+        self.business.tags = "24/7 Open,Home Delivery"
+        self.business.save(update_fields=["tags"])
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "24/7 Open")
+        self.assertContains(response, "Home Delivery")
+        self.assertNotContains(
+            response,
+            reverse("businesses:list", kwargs={"slug": self.category.slug}),
+        )
 
     def test_displays_only_published_current_business_updates(self):
         BusinessUpdate.objects.create(
@@ -1049,8 +1111,9 @@ class BusinessDetailViewTests(TestCase):
 
         self.assertContains(response, "Share City Pharmacy on WhatsApp")
         self.assertContains(response, "https://api.whatsapp.com/send?text=")
-        self.assertContains(response, "%0A%0Ahttp%3A%2F%2Ftestserver")
-        self.assertContains(response, "%2Fplace%2Fcity-pharmacy-near-city-park")
+        self.assertContains(response, "Checkout+City+Pharmacy+on+Mednearby+-+http%3A%2F%2Ftestserver")
+        self.assertContains(response, "%2Fprovider%2Fcity-pharmacy-near-city-park")
+        self.assertContains(response, "Find+verified+medical+services+near+you+and+connect+with+them+easily%21")
 
     def test_displays_active_business_doctors_without_clinic_info_or_actions(self):
         specialty = Category.objects.create(
@@ -1388,8 +1451,9 @@ class DoctorDetailViewTests(TestCase):
         self.assertContains(response, 'href="tel:9876543210"')
         self.assertContains(response, "Share Dr. Detail on WhatsApp")
         self.assertContains(response, "https://api.whatsapp.com/send?text=")
-        self.assertContains(response, "%0A%0Ahttp%3A%2F%2Ftestserver")
+        self.assertContains(response, "Found+Dr.+Detail%2C+Cardiology+on+Mednearby+-+http%3A%2F%2Ftestserver")
         self.assertContains(response, "%2Fdoctor%2Fdr-detail")
+        self.assertContains(response, "Find+verified+medical+services+near+you+and+connect+with+them+easily%21")
 
     def test_displays_at_most_ten_nearby_doctors_with_same_specialty(self):
         for number in range(11):

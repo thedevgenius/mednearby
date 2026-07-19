@@ -302,7 +302,7 @@ class InternalBusinessQRCodeView(View):
         qr.make(fit=True)
         image = qr.make_image(fill_color="#111827", back_color="white").convert("RGB")
 
-        logo_path = Path(settings.BASE_DIR) / "static" / "images" / "logo-icon.png"
+        logo_path = Path(settings.BASE_DIR) / "static" / "icons" / "icon-512x512.png"
         if logo_path.exists():
             with Image.open(logo_path) as source_logo:
                 logo = source_logo.convert("RGBA")
@@ -351,6 +351,24 @@ def _validate_business_hours(value):
     return True
 
 
+def _normalize_business_services(value):
+    if not isinstance(value, list) or len(value) > 100:
+        return None
+    services = []
+    seen = set()
+    for service in value:
+        if not isinstance(service, str):
+            return None
+        service = service.strip()
+        if not service or len(service) > 100:
+            return None
+        normalized = service.casefold()
+        if normalized not in seen:
+            seen.add(normalized)
+            services.append(service)
+    return services
+
+
 def _validate_doctor_schedule(value):
     if not isinstance(value, dict):
         return False
@@ -388,6 +406,119 @@ class BusinessHoursTaskView(View):
         business.business_hours = hours
         business.save(update_fields=["business_hours"])
         return render(request, self.template_name, {"business": business, "saved": True})
+
+
+@method_decorator(staff_member_required, name="dispatch")
+class BusinessServicesTaskView(View):
+    template_name = "core/business_services_task.html"
+    common_services = (
+        "Blood Test",
+        "Blood Pressure Check",
+        "Blood Sugar Check",
+        "Injection Administration",
+        "IV Drip Administration",
+        "Dressing and Wound Care",
+        "Nebulization",
+        "Temperature Check",
+        "Oxygen Saturation Check",
+        "Suture Removal",
+        "Urine Test",
+        "Stool Test",
+        "Doctor Consultation",
+        "Emergency Care",
+        "Health Check-up",
+        "Diagnostic Tests",
+        "X-Ray",
+        "Ultrasound",
+        "ECG",
+        "Home Sample Collection",
+        "Home Delivery",
+        "Vaccination",
+        "Pharmacy",
+        "Physiotherapy",
+        "Follow-up Care",
+        "Ambulance Service",
+    )
+
+    def get_business(self, business_id):
+        return get_object_or_404(Business, pk=business_id)
+
+    def render_page(self, request, business, saved=False):
+        return render(
+            request,
+            self.template_name,
+            {
+                "business": business,
+                "common_services": self.common_services,
+                "saved": saved,
+            },
+        )
+
+    def get(self, request, business_id):
+        return self.render_page(request, self.get_business(business_id))
+
+    def post(self, request, business_id):
+        business = self.get_business(business_id)
+        try:
+            submitted_services = json.loads(request.POST.get("services", ""))
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("Invalid services JSON.")
+        services = _normalize_business_services(submitted_services)
+        if services is None:
+            return HttpResponseBadRequest("Invalid services structure.")
+        business.services = services
+        business.save(update_fields=["services"])
+        return self.render_page(request, business, saved=True)
+
+
+@method_decorator(staff_member_required, name="dispatch")
+class BusinessTagsTaskView(View):
+    template_name = "core/business_tags_task.html"
+    common_tags = (
+        "Doctors",
+        "Pharmacy",
+        "Blood Test",
+        "Diagnostic Centre",
+        "Emergency",
+        "X-Ray",
+        "Ultrasound",
+        "ECG",
+        "Follow-up Care",
+        "Ambulance Service",
+        "Home Sample Collection",
+        "Home Delivery",
+        "Vaccination",
+        "Physiotherapy",
+    )
+
+    def get_business(self, business_id):
+        return get_object_or_404(Business, pk=business_id)
+
+    def render_page(self, request, business, saved=False):
+        return render(request, self.template_name, {
+            "business": business,
+            "common_tags": self.common_tags,
+            "saved": saved,
+        })
+
+    def get(self, request, business_id):
+        return self.render_page(request, self.get_business(business_id))
+
+    def post(self, request, business_id):
+        business = self.get_business(business_id)
+        try:
+            submitted_tags = json.loads(request.POST.get("tags", ""))
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("Invalid tags JSON.")
+        tags = _normalize_business_services(submitted_tags)
+        if tags is None or any("," in tag for tag in tags):
+            return HttpResponseBadRequest("Invalid tags structure.")
+        stored_tags = ",".join(tags)
+        if len(stored_tags) > Business._meta.get_field("tags").max_length:
+            return HttpResponseBadRequest("Tags are too long.")
+        business.tags = stored_tags
+        business.save(update_fields=["tags"])
+        return self.render_page(request, business, saved=True)
 
 
 @method_decorator(staff_member_required, name="dispatch")

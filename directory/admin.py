@@ -60,7 +60,7 @@ class BusinessUpdateInline(admin.StackedInline):
 
 @admin.register(Business)
 class BusinessAdmin(admin.ModelAdmin):
-    inlines = (BusinessImageInline, BusinessUpdateInline)
+    inlines = (BusinessImageInline,)
     list_display = (
         "name",
         "locality",
@@ -85,6 +85,7 @@ class BusinessAdmin(admin.ModelAdmin):
         "landmark",
         "pincode",
         "phone",
+        "alternate_phone",
         "whatsapp",
         "email",
         "locality__name",
@@ -117,6 +118,7 @@ class BusinessAdmin(admin.ModelAdmin):
                     "id",
                     "name",
                     "slug",
+                    "owner",
                     "categories",
                     "description",
                     "established_year",
@@ -138,8 +140,19 @@ class BusinessAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("Contact", {"fields": ("phone", "whatsapp", "email", "website")}),
-        ("Availability", {"fields": ("is_active", "is_testing", "is_24_7", "is_emergency", "is_home_collection", "is_home_delivery", "business_hours", "services", "facilities",)}),
+        (
+            "Contact",
+            {
+                "fields": (
+                    "phone",
+                    "alternate_phone",
+                    "whatsapp",
+                    "email",
+                    "website",
+                )
+            },
+        ),
+        ("Availability", {"fields": ("is_active", "is_testing", "is_24_7", "is_emergency", "is_home_collection", "is_home_delivery", "business_hours", "services", "tags", "facilities",)}),
 
         (
             "Moderation",

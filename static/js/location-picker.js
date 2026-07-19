@@ -4,8 +4,10 @@
     sheet.dataset.locationPickerInitialized = "true";
 
     const STORAGE_KEY = "mednearby_selected_locality";
+    const LAST_LOCATION_SAVE_KEY = "mednearby_location_saved_at";
     const LAT_COOKIE = "mednearby_location_lat";
     const LNG_COOKIE = "mednearby_location_lng";
+    const LOCATION_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
     const LOCALITY_REFRESH_DISTANCE_METERS = 200;
     const pickerName = document.getElementById("selected-location-name");
     const input = document.getElementById("locality-search");
@@ -54,6 +56,30 @@
         return isValid ? { latitude, longitude } : null;
     };
 
+    const saveLocationTimestamp = () => {
+        try {
+            localStorage.setItem(LAST_LOCATION_SAVE_KEY, String(Date.now()));
+        } catch (error) {
+            // Continue when browser storage is unavailable.
+        }
+    };
+
+    const hasFreshSavedLocation = () => {
+        if (!getSavedCoordinates()) return false;
+        try {
+            const savedAt = Number(localStorage.getItem(LAST_LOCATION_SAVE_KEY));
+            const elapsed = Date.now() - savedAt;
+            return (
+                Number.isFinite(savedAt)
+                && savedAt > 0
+                && elapsed >= 0
+                && elapsed < LOCATION_REFRESH_INTERVAL_MS
+            );
+        } catch (error) {
+            return false;
+        }
+    };
+
     const distanceInMeters = (from, to) => {
         const earthRadiusMeters = 6371000;
         const toRadians = (degrees) => degrees * Math.PI / 180;
@@ -79,6 +105,7 @@
         if (updateCoordinateCookies && locality.lat != null && locality.lng != null) {
             setCookie(LAT_COOKIE, locality.lat);
             setCookie(LNG_COOKIE, locality.lng);
+            saveLocationTimestamp();
         }
         document.dispatchEvent(new CustomEvent("location:selected", { detail: locality }));
     };
@@ -204,6 +231,7 @@
         currentLabel.textContent = "Finding your location…";
         navigator.geolocation.getCurrentPosition(
             (position) => {
+                saveLocationTimestamp();
                 processCurrentCoordinates(position.coords.latitude, position.coords.longitude, showFeedback)
                     .finally(() => {
                         currentButton.disabled = false;
@@ -225,5 +253,5 @@
     });
     currentButton.addEventListener("click", () => requestCurrentLocation(true));
     restoreLocality();
-    requestCurrentLocation(false);
+    if (!hasFreshSavedLocation()) requestCurrentLocation(false);
 })();
