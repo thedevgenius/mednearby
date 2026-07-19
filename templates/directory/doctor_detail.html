@@ -81,14 +81,15 @@
                 <div class="my-4 border-t border-gray-100/80"></div>
 
                 <!-- Schedule Status -->
-                <div class="flex items-center gap-1.5 text-[12px] font-extrabold {% if display_schedule.is_today %}text-emerald-600{% else %}text-indigo-600{% endif %}">
+                {% if display_schedule.next_time or display_schedule.next_date %}<div class="flex items-center gap-1.5 text-[12px] font-extrabold {% if display_schedule.is_today %}text-emerald-600{% else %}text-indigo-600{% endif %}">
                     <i class="fa-regular fa-clock"></i>
                     {% if display_schedule.is_today %}
-                        <span>Available Today &bull; {{ display_schedule.next_time }}</span>
+                        <span>Listed Today &bull; {{ display_schedule.next_time }}</span>
                     {% else %}
-                        <span>Available on {{ display_schedule.next_date }}{% if display_schedule.next_date %} &bull; {% endif %}{{ display_schedule.next_time|default:"Schedule unavailable" }}</span>
+                        <span>Available on {{ display_schedule.next_date }}{% if display_schedule.next_date and display_schedule.next_time %} &bull; {% endif %}{{ display_schedule.next_time }}</span>
                     {% endif %}
                 </div>
+                {% endif %}
 
                 <!-- Detailed Rows -->
                 {% if display_schedule.display_rows %}

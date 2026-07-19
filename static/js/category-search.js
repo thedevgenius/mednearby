@@ -32,7 +32,9 @@
         text.className = "min-w-0 flex-1";
         const name = document.createElement("strong");
         name.className = "block truncate text-sm font-extrabold text-textMain";
-        name.textContent = item.label;
+        name.textContent = item.type === "specialty" && item.synonyms
+            ? `${item.label} (${item.synonyms})`
+            : item.label;
         const type = document.createElement("small");
         type.className = "block text-xs font-semibold text-textMuted";
         type.textContent = item.type_label;

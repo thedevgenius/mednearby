@@ -274,7 +274,7 @@
                         <div class="text-[11px] font-extrabold {% if doctor.display_schedule.is_today %}text-emerald-600{% else %}text-indigo-600{% endif %}">
                             <i class="fa-regular fa-clock mr-1 text-[10px]" aria-hidden="true"></i>
                             {% if doctor.display_schedule.is_today %}
-                                Available Today &bull; {{ doctor.display_schedule.next_time }}
+                                Listed Today &bull; {{ doctor.display_schedule.next_time }}
                             {% elif doctor.display_schedule.next_date %}
                                 Available on {{ doctor.display_schedule.next_date }} &bull; {{ doctor.display_schedule.next_time }}
                             {% else %}

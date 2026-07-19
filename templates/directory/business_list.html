@@ -57,9 +57,9 @@
                 <div class="flex gap-2 overflow-x-auto hide-scrollbar snap-x pb-0.5">
             
                     <!-- Open Now Filter Pill -->
-                    <button id="open-now-filter" type="button" aria-pressed="false"
+                    <button id="open-now-filter" type="button" aria-pressed="false" data-result-count="{{ open_now_count|default:0 }}"
                         class="snap-start flex-[0_0_auto] flex items-center gap-1.5 rounded-full border border-gray-100 bg-gray-50 px-3 py-1.5 text-[10px] font-extrabold text-gray-600 transition-transform active:scale-95">
-                        Open Now <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                        Open Now ({{ open_now_count|default:0 }}) <i class="fa-solid fa-clock" aria-hidden="true"></i>
                     </button>
             
                     <!-- Divider -->
@@ -88,6 +88,7 @@
     
 
     <section id="business-list" class="px-3 pb-6 pt-3" aria-live="polite">
+        <div id="open-now-empty" hidden class="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center"><i class="fa-regular fa-clock text-2xl text-gray-300"></i><p class="mt-2 text-sm font-bold text-gray-500">No businesses are open now.</p></div>
         {% for business in businesses %}
             <article class="business-card relative {% if business.is_open %}open{% else %}closed{% endif %} mb-3 cursor-pointer rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md active:scale-[0.99]" data-href="{% url 'businesses:detail' business.slug %}" role="link" tabindex="0">
     
@@ -228,6 +229,7 @@
     const applyFilter = () => {
         const openOnly = filter.getAttribute("aria-pressed") === "true";
         list.querySelectorAll(".business-card").forEach(card => card.hidden = openOnly && !card.classList.contains("open"));
+        document.getElementById("open-now-empty").hidden = !(openOnly && Number(filter.dataset.resultCount) === 0);
     };
 
     const createCard = (business) => {

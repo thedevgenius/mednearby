@@ -418,6 +418,7 @@ class CategorySearchViewTests(TestCase):
             label="Cardiologists",
             type=Category.Type.DOCTOR_SPECIALTY,
             aliases="heart, cardiac",
+            synonyms="Heart doctor, Heart specialist",
         )
         cls.business = Category.objects.create(
             name="Pharmacy",
@@ -443,6 +444,7 @@ class CategorySearchViewTests(TestCase):
                     "type": "specialty",
                     "type_label": "Doctor Specialty",
                     "icon": "",
+                    "synonyms": "Heart doctor, Heart specialist",
                     "url": "/doctors/cardiology",
                 }
             ],
@@ -453,6 +455,12 @@ class CategorySearchViewTests(TestCase):
 
         self.assertEqual(result["type"], "category")
         self.assertEqual(result["url"], "/category/pharmacy")
+
+    def test_search_matches_and_returns_specialty_synonyms(self):
+        result = self.search("Heart specialist").json()["results"][0]
+
+        self.assertEqual(result["name"], "Cardiology")
+        self.assertEqual(result["synonyms"], "Heart doctor, Heart specialist")
 
     def test_inactive_categories_are_excluded(self):
         self.assertEqual(self.search("Inactive").json()["results"], [])
@@ -472,6 +480,7 @@ class DoctorSpecialtyListViewTests(TestCase):
             name="Cardiology",
             label="Cardiologists",
             type=Category.Type.DOCTOR_SPECIALTY,
+            synonyms="Heart doctor, Heart specialist",
         )
         Category.objects.create(name="Pharmacy")
         Category.objects.create(
@@ -485,6 +494,7 @@ class DoctorSpecialtyListViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertQuerySetEqual(response.context["specialties"], [cardiology])
         self.assertContains(response, "Cardiologists")
+        self.assertContains(response, "Heart doctor, Heart specialist")
         self.assertContains(
             response,
             reverse("doctors:list", kwargs={"slug": cardiology.slug}),
@@ -852,6 +862,15 @@ class BusinessListViewTests(TestCase):
         )
         self.assertNotContains(response, "Far Pharmacy")
         self.assertNotContains(response, "Draft Pharmacy")
+
+    def test_open_now_filter_shows_zero_count_and_empty_state(self):
+        response = self.client.get(
+            reverse("businesses:list", kwargs={"slug": self.category.slug})
+        )
+
+        self.assertEqual(response.context["open_now_count"], 0)
+        self.assertContains(response, "Open Now (0)")
+        self.assertContains(response, "No businesses are open now.")
 
     def test_ajax_second_page_returns_remaining_businesses(self):
         response = self.client.get(
@@ -1392,6 +1411,15 @@ class DoctorListViewTests(TestCase):
         self.assertFalse(payload["has_more"])
         self.assertEqual(payload["next_page"], 3)
         self.assertIn("slug", payload["results"][0])
+
+    def test_available_today_filter_shows_zero_count_and_empty_state(self):
+        response = self.client.get(
+            reverse("doctors:list", kwargs={"slug": self.specialty.slug})
+        )
+
+        self.assertEqual(response.context["available_today_count"], 0)
+        self.assertContains(response, "Listed Today (0)")
+        self.assertContains(response, "No doctors are listed today.")
 
     def test_page_without_coordinate_cookies_requests_location(self):
         self.client.cookies.clear()
