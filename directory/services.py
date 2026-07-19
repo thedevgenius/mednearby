@@ -404,6 +404,7 @@ def serialize_business(business, now=None):
         "pincode": business.pincode,
         "full_address": full_address or "Address unavailable",
         "categories": [category.name for category in categories],
+        "tags": business.tag_list,
         "icon": next((category.icon for category in categories if category.icon), "fa-solid fa-store"),
         "thumbnail_url": business_thumbnail_url(business),
         "phone": business.phone,

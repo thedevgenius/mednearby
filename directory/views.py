@@ -340,8 +340,9 @@ class BusinessDetailView(View):
         whatsapp_share_url = "https://api.whatsapp.com/send?" + urlencode(
             {
                 "text": (
-                    f"View {business.name} on MedNearby.\n\n"
-                    f"{business_url}"
+                    f"Checkout {business.name} on Mednearby - {business_url}. "
+                    "Find verified medical services near you and connect with "
+                    "them easily!"
                 )
             }
         )
@@ -403,7 +404,7 @@ class BusinessQRCodeView(View):
         qr.make(fit=True)
         image = qr.make_image(fill_color="#111827", back_color="white").convert("RGB")
 
-        logo_path = Path(settings.BASE_DIR) / "static" / "images" / "profile-image.png"
+        logo_path = Path(settings.BASE_DIR) / "static" / "icons" / "icon-512x512.png"
         if logo_path.exists():
             with Image.open(logo_path) as source_logo:
                 logo = source_logo.convert("RGBA")
@@ -538,6 +539,7 @@ class DoctorDetailView(View):
         seo_specialties = ", ".join(
             specialty.label or specialty.name for specialty in specialties
         )
+        share_specialization = seo_specialties or "Doctor"
         seo_location = (
             f"{doctor.business.locality.name}, {doctor.business.locality.city.name}"
             if doctor.business.locality
@@ -546,8 +548,9 @@ class DoctorDetailView(View):
         whatsapp_share_url = "https://api.whatsapp.com/send?" + urlencode(
             {
                 "text": (
-                    f"View {doctor.name}'s profile on MedNearby.\n\n"
-                    f"{doctor_url}"
+                    f"Found {doctor.name}, {share_specialization} on Mednearby - "
+                    f"{doctor_url}. Find verified medical services near you "
+                    "and connect with them easily!"
                 )
             }
         )

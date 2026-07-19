@@ -72,12 +72,10 @@
         <section id="overview" class="bg-white px-4 pt-4 pb-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] scroll-mt-[50px] rounded-b-[1.5rem] flex flex-col">
             
             <!-- 1. Categories -->
-            {% if business.categories.all %}
+            {% if business.tag_list %}
             <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
-                {% for category in business.categories.all %}                <a href="{% url 'businesses:list' category.slug %}"
-                    class="{% if forloop.first %}bg-emerald-50 border-emerald-100/50 text-emerald-600{% else %}bg-gray-50 border-gray-100 text-gray-500{% endif %} border px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-colors hover:bg-emerald-100 hover:text-emerald-700 shadow-sm">
-                    {{ category.name }}
-                </a>
+                {% for tag in business.tag_list %}
+                <span class="border border-sky-100 bg-sky-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-sky-600 rounded-md shadow-sm">{{ tag }}</span>
                 {% endfor %}
             </div>
             {% endif %}
@@ -327,7 +325,7 @@
         {% endif %}
 
         <!-- CONTACT INFO SECTION -->
-        {% if business.phone or business.whatsapp or business.email or business.website %}
+        {% if business.phone or business.alternate_phone or business.whatsapp or business.email or business.website %}
         <section id="contact" class="px-4 mt-6 mb-6 scroll-mt-[60px]">
             <h3 class="text-[15px] font-black text-textMain tracking-tight mb-3">Contact Information</h3>
             <div class="bg-white border border-gray-100 rounded-[1.25rem] p-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
@@ -342,6 +340,21 @@
                             <div class="min-w-0 flex-1">
                                 <p class="text-[10px] font-bold text-gray-400">Phone Number</p>
                                 <p class="text-[12px] font-extrabold text-textMain mt-0.5 truncate">{{ business.phone }}</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-[10px]"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if business.alternate_phone %}
+                    <li>
+                        <a href="tel:{{ business.alternate_phone }}" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                            <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-100/50">
+                                <i class="fa-solid fa-phone-volume text-[13px]"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-gray-400">Alternate Phone Number</p>
+                                <p class="text-[12px] font-extrabold text-textMain mt-0.5 truncate">{{ business.alternate_phone }}</p>
                             </div>
                             <i class="fa-solid fa-chevron-right text-gray-300 text-[10px]"></i>
                         </a>
@@ -417,7 +430,7 @@
                         <div class="min-w-0 flex-1">
                             <h4 class="mt-0.5 truncate text-[17px] font-extrabold leading-tight text-textMain"><a href="{% url 'businesses:detail' nearby.slug %}">{{ nearby.name }}</a></h4>
                             <div class="mt-1 flex flex-wrap items-center gap-1">
-                                {% for name in nearby.categories %}<span class="rounded border border-gray-100 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-gray-600">{{ name }}</span>{% endfor %}
+                                {% for tag in nearby.tags %}<span class="rounded border border-sky-100 bg-sky-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-sky-600">{{ tag }}</span>{% endfor %}
                             </div>
                             <div class="mt-1.5 flex flex-col gap-1.5">
                                 <p class="truncate text-[11px] font-semibold text-textMuted" title="{{ nearby.full_address }}"><i class="fa-solid fa-location-dot mr-1 text-gray-400" aria-hidden="true"></i>{{ nearby.full_address }} &bull; <span class="font-bold text-primary">{{ nearby.distance_km }} km</span></p>

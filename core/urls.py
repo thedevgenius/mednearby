@@ -4,6 +4,8 @@ from .views import (
     AboutUsView,
     AmbulanceListView,
     BusinessHoursTaskView,
+    BusinessServicesTaskView,
+    BusinessTagsTaskView,
     CategoriesView,
     DoctorScheduleTaskView,
     EmergencyView,
@@ -38,5 +40,7 @@ urlpatterns = [
     path("internal/tasks/", InternalTasksView.as_view(), name="internal-tasks"),
     path("internal/tasks/business/<uuid:business_id>/qr-code/", InternalBusinessQRCodeView.as_view(), name="internal-business-qr-code"),
     path("internal/tasks/business/<uuid:business_id>/hours/", BusinessHoursTaskView.as_view(), name="business-hours-task"),
+    path("internal/tasks/business/<uuid:business_id>/services/", BusinessServicesTaskView.as_view(), name="business-services-task"),
+    path("internal/tasks/business/<uuid:business_id>/tags/", BusinessTagsTaskView.as_view(), name="business-tags-task"),
     path("internal/tasks/doctor/<uuid:doctor_id>/schedule/", DoctorScheduleTaskView.as_view(), name="doctor-schedule-task"),
 ]

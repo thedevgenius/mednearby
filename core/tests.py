@@ -453,6 +453,70 @@ class InternalScheduleTaskViewTests(TestCase):
         self.assertEqual(self.business.business_hours["0"][0]["opens_at"], "09:00")
         self.assertContains(response, "updated successfully")
 
+    def test_business_hours_builder_has_copy_above_control(self):
+        response = self.client.get(
+            reverse("core:business-hours-task", kwargs={"business_id": self.business.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Copy above")
+        self.assertContains(response, 'state[String(index - 1)].map')
+
+    def test_business_services_builder_saves_normalized_json(self):
+        response = self.client.post(
+            reverse("core:business-services-task", kwargs={"business_id": self.business.pk}),
+            {"services": '["Blood Test", " Home Delivery ", "blood test"]'},
+        )
+
+        self.business.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.business.services, ["Blood Test", "Home Delivery"])
+        self.assertContains(response, "updated successfully")
+
+    def test_business_services_builder_shows_common_and_existing_services(self):
+        self.business.services = ["Custom Nursing"]
+        self.business.save(update_fields=["services"])
+
+        response = self.client.get(
+            reverse("core:business-services-task", kwargs={"business_id": self.business.pk})
+        )
+
+        self.assertContains(response, "Doctor Consultation")
+        self.assertContains(response, "Home Sample Collection")
+        self.assertContains(response, "Blood Pressure Check")
+        self.assertContains(response, "Injection Administration")
+        self.assertContains(response, 'data-common-service="Blood Test"')
+        self.assertContains(response, "Custom Nursing")
+        self.assertContains(response, "Save Business Services")
+
+    def test_business_services_builder_rejects_invalid_json_structure(self):
+        response = self.client.post(
+            reverse("core:business-services-task", kwargs={"business_id": self.business.pk}),
+            {"services": '{"name":"Blood Test"}'},
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_business_tags_builder_saves_comma_separated_tags(self):
+        response = self.client.post(
+            reverse("core:business-tags-task", kwargs={"business_id": self.business.pk}),
+            {"tags": '["24/7 Open", " Home Delivery ", "24/7 open"]'},
+        )
+
+        self.business.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.business.tags, "24/7 Open,Home Delivery")
+        self.assertEqual(self.business.tag_list, ["24/7 Open", "Home Delivery"])
+
+    def test_business_tags_builder_shows_common_tags(self):
+        response = self.client.get(
+            reverse("core:business-tags-task", kwargs={"business_id": self.business.pk})
+        )
+
+        self.assertContains(response, 'data-common-tag="24/7 Open"')
+        self.assertContains(response, "Wheelchair Accessible")
+        self.assertContains(response, "Save Business Tags")
+
     def test_doctor_schedule_builder_saves_json(self):
         schedule = '{"weekly":[{"weekdays":[0],"slots":[{"start":"09:00","end":"13:00"}],"note":"Available every Monday"}],"monthly_weekday":[],"monthly_dates":[]}'
         response = self.client.post(
@@ -470,6 +534,20 @@ class InternalScheduleTaskViewTests(TestCase):
 
         response = self.client.get(
             reverse("core:business-hours-task", kwargs={"business_id": self.business.pk})
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/admin/login/", response.url)
+
+        response = self.client.get(
+            reverse("core:business-tags-task", kwargs={"business_id": self.business.pk})
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/admin/login/", response.url)
+
+        response = self.client.get(
+            reverse("core:business-services-task", kwargs={"business_id": self.business.pk})
         )
 
         self.assertEqual(response.status_code, 302)

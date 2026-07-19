@@ -71,6 +71,7 @@ class Business(models.Model):
     )
     geohash = models.CharField(max_length=12, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True)
+    alternate_phone = models.CharField(max_length=20, blank=True)
     whatsapp = models.CharField(max_length=20, blank=True)
     email = models.EmailField(max_length=254, blank=True)
     website = models.URLField(max_length=200, blank=True)
@@ -97,6 +98,7 @@ class Business(models.Model):
     
     business_hours = models.JSONField(null=True, blank=True)
     services = models.JSONField(null=True, blank=True, default=list)
+    tags = models.CharField(max_length=500, blank=True)
     thumbnail_url = models.CharField(max_length=200, blank=True, null=True)
     facilities = models.ManyToManyField(
         "Facility",
@@ -137,6 +139,17 @@ class Business(models.Model):
 
     def save(self, *args, **kwargs):
         changed_fields = set()
+
+        if not self.phone.strip() and self.owner_id and self.owner.phone:
+            owner_phone = self.owner.phone.strip()
+            if owner_phone.startswith("+91"):
+                self.phone = owner_phone
+            elif owner_phone.startswith("91"):
+                self.phone = f"+{owner_phone}"
+            else:
+                self.phone = f"+91{owner_phone}"
+            changed_fields.add("phone")
+
         slug_source = " ".join(
             part.strip() for part in (self.name, self.landmark) if part and part.strip()
         )
@@ -167,6 +180,10 @@ class Business(models.Model):
     @property
     def is_verified(self):
         return self.verification_status == self.VerificationStatus.VERIFIED
+
+    @property
+    def tag_list(self):
+        return [tag.strip() for tag in self.tags.split(",") if tag.strip()]
 
     @property
     def is_featured(self):

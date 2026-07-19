@@ -17,6 +17,8 @@
                 <datalist id="business-options">{% for business in businesses %}<option value="{{ business.name }}" data-id="{{ business.id }}"></option>{% endfor %}</datalist>
                 <div class="mt-3 grid gap-2">
                     <button id="business-open" type="button" disabled class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-40">Update Business Hours</button>
+                    <button id="business-services-open" type="button" disabled class="w-full rounded-xl bg-sky-600 px-4 py-3 text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-40">Update Business Services</button>
+                    <button id="business-tags-open" type="button" disabled class="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-40">Update Business Tags</button>
                     <button id="business-qr-download" type="button" disabled class="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-40"><i class="fa-solid fa-qrcode" aria-hidden="true"></i> Download Business QR</button>
                 </div>
             </section>
@@ -49,17 +51,21 @@
 {% block extra_js %}
 <script>
 (() => {
-    const connectPicker = (inputId, listId, buttonId, urlTemplate, secondaryButtonId, secondaryUrlTemplate) => {
-        const input = document.getElementById(inputId), list = document.getElementById(listId), button = document.getElementById(buttonId), secondaryButton = secondaryButtonId ? document.getElementById(secondaryButtonId) : null;
+    const connectPicker = (inputId, listId, buttonId, urlTemplate, secondaryButtonId, secondaryUrlTemplate, tertiaryButtonId, tertiaryUrlTemplate, fourthButtonId, fourthUrlTemplate) => {
+        const input = document.getElementById(inputId), list = document.getElementById(listId), button = document.getElementById(buttonId), secondaryButton = secondaryButtonId ? document.getElementById(secondaryButtonId) : null, tertiaryButton = tertiaryButtonId ? document.getElementById(tertiaryButtonId) : null, fourthButton = fourthButtonId ? document.getElementById(fourthButtonId) : null;
         let selectedId = "";
         input.addEventListener("input", () => {
             const option = [...list.options].find(item => item.value === input.value);
             selectedId = option?.dataset.id || "";
             button.disabled = !selectedId;
             if (secondaryButton) secondaryButton.disabled = !selectedId;
+            if (tertiaryButton) tertiaryButton.disabled = !selectedId;
+            if (fourthButton) fourthButton.disabled = !selectedId;
         });
         button.addEventListener("click", () => { if (selectedId) location.href = urlTemplate.replace("RECORD_ID", selectedId); });
         secondaryButton?.addEventListener("click", () => { if (selectedId) location.href = secondaryUrlTemplate.replace("RECORD_ID", selectedId); });
+        tertiaryButton?.addEventListener("click", () => { if (selectedId) location.href = tertiaryUrlTemplate.replace("RECORD_ID", selectedId); });
+        fourthButton?.addEventListener("click", () => { if (selectedId) location.href = fourthUrlTemplate.replace("RECORD_ID", selectedId); });
     };
     connectPicker(
         "business-search",
@@ -67,7 +73,11 @@
         "business-open",
         "{% url 'core:business-hours-task' business_id='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", "RECORD_ID"),
         "business-qr-download",
-        "{% url 'core:internal-business-qr-code' business_id='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", "RECORD_ID")
+        "{% url 'core:internal-business-qr-code' business_id='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", "RECORD_ID"),
+        "business-services-open",
+        "{% url 'core:business-services-task' business_id='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", "RECORD_ID"),
+        "business-tags-open",
+        "{% url 'core:business-tags-task' business_id='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", "RECORD_ID")
     );
     connectPicker("doctor-search", "doctor-options", "doctor-open", "{% url 'core:doctor-schedule-task' doctor_id='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", "RECORD_ID"));
 

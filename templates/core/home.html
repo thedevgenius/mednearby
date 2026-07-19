@@ -426,7 +426,7 @@
                     </div>
                     <div class="flex min-w-0 flex-1 flex-col justify-center py-0.5">
                         <h2 class="mt-0.5 truncate text-[18px] font-black leading-none tracking-tight text-textMain"><a href="{% url 'businesses:detail' business.slug %}">{{ business.name }}</a></h2>
-                        <div class="mt-2 flex flex-wrap items-center gap-1">{% for name in business.categories|slice:":3" %}<span class="rounded-md border border-gray-100/80 bg-gray-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-500 shadow-sm">{{ name }}</span>{% endfor %}</div>
+                        <div class="mt-2 flex flex-wrap items-center gap-1">{% for tag in business.tags|slice:":3" %}<span class="rounded-md border border-sky-100 bg-sky-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-sky-600 shadow-sm">{{ tag }}</span>{% endfor %}</div>
                         <div class="mt-2.5 flex items-center gap-1.5">
                             <div class="h-2 w-2 shrink-0 rounded-full {% if business.is_open %}animate-pulse bg-emerald-500{% else %}bg-red-500{% endif %} shadow-sm"></div>
                             <p class="text-[11px] font-extrabold {% if business.is_open %}text-emerald-600{% else %}text-red-500{% endif %}">{% if business.is_open %}Open Now{% else %}Closed{% endif %}{% if business.open_status %}<span class="ml-1 font-semibold text-gray-400">&bull; {{ business.open_status }}</span>{% endif %}</p>
