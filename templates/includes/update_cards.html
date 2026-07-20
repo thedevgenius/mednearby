@@ -1,5 +1,5 @@
 {% for update in updates %}
-<article class="update-card {% if updates_horizontal %}w-[82%] max-w-[340px] shrink-0 snap-start{% endif %} rounded-[1.25rem] border p-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-transform active:scale-[0.99] {% if update.kind == 'offer' %}border-amber-100/80 bg-gradient-to-br from-amber-50 to-white{% elif update.kind == 'doctor_availability' %}border-rose-100/80 bg-gradient-to-br from-rose-50 to-white{% elif update.kind == 'new_doctor' %}border-indigo-100/80 bg-gradient-to-br from-indigo-50 to-white{% else %}border-emerald-100/80 bg-gradient-to-br from-emerald-50 to-white{% endif %}">
+<article class="update-card {% if updates_horizontal %}w-[82%] max-w-[340px] shrink-0 snap-start{% endif %} rounded-[1.25rem] border p-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-transform active:scale-[0.99] {% if update.kind == 'offer' %}border-amber-100/50 bg-gradient-to-br from-amber-50/50 to-white{% elif update.kind == 'doctor_availability' %}border-rose-100/50 bg-gradient-to-br from-rose-50/50 to-white{% elif update.kind == 'new_doctor' %}border-indigo-100/50 bg-gradient-to-br from-indigo-50/50 to-white{% else %}border-emerald-100/50 bg-gradient-to-br from-emerald-50/50 to-white{% endif %}">
     
     <!-- Top Row: Icon, Category, Date & Title -->
     <div class="flex items-start gap-2.5">
@@ -47,6 +47,8 @@
             data-update-kind="{{ update.get_kind_display }}" 
             data-update-business="{{ update.business.name }}" 
             data-update-business-url="{% url 'businesses:detail' update.business.slug %}" 
+            data-update-business-enquiry-url="{% url 'businesses:send-enquiry' update.business.slug %}"
+            data-update-business-services="{{ update.business.services|join:'||' }}"
             data-update-business-phone="{{ update.business.phone }}" 
             data-update-business-whatsapp="{{ update.business.whatsapp }}" 
             data-update-business-latitude="{{ update.business.latitude|default_if_none:'' }}" 

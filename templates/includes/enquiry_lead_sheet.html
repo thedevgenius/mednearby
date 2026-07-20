@@ -1,0 +1,33 @@
+<section id="enquiry-lead-sheet" class="bottom-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="enquiry-lead-title">
+    <button class="bottom-sheet__backdrop" type="button" data-bottom-sheet-dismiss tabindex="-1" aria-label="Close enquiry form"></button>
+    <div class="bottom-sheet__panel" role="document">
+        <button class="bottom-sheet__close" type="button" data-bottom-sheet-dismiss aria-label="Close enquiry form"><i class="fa-solid fa-xmark"></i></button>
+        <h2 id="enquiry-lead-title" class="text-xl font-black">Send an enquiry</h2>
+        <p class="mt-1 text-xs font-semibold text-textMuted">Your request will be sent to <span id="enquiry-business-name" class="font-black text-primary">{{ business.name|default:"the selected business" }}</span>.</p>
+        <form id="enquiry-lead-form" method="post" {% if business %}action="{% url 'businesses:send-enquiry' business.slug %}"{% endif %} class="mt-5 space-y-3">
+            {% csrf_token %}
+            <div><label class="mb-1 block text-xs font-extrabold">Name</label><input name="patient_name" maxlength="120" required autofocus class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold outline-none focus:border-primary"></div>
+            <div><label class="mb-1 block text-xs font-extrabold">Phone</label><input name="phone" type="tel" data-phone-input minlength="10" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="10-digit phone number" required class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold outline-none focus:border-primary"></div>
+            <div data-enquiry-service {% if not business.services %}class="hidden"{% endif %}><label class="mb-1 block text-xs font-extrabold">Service</label><select name="service" {% if not business.services %}disabled{% endif %} class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-primary"><option value="">Select a service</option>{% for service in business.services %}<option value="{{ service }}">{{ service }}</option>{% endfor %}</select></div>
+            <div><label class="mb-1 block text-xs font-extrabold">Message <span class="font-semibold text-gray-400">(optional)</span></label><textarea name="message" rows="3" class="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold outline-none focus:border-primary"></textarea></div>
+            <p data-lead-status class="hidden rounded-xl p-3 text-xs font-bold" role="status"></p>
+            <button type="submit" class="w-full rounded-xl bg-primary py-3.5 text-sm font-black text-white">Send enquiry</button>
+        </form>
+    </div>
+</section>
+<script>
+(() => { const form=document.getElementById("enquiry-lead-form"), sheet=document.getElementById("enquiry-lead-sheet"), status=form?.querySelector("[data-lead-status]"), businessName=document.getElementById("enquiry-business-name"), service=form?.querySelector("[data-enquiry-service]"); document.addEventListener("click",event=>{const trigger=event.target.closest("[data-enquiry-url]");if(!trigger||!form)return;form.action=trigger.dataset.enquiryUrl;businessName.textContent=trigger.dataset.enquiryBusiness;service?.classList.toggle("hidden",trigger.hasAttribute("data-enquiry-hide-service"));if(trigger.hasAttribute("data-enquiry-hide-service"))service?.querySelector("select")?.setAttribute("disabled","");else service?.querySelector("select")?.removeAttribute("disabled");status.classList.add("hidden")}); form?.addEventListener("submit", async event => { event.preventDefault(); const button=form.querySelector('[type="submit"]'); button.disabled=true; try { const response=await fetch(form.action,{method:"POST",body:new FormData(form),headers:{"X-Requested-With":"XMLHttpRequest"}}), data=await response.json(); status.textContent=data.message||(response.ok?"Enquiry sent successfully.":"Please check the entered details."); status.className=`rounded-xl p-3 text-xs font-bold ${response.ok?"bg-emerald-50 text-emerald-700":"bg-red-50 text-red-600"}`; if(response.ok){form.reset();window.setTimeout(()=>window.closeBottomSheet?.(sheet),1500);} } catch {status.textContent="Unable to send your enquiry. Please try again.";status.className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-600";} finally {button.disabled=false;} }); })();
+</script>
+<script>
+document.addEventListener("click", event => {
+    const trigger = event.target.closest("[data-enquiry-services]");
+    if (!trigger) return;
+    const container = document.querySelector("#enquiry-lead-form [data-enquiry-service]");
+    const select = container?.querySelector("select");
+    if (!container || !select) return;
+    const services = (trigger.dataset.enquiryServices || "").split("||").map(item => item.trim()).filter(Boolean);
+    select.replaceChildren(new Option("Select a service", ""), ...services.map(item => new Option(item, item)));
+    container.classList.toggle("hidden", services.length === 0);
+    select.disabled = services.length === 0;
+});
+</script>

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Leads | {{ business.name }}{% endblock %}
+{% block content %}
+<main class="mx-auto min-h-dvh w-full max-w-[480px] bg-gray-50 pb-10">
+<header class="sticky top-0 z-20 flex items-center gap-3 border-b border-gray-100 bg-white/95 px-4 py-3"><a href="{% url 'accounts:dashboard' %}" class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50"><i class="fa-solid fa-arrow-left"></i></a><div class="min-w-0"><h1 class="truncate text-base font-black">Leads</h1><p class="truncate text-[10px] font-bold text-textMuted">{{ business.name }}</p></div></header>
+<section class="px-3 py-4">
+{% if has_doctors %}<div class="grid grid-cols-2 rounded-xl bg-gray-200/70 p-1" role="tablist"><button data-lead-tab="appointment" class="rounded-lg bg-white px-2 py-2.5 text-[11px] font-black text-indigo-700 shadow-sm" aria-selected="true">Appointments ({{ appointment_leads|length }})</button><button data-lead-tab="enquiry" class="rounded-lg px-2 py-2.5 text-[11px] font-black text-gray-500" aria-selected="false">Enquiries ({{ enquiry_leads|length }})</button></div>{% endif %}
+{% if has_doctors %}
+<div data-lead-panel="appointment" class="mt-4 space-y-3">{% for lead in appointment_leads %}{% include "accounts/includes/lead_card.html" %}{% empty %}<p class="rounded-2xl bg-white p-8 text-center text-sm font-bold text-gray-400">No appointment leads.</p>{% endfor %}</div>
+<div data-lead-panel="enquiry" class="mt-4 hidden space-y-3">{% for lead in enquiry_leads %}{% include "accounts/includes/lead_card.html" %}{% empty %}<p class="rounded-2xl bg-white p-8 text-center text-sm font-bold text-gray-400">No enquiry leads.</p>{% endfor %}</div>
+{% else %}
+<div class="space-y-3">{% for lead in enquiry_leads %}{% include "accounts/includes/lead_card.html" %}{% empty %}<p class="rounded-2xl bg-white p-8 text-center text-sm font-bold text-gray-400">No leads yet.</p>{% endfor %}</div>
+{% endif %}
+</section></main>
+{% endblock %}
+{% block extra_js %}<script>(()=>{document.querySelectorAll('[data-lead-tab]').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('[data-lead-tab]').forEach(item=>{const active=item===tab;item.setAttribute('aria-selected',active);item.classList.toggle('bg-white',active);item.classList.toggle('shadow-sm',active);item.classList.toggle('text-indigo-700',active);item.classList.toggle('text-gray-500',!active)});document.querySelectorAll('[data-lead-panel]').forEach(panel=>panel.classList.toggle('hidden',panel.dataset.leadPanel!==tab.dataset.leadTab))}));document.addEventListener('submit',async event=>{const form=event.target.closest('[data-lead-action]');if(!form)return;event.preventDefault();const response=await fetch(form.action,{method:'POST',body:new FormData(form),headers:{'X-Requested-With':'XMLHttpRequest'}});if(response.ok&&form.querySelector('[name="action"]')?.value==='archive')form.closest('article').remove()})})();</script>{% endblock %}

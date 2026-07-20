@@ -1,0 +1,23 @@
+<section id="appointment-lead-sheet" class="bottom-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="appointment-lead-title">
+    <button class="bottom-sheet__backdrop" type="button" data-bottom-sheet-dismiss tabindex="-1" aria-label="Close appointment form"></button>
+    <div class="bottom-sheet__panel" role="document">
+        <button class="bottom-sheet__close" type="button" data-bottom-sheet-dismiss aria-label="Close appointment form"><i class="fa-solid fa-xmark"></i></button>
+        <h2 id="appointment-lead-title" class="text-xl font-black">Book an appointment</h2>
+        <p class="mt-1 text-xs font-semibold text-textMuted">Request an appointment with <span id="appointment-doctor-name" class="font-black text-primary"></span>.</p>
+        <form id="appointment-lead-form" method="post" class="mt-5 space-y-3">
+            {% csrf_token %}
+            <div><label class="mb-1 block text-xs font-extrabold">Patient name</label><input name="patient_name" maxlength="120" required autofocus class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold outline-none focus:border-primary"></div>
+            <div><label class="mb-1 block text-xs font-extrabold">Phone</label><input name="phone" type="tel" data-phone-input minlength="10" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="10-digit phone number" required class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold outline-none focus:border-primary"></div>
+            <div><label class="mb-1 block text-xs font-extrabold">Message <span class="font-semibold text-gray-400">(optional)</span></label><textarea name="message" rows="3" class="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold outline-none focus:border-primary"></textarea></div>
+            <p data-lead-status class="hidden rounded-xl p-3 text-xs font-bold" role="status"></p>
+            <button type="submit" class="w-full rounded-xl bg-primary py-3.5 text-sm font-black text-white">Send appointment request</button>
+        </form>
+    </div>
+</section>
+<script>
+(() => {
+    const sheet = document.getElementById("appointment-lead-sheet"), form = document.getElementById("appointment-lead-form"), doctorName = document.getElementById("appointment-doctor-name"), status = form?.querySelector("[data-lead-status]");
+    document.addEventListener("click", event => { const button = event.target.closest("[data-book-appointment]"); if (!button || !form) return; form.action = button.dataset.appointmentUrl; doctorName.textContent = button.dataset.doctorName; status.classList.add("hidden"); });
+    form?.addEventListener("submit", async event => { event.preventDefault(); const button = form.querySelector('[type="submit"]'); button.disabled = true; try { const response = await fetch(form.action, {method:"POST", body:new FormData(form), headers:{"X-Requested-With":"XMLHttpRequest"}}); const data = await response.json(); status.textContent = data.message || (response.ok ? "Appointment request sent successfully." : "Please check the entered details."); status.className = `rounded-xl p-3 text-xs font-bold ${response.ok ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`; if (response.ok) { form.reset(); window.setTimeout(() => window.closeBottomSheet?.(sheet), 1500); } } catch { status.textContent = "Unable to send your request. Please try again."; status.className = "rounded-xl bg-red-50 p-3 text-xs font-bold text-red-600"; } finally { button.disabled = false; } });
+})();
+</script>

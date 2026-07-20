@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils import timezone
 
-from .models import Ambulance, Business, BusinessImage, BusinessUpdate, Category, Doctor, Facility
+from .models import Ambulance, Business, BusinessImage, BusinessUpdate, Category, Doctor, Facility, Lead
 
 
 @admin.register(Category)
@@ -199,6 +199,8 @@ class AmbulanceAdmin(admin.ModelAdmin):
         "is_24_7",
         "updated_at",
     )
+
+
     list_display_links = ("business", "phone")
     list_editable = ("is_active", "is_24_7")
     list_filter = ("is_active", "is_24_7", "created_at", "updated_at")
@@ -224,6 +226,38 @@ class AmbulanceAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
+
+
+@admin.register(Lead)
+class LeadAdmin(admin.ModelAdmin):
+    list_display = ("patient_name", "phone", "business", "lead_type", "doctor", "status", "is_archived", "created_at")
+    list_display_links = ("patient_name", "phone")
+    list_editable = ("status", "is_archived")
+    list_filter = ("lead_type", "status", "is_archived", "created_at")
+    search_fields = ("patient_name", "phone", "message", "service", "business__name", "doctor__name")
+    autocomplete_fields = ("business", "doctor")
+    readonly_fields = ("id", "created_at", "updated_at")
+    list_select_related = ("business", "doctor")
+    ordering = ("-created_at",)
+    date_hierarchy = "created_at"
+    save_on_top = True
+    list_per_page = 50
+    actions = ("archive_leads", "restore_leads")
+
+    fieldsets = (
+        ("Lead", {"fields": ("id", "lead_type", "business", "doctor", "service")}),
+        ("Patient", {"fields": ("patient_name", "phone", "message")}),
+        ("Workflow", {"fields": ("status", "is_archived")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+    @admin.action(description="Archive selected leads")
+    def archive_leads(self, request, queryset):
+        queryset.update(is_archived=True)
+
+    @admin.action(description="Restore selected leads")
+    def restore_leads(self, request, queryset):
+        queryset.update(is_archived=False)
 
 
 @admin.register(Facility)

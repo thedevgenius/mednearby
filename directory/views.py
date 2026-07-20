@@ -13,10 +13,12 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from locations.services import nearest_locality
 
-from .models import Business, BusinessImage, Category, Doctor
+from .forms import EnquiryLeadForm, LeadForm
+from .models import Business, BusinessImage, Category, Doctor, Lead
 from .services import (
     KOLKATA_TIMEZONE,
     business_thumbnail_url,
@@ -40,6 +42,80 @@ def _format_business_hour(value):
     except (TypeError, ValueError):
         return value
     return f"{parsed.hour % 12 or 12}:{parsed.minute:02d} {'AM' if parsed.hour < 12 else 'PM'}"
+
+
+class AppointmentLeadCreateView(View):
+    def post(self, request, slug):
+        doctor = get_object_or_404(
+            Doctor.objects.select_related("business"),
+            slug=slug,
+            is_active=True,
+            business__is_active=True,
+        )
+        form = LeadForm(request.POST)
+        if form.is_valid():
+            lead = form.save(commit=False)
+            lead.business = doctor.business
+            lead.doctor = doctor
+            lead.lead_type = Lead.LeadType.APPOINTMENT
+            lead.status = Lead.Status.NEW
+            lead.save()
+            return JsonResponse({"ok": True, "message": "Appointment request sent."})
+        return JsonResponse({"ok": False, "errors": form.errors.get_json_data()}, status=400)
+
+
+class EnquiryLeadCreateView(View):
+    def post(self, request, slug):
+        business = get_object_or_404(Business, slug=slug, is_active=True)
+        form = EnquiryLeadForm(request.POST, business=business)
+        if form.is_valid():
+            lead = form.save(commit=False)
+            lead.business = business
+            lead.lead_type = Lead.LeadType.ENQUIRY
+            lead.status = Lead.Status.NEW
+            lead.save()
+            return JsonResponse({"ok": True, "message": "Enquiry sent successfully."})
+        return JsonResponse({"ok": False, "errors": form.errors.get_json_data()}, status=400)
+
+
+class BusinessLeadListView(LoginRequiredMixin, View):
+    login_url = "accounts:login"
+
+    def get_business(self, request, slug):
+        return get_object_or_404(Business, slug=slug, owner=request.user)
+
+    def get(self, request, slug):
+        business = self.get_business(request, slug)
+        leads = business.leads.filter(is_archived=False).select_related("doctor").order_by("-created_at")
+        return render(
+            request,
+            "accounts/business_leads.html",
+            {
+                "business": business,
+                "has_doctors": business.doctor_set.filter(is_active=True).exists(),
+                "appointment_leads": leads.filter(lead_type=Lead.LeadType.APPOINTMENT),
+                "enquiry_leads": leads.filter(lead_type=Lead.LeadType.ENQUIRY),
+                "lead_statuses": Lead.Status.choices,
+            },
+        )
+
+
+class BusinessLeadActionView(LoginRequiredMixin, View):
+    login_url = "accounts:login"
+
+    def post(self, request, slug, lead_id):
+        lead = get_object_or_404(Lead, id=lead_id, business__slug=slug, business__owner=request.user)
+        if request.POST.get("action") == "archive":
+            lead.is_archived = True
+            lead.save(update_fields=["is_archived", "updated_at"])
+        else:
+            valid_statuses = {value for value, _ in Lead.Status.choices}
+            status = request.POST.get("status")
+            if status not in valid_statuses:
+                return JsonResponse({"ok": False, "error": "Invalid status."}, status=400)
+            lead.status = status
+            lead.save(update_fields=["status", "updated_at"])
+        return JsonResponse({"ok": True})
 
 
 def _distance_km(latitude_1, longitude_1, latitude_2, longitude_2):
@@ -250,12 +326,15 @@ class BusinessDetailView(View):
             hours_rows.append(
                 {
                     "day": day_name,
-                    "hours": ", ".join(slot_labels) or "Closed",
+                    "hours": "Open 24 Hours" if business.is_24_7 else ", ".join(slot_labels) or "Closed",
                     "is_today": day_number == current_weekday,
                 }
             )
 
-        is_open, open_status = business_open_status(business.business_hours)
+        is_open, open_status = business_open_status(
+            business.business_hours,
+            is_24_7=business.is_24_7,
+        )
         years_in_business = None
         if business.established_year:
             years_in_business = max(
@@ -361,7 +440,7 @@ class BusinessDetailView(View):
                 "available_specialties": available_specialties,
                 "hours_rows": hours_rows,
                 "today_hours": hours_rows[current_weekday],
-                "has_business_hours": bool(hours),
+                "has_business_hours": business.is_24_7 or bool(hours),
                 "is_open_now": is_open,
                 "open_status": open_status,
                 "years_in_business": years_in_business,

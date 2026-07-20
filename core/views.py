@@ -59,10 +59,10 @@ class HomeView(TemplateView):
             pass
         else:
             context["available_doctors"] = doctors_nearby_available_today(
-                latitude, longitude, limit=10
+                latitude, longitude, limit=10, include_unavailable_today=True
             )
             context["nearby_businesses"] = businesses_nearby(
-                latitude, longitude, limit=10
+                latitude, longitude, limit=10, include_closed=True
             )
             context["nearby_updates"] = nearby_updates(latitude, longitude, limit=10)
         return context

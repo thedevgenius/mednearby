@@ -90,5 +90,6 @@ from .business_models import (  # noqa: E402, F401
     BusinessImage,
     BusinessUpdate,
     Facility,
+    Lead,
 )
 from .doctor_models import Doctor  # noqa: E402, F401

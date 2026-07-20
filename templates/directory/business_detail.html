@@ -195,6 +195,8 @@
                 </a>
                 {% endif %}
 
+                <button type="button" data-bottom-sheet-target="#enquiry-lead-sheet" data-enquiry-url="{% url 'businesses:send-enquiry' business.slug %}" data-enquiry-business="{{ business.name }}" class="snap-start flex-[0_0_70px] flex flex-col items-center justify-center gap-1 rounded-[0.85rem] border border-emerald-200 bg-emerald-50 py-2 text-emerald-700 shadow-sm active:scale-95"><div class="text-base"><i class="fa-regular fa-paper-plane"></i></div><span class="text-[8px] font-extrabold uppercase tracking-wide">Enquiry</span></button>
+
                 {% if business.latitude != None and business.longitude != None %}
                 <a href="{{ google_directions_url }}" target="_blank" rel="noopener noreferrer" class="snap-start flex-[0_0_70px] flex flex-col items-center justify-center gap-1 rounded-[0.85rem] border border-gray-200 bg-gray-50 py-2 text-gray-600 shadow-sm transition-colors hover:bg-gray-100 active:scale-95">
                     <div class="text-base"><i class="fa-solid fa-diamond-turn-right"></i></div>
@@ -216,12 +218,14 @@
         <!-- SERVICES OFFERED -->
         {% if business_services %}
         <section id="services" class="px-3 mt-6 scroll-mt-[60px]">
-            <h3 class="text-sm font-extrabold text-textMain mb-3">Services Offered</h3>
+            <h3 class="text-sm font-black text-textMain tracking-tight mb-3">Services Offered</h3>
+            
             <div class="flex flex-wrap gap-2">
                 {% for service in business_services %}
-                <span class="bg-gray-50 border border-gray-100 text-gray-600 px-3 py-1.5 rounded-full text-[10px] font-bold flex items-center gap-1.5">
-                    <i class="fa-solid fa-check text-primary text-[8px]" aria-hidden="true"></i> {{ service }}
-                </span>
+                <div class="inline-flex items-center gap-1.5 bg-white border border-gray-200/80 px-3.5 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                    <i class="fa-solid fa-circle-check text-[12px] text-emerald-500" aria-hidden="true"></i>
+                    <span class="text-[11px] font-black text-textMain tracking-tight">{{ service }}</span>
+                </div>
                 {% endfor %}
             </div>
         </section>
@@ -270,17 +274,20 @@
                         </div>
                     </div>
 
+                    {% if doctor.display_schedule.next_time or doctor.display_schedule.next_date or doctor.display_schedule.display_rows %}
                     <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-2.5">
+                        {% if doctor.display_schedule.next_time or doctor.display_schedule.next_date %}
                         <div class="text-[11px] font-extrabold {% if doctor.display_schedule.is_today %}text-emerald-600{% else %}text-indigo-600{% endif %}">
                             <i class="fa-regular fa-clock mr-1 text-[10px]" aria-hidden="true"></i>
                             {% if doctor.display_schedule.is_today %}
                                 Listed Today &bull; {{ doctor.display_schedule.next_time }}
                             {% elif doctor.display_schedule.next_date %}
-                                Available on {{ doctor.display_schedule.next_date }} &bull; {{ doctor.display_schedule.next_time }}
+                                Listed on {{ doctor.display_schedule.next_date }} &bull; {{ doctor.display_schedule.next_time }}
                             {% else %}
                                 {{ doctor.display_schedule.next_time }}
                             {% endif %}
                         </div>
+                        {% endif %}
 
                         {% if doctor.display_schedule.display_rows %}
                         <div class="mt-2 border-t border-gray-200/60 pt-2">
@@ -295,14 +302,18 @@
                         </div>
                         {% endif %}
                     </div>
+                    {% endif %}
 
+                    <div class="mt-3 grid grid-cols-2 gap-2">
                     {% if business.phone %}
-                    <a href="tel:{{ business.phone }}" class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-[12px] font-extrabold text-white shadow-sm transition-colors hover:bg-primaryDark active:scale-95">
+                    <a href="tel:{{ business.phone }}" class="flex items-center justify-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 py-2.5 text-[10px] font-extrabold text-emerald-700 transition-colors hover:bg-emerald-100 active:scale-95">
                         <i class="fa-solid fa-phone" aria-hidden="true"></i> Enquiry
                     </a>
                     {% else %}
-                    <span class="mt-3 flex w-full cursor-not-allowed items-center justify-center rounded-lg border border-gray-200 bg-white py-2.5 text-[12px] font-extrabold text-gray-400">Enquiry phone unavailable</span>
+                    <span class="flex cursor-not-allowed items-center justify-center rounded-lg border border-gray-200 bg-white py-2.5 text-[10px] font-extrabold text-gray-400">Phone unavailable</span>
                     {% endif %}
+                    <button type="button" data-book-appointment data-bottom-sheet-target="#appointment-lead-sheet" data-appointment-url="{% url 'doctors:book-appointment' doctor.slug %}" data-doctor-name="{{ doctor.name }}" class="flex items-center justify-center gap-1 rounded-lg border border-indigo-200/80 bg-indigo-50 py-2.5 text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100 active:scale-95"><i class="fa-regular fa-calendar-check"></i> Book Appointment</button>
+                    </div>
                 </article>
                 {% endfor %}
             </div>
@@ -443,7 +454,7 @@
                     </div>
                     <div class="mt-3 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-50 pt-3">
                         {% if nearby.phone %}<a href="tel:{{ nearby.phone }}" class="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-2 py-3 text-xs font-extrabold text-white shadow-sm hover:bg-primaryDark"><i class="fa-solid fa-phone"></i><span>Call</span></a>{% endif %}
-                        {% if nearby.whatsapp %}<a href="https://wa.me/{{ nearby.whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-2 py-3 text-xs font-extrabold text-indigo-500"><i class="fa-brands fa-whatsapp"></i><span>Chat</span></a>{% endif %}
+                        <button type="button" data-bottom-sheet-target="#enquiry-lead-sheet" data-enquiry-url="{% url 'businesses:send-enquiry' nearby.slug %}" data-enquiry-business="{{ nearby.name }}" data-enquiry-hide-service class="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-2 py-2.5 text-[10px] font-extrabold text-emerald-700"><i class="fa-regular fa-paper-plane"></i><span>Enquiry</span></button>
                         <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ nearby.latitude }},{{ nearby.longitude }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2 py-3 text-xs font-extrabold text-gray-600"><i class="fa-solid fa-diamond-turn-right"></i><span>Directions</span></a>
                     </div>
                 </article>
@@ -470,7 +481,6 @@
         <div class="h-28"></div>
 
         <!-- BOTTOM STICKY ACTION BAR (Appears on Scroll) -->
-        {% if business.phone or business.latitude != None and business.longitude != None %}
         <div id="sticky-bottom-bar" class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white/95 backdrop-blur-md border-t border-gray-100 px-4 py-3 flex items-center justify-between z-50 transform translate-y-full transition-transform duration-300 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
             <div class="flex-1 overflow-hidden pr-3">
                 <h4 class="font-extrabold text-[13px] text-textMain truncate">{{ business.name }}</h4>
@@ -481,6 +491,7 @@
             </div>
             
             <div class="flex gap-2 shrink-0">
+                <button type="button" data-bottom-sheet-target="#enquiry-lead-sheet" data-enquiry-url="{% url 'businesses:send-enquiry' business.slug %}" data-enquiry-business="{{ business.name }}" aria-label="Send enquiry" class="flex h-10 items-center justify-center gap-1.5 rounded-full bg-emerald-50 px-3 text-[10px] font-black text-emerald-700"><i class="fa-regular fa-paper-plane"></i> Enquiry</button>
                 {% if business.latitude != None and business.longitude != None %}
                 <a href="{{ google_directions_url }}" target="_blank" rel="noopener noreferrer" aria-label="Get directions" class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-sm active:scale-95 transition-transform hover:bg-gray-200">
                     <i class="fa-solid fa-diamond-turn-right"></i>
@@ -493,9 +504,9 @@
                 {% endif %}
             </div>
         </div>
-        {% endif %}
 
     </div>
+{% include "includes/appointment_lead_sheet.html" %}
 {% endblock %}
 
 {% block bottom_nav %}{% endblock %}
