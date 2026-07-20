@@ -29,6 +29,7 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return (
             Business.objects.filter(owner=self.request.user)
+            .select_related("locality", "locality__city")
             .prefetch_related("categories")
             .order_by("name")
         )

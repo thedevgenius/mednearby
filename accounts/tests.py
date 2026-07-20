@@ -107,7 +107,11 @@ class OwnerDashboardTests(TestCase):
             password="safe-password",
         )
         self.owned_business = Business.objects.create(
-            name="Owned Health Centre", owner=self.owner
+            name="Owned Health Centre",
+            owner=self.owner,
+            address="12 Health Road",
+            landmark="Near City Park",
+            pincode="700001",
         )
         self.other_business = Business.objects.create(
             name="Another Owner Clinic", owner=other_owner
@@ -128,6 +132,11 @@ class OwnerDashboardTests(TestCase):
 
         self.assertEqual(list(response.context["businesses"]), [self.owned_business])
         self.assertContains(response, self.owned_business.name)
+        self.assertContains(
+            response,
+            "12 Health Road, Near City Park, 700001",
+        )
+        self.assertNotContains(response, "Address not added")
         self.assertNotContains(response, self.other_business.name)
         self.assertNotContains(response, 'aria-label="Primary navigation"')
 
@@ -142,6 +151,8 @@ class OwnerDashboardTests(TestCase):
         )
         self.assertContains(response, "Download QR")
         self.assertContains(response, "data-share-business")
+        self.assertContains(response, "https://api.whatsapp.com/send?text=")
+        self.assertNotContains(response, "navigator.share")
         self.assertContains(
             response,
             "View our official business profile on MedNearby for our services, contact details, location, timings, directions, and latest updates",

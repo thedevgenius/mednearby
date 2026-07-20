@@ -54,20 +54,12 @@
     </section>
 </main>
 <script>
-    document.addEventListener("click", async event => {
+    document.addEventListener("click", event => {
         const button = event.target.closest("[data-share-business]");
         if (!button) return;
         const profileUrl = new URL(button.dataset.profileUrl, window.location.origin).href;
         const message = `View our official business profile on MedNearby for our services, contact details, location, timings, directions, and latest updates ${button.dataset.businessName}: ${profileUrl}`;
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: button.dataset.businessName, text: message });
-                return;
-            } catch (error) {
-                if (error.name === "AbortError") return;
-            }
-        }
-        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+        window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
     });
 </script>
 {% endblock %}
