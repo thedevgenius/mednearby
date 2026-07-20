@@ -137,6 +137,18 @@ class Business(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def full_address(self):
+        locality = self.locality
+        parts = (
+            self.address,
+            self.landmark,
+            locality.name if locality else "",
+            locality.city.name if locality and locality.city else "",
+            self.pincode,
+        )
+        return ", ".join(part.strip() for part in parts if part and part.strip())
+
     def save(self, *args, **kwargs):
         changed_fields = set()
 
