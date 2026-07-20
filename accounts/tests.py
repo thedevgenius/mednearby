@@ -130,3 +130,19 @@ class OwnerDashboardTests(TestCase):
         self.assertContains(response, self.owned_business.name)
         self.assertNotContains(response, self.other_business.name)
         self.assertNotContains(response, 'aria-label="Primary navigation"')
+
+    def test_dashboard_business_card_has_qr_download_and_share_actions(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("accounts:dashboard"))
+
+        self.assertContains(
+            response,
+            reverse("businesses:qr-code", kwargs={"slug": self.owned_business.slug}),
+        )
+        self.assertContains(response, "Download QR")
+        self.assertContains(response, "data-share-business")
+        self.assertContains(
+            response,
+            "View our official business profile on MedNearby for our services, contact details, location, timings, directions, and latest updates",
+        )

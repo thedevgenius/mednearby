@@ -36,7 +36,12 @@
                 <div class="mt-3 flex flex-wrap gap-1.5">
                     {% for category in business.categories.all %}<span class="rounded-md bg-sky-50 px-2 py-1 text-[9px] font-extrabold text-sky-700">{{ category.label|default:category.name }}</span>{% empty %}<span class="text-[10px] font-semibold text-gray-400">No categories added</span>{% endfor %}
                 </div>
-                <div class="mt-4 grid grid-cols-2 gap-2"><a href="{% url 'businesses:detail' business.slug %}" class="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 py-2.5 text-xs font-black text-emerald-700">View business</a><a href="{% url 'businesses:leads' business.slug %}" class="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-xs font-black text-white"><i class="fa-solid fa-inbox"></i> View Leads</a></div>
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <a href="{% url 'businesses:detail' business.slug %}" class="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-2.5 text-xs font-black text-emerald-700"><i class="fa-solid fa-store" aria-hidden="true"></i> View business</a>
+                    <a href="{% url 'businesses:leads' business.slug %}" class="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-xs font-black text-white"><i class="fa-solid fa-inbox" aria-hidden="true"></i> View Leads</a>
+                    <a href="{% url 'businesses:qr-code' business.slug %}" download class="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-black text-gray-700"><i class="fa-solid fa-qrcode" aria-hidden="true"></i> Download QR</a>
+                    <button type="button" data-share-business data-business-name="{{ business.name }}" data-profile-url="{% url 'businesses:detail' business.slug %}" class="flex items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 py-2.5 text-xs font-black text-sky-700"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Share</button>
+                </div>
             </article>
             {% empty %}
             <div class="rounded-2xl border border-dashed border-gray-200 bg-white px-5 py-10 text-center">
@@ -48,4 +53,21 @@
         </div>
     </section>
 </main>
+<script>
+    document.addEventListener("click", async event => {
+        const button = event.target.closest("[data-share-business]");
+        if (!button) return;
+        const profileUrl = new URL(button.dataset.profileUrl, window.location.origin).href;
+        const message = `View our official business profile on MedNearby for our services, contact details, location, timings, directions, and latest updates ${button.dataset.businessName}: ${profileUrl}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: button.dataset.businessName, text: message });
+                return;
+            } catch (error) {
+                if (error.name === "AbortError") return;
+            }
+        }
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+    });
+</script>
 {% endblock %}
