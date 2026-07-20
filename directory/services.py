@@ -155,16 +155,16 @@ def businesses_near_category(category, latitude, longitude, page=1):
     total_count = queryset.count()
     open_now_count = sum(
         1
-        for hours in queryset.values_list("business_hours", flat=True).iterator(chunk_size=100)
-        if business_open_status(hours)[0]
+        for hours, is_24_7 in queryset.values_list("business_hours", "is_24_7").iterator(chunk_size=100)
+        if business_open_status(hours, is_24_7=is_24_7)[0]
     )
     start = (page - 1) * BUSINESS_PAGE_SIZE
     items = list(queryset[start : start + BUSINESS_PAGE_SIZE + 1])
     return items[:BUSINESS_PAGE_SIZE], len(items) > BUSINESS_PAGE_SIZE, total_count, open_now_count
 
 
-def businesses_nearby(latitude, longitude, limit=10):
-    """Return the nearest currently open, active, published businesses."""
+def businesses_nearby(latitude, longitude, limit=10, include_closed=False):
+    """Return nearby active, published businesses, optionally including closed ones."""
     latitude = float(latitude)
     longitude = float(longitude)
     center_hash = pgh.encode(latitude, longitude, precision=5)
@@ -195,14 +195,14 @@ def businesses_nearby(latitude, longitude, limit=10):
         .annotate(distance_degrees=distance_degrees)
         .order_by("distance_degrees", "id")
     )
-    open_businesses = []
+    nearby_businesses = []
     for business in businesses.iterator(chunk_size=100):
         serialized = serialize_business(business)
-        if serialized["is_open"]:
-            open_businesses.append(serialized)
-            if len(open_businesses) == limit:
+        if include_closed or serialized["is_open"]:
+            nearby_businesses.append(serialized)
+            if len(nearby_businesses) == limit:
                 break
-    return open_businesses
+    return nearby_businesses
 
 
 def ambulances_nearby(latitude, longitude, limit=None):
@@ -333,8 +333,11 @@ def business_thumbnail_url(business):
     return f"{settings.THUMBNAIL_URL.rstrip('/')}/{thumbnail_name.lstrip('/')}"
 
 
-def business_open_status(business_hours, now=None):
+def business_open_status(business_hours, now=None, is_24_7=False):
     """Compare saved wall-clock hours with the current time in Kolkata."""
+    if is_24_7:
+        return True, "Open 24 Hours"
+
     current = timezone.localtime(now or timezone.now(), KOLKATA_TIMEZONE)
     current_minute = (
         current.weekday() * MINUTES_PER_DAY
@@ -388,7 +391,11 @@ def business_open_status(business_hours, now=None):
 
 def serialize_business(business, now=None):
     distance_km = (business.distance_degrees ** 0.5) * 111.195
-    is_open, open_status = business_open_status(business.business_hours, now=now)
+    is_open, open_status = business_open_status(
+        business.business_hours,
+        now=now,
+        is_24_7=business.is_24_7,
+    )
     categories = list(business.categories.all())
     locality = business.locality
     address_parts = [
@@ -412,6 +419,7 @@ def serialize_business(business, now=None):
         "full_address": full_address or "Address unavailable",
         "categories": [category.name for category in categories],
         "tags": business.tag_list,
+        "services": business.services if isinstance(business.services, list) else [],
         "icon": next((category.icon for category in categories if category.icon), "fa-solid fa-store"),
         "thumbnail_url": business_thumbnail_url(business),
         "phone": business.phone,
@@ -420,6 +428,7 @@ def serialize_business(business, now=None):
         "longitude": float(business.longitude) if business.longitude is not None else None,
         "is_open": is_open,
         "open_status": open_status,
+        "is_24_7": business.is_24_7,
         "is_home_delivery": business.is_home_delivery,
         "is_home_collection": business.is_home_collection,
         "distance_km": round(distance_km, 1),
@@ -471,8 +480,10 @@ def doctors_near_specialty(specialty, latitude, longitude, page=1):
     return items[:DOCTOR_PAGE_SIZE], len(items) > DOCTOR_PAGE_SIZE, total_count, available_today_count
 
 
-def doctors_nearby_available_today(latitude, longitude, limit=10):
-    """Return the nearest active doctors whose next available slot is today."""
+def doctors_nearby_available_today(
+    latitude, longitude, limit=10, include_unavailable_today=False
+):
+    """Return nearby active doctors, optionally including those unavailable today."""
     latitude = float(latitude)
     longitude = float(longitude)
     center_hash = pgh.encode(latitude, longitude, precision=5)
@@ -505,14 +516,14 @@ def doctors_nearby_available_today(latitude, longitude, limit=10):
         .order_by("distance_degrees", "id")
     )
 
-    available = []
+    nearby_doctors = []
     for doctor in doctors.iterator(chunk_size=100):
         serialized = serialize_doctor(doctor)
-        if serialized["schedule"]["is_today"]:
-            available.append(serialized)
-            if len(available) == limit:
+        if include_unavailable_today or serialized["schedule"]["is_today"]:
+            nearby_doctors.append(serialized)
+            if len(nearby_doctors) == limit:
                 break
-    return available
+    return nearby_doctors
 
 
 def similar_doctors_nearby(doctor, latitude, longitude, limit=10):

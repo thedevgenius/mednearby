@@ -296,7 +296,7 @@ class HomeFeaturedSpecialtyTests(TestCase):
 
 
 class HomeAvailableDoctorsTests(TestCase):
-    def test_home_lists_at_most_ten_nearby_doctors_available_today(self):
+    def test_home_lists_at_most_ten_nearby_doctors(self):
         weekday = timezone.localtime().weekday()
         schedule = {
             "weekly": [
@@ -328,6 +328,22 @@ class HomeAvailableDoctorsTests(TestCase):
         self.assertContains(response, "Available Doctor 0")
         self.assertContains(response, 'data-href="/doctor/available-doctor-0"')
         self.assertNotContains(response, "Available Doctor 10")
+
+    def test_home_includes_nearby_doctor_not_available_today(self):
+        business = Business.objects.create(
+            name="Local Clinic",
+            latitude="22.572600000",
+            longitude="88.363900000",
+            publication_status=Business.PublicationStatus.PUBLISHED,
+        )
+        Doctor.objects.create(name="Doctor Without Today's Schedule", business=business)
+        self.client.cookies["mednearby_location_lat"] = "22.5726"
+        self.client.cookies["mednearby_location_lng"] = "88.3639"
+
+        response = self.client.get(reverse("core:home"))
+
+        self.assertContains(response, "Doctor Without Today&#x27;s Schedule")
+        self.assertContains(response, "Schedule not listed")
 
     def test_home_hides_available_doctors_without_a_selected_location(self):
         response = self.client.get(reverse("core:home"))
@@ -370,7 +386,8 @@ class HomeNearbyBusinessesTests(TestCase):
         self.assertContains(response, "Businesses Near You")
         self.assertContains(response, "Nearby Business 0")
         self.assertNotContains(response, "Nearby Business 10")
-        self.assertNotContains(response, "Closed Nearby Business")
+        self.assertContains(response, "Closed Nearby Business")
+        self.assertContains(response, "Closed")
 
 
 class InternalTasksViewTests(TestCase):

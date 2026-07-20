@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Business Login | MedNearby{% endblock %}
+
+{% block content %}
+<main class="mx-auto flex min-h-dvh w-full max-w-[480px] items-center bg-gradient-to-b from-emerald-50/80 via-white to-white px-4 py-10">
+    <section class="w-full">
+        <a href="{% url 'core:home' %}" class="mx-auto flex w-fit items-center gap-2">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-100 bg-white text-primary shadow-sm"><i class="fa-solid fa-notes-medical" aria-hidden="true"></i></span>
+            <span class="text-2xl font-black tracking-tight">Med<span class="text-primary">Nearby</span></span>
+        </a>
+
+        <div class="mt-8 rounded-[1.75rem] border border-gray-100 bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+            <div class="text-center">
+                <h1 class="text-2xl font-black tracking-tight text-textMain">Business login</h1>
+                <p class="mt-1 text-sm font-semibold text-textMuted">Sign in to manage your listed businesses.</p>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="mt-5 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-bold text-red-600" role="alert">Invalid phone number or password.</div>
+            {% endif %}
+
+            <form method="post" class="mt-6 space-y-4">
+                {% csrf_token %}
+                {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="mb-1.5 block text-xs font-extrabold text-gray-700">Phone number</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400" aria-hidden="true"></i>
+                        <input type="tel" name="username" value="{{ form.username.value|default:'' }}" data-phone-input autocomplete="tel" inputmode="numeric" pattern="[0-9]{10}" minlength="10" maxlength="10" autofocus required id="{{ form.username.id_for_label }}" placeholder="10-digit phone number" class="w-full rounded-xl border border-gray-200 py-3.5 pl-11 pr-4 text-sm font-bold outline-none transition focus:border-primary focus:ring-2 focus:ring-emerald-100">
+                    </div>
+                    {% for error in form.username.errors %}<p class="mt-1 text-xs font-bold text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="mb-1.5 block text-xs font-extrabold text-gray-700">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400" aria-hidden="true"></i>
+                        <input type="password" name="password" autocomplete="current-password" required id="{{ form.password.id_for_label }}" placeholder="Enter your password" class="w-full rounded-xl border border-gray-200 py-3.5 pl-11 pr-4 text-sm font-bold outline-none transition focus:border-primary focus:ring-2 focus:ring-emerald-100">
+                    </div>
+                    {% for error in form.password.errors %}<p class="mt-1 text-xs font-bold text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-black text-white shadow-md shadow-emerald-500/20 transition hover:bg-primaryDark active:scale-[0.99]">Login <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i></button>
+            </form>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block bottom_nav %}{% endblock %}

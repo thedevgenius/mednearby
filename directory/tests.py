@@ -13,7 +13,7 @@ from django.urls import reverse
 
 from PIL import Image
 
-from .models import Ambulance, Business, BusinessImage, BusinessUpdate, Category, Doctor, Facility
+from .models import Ambulance, Business, BusinessImage, BusinessUpdate, Category, Doctor, Facility, Lead
 from .services import (
     business_open_status,
     doctor_schedule_availability,
@@ -112,6 +112,12 @@ class BusinessOpenStatusTests(TestCase):
         self.assertEqual(
             business_open_status(self.hours, now),
             (True, ""),
+        )
+
+    def test_24_7_business_is_always_open_without_saved_hours(self):
+        self.assertEqual(
+            business_open_status({}, is_24_7=True),
+            (True, "Open 24 Hours"),
         )
 
     def test_open_slot_less_than_one_hour_before_close_returns_closing_status(self):
@@ -606,6 +612,89 @@ class BusinessSlugTests(TestCase):
         self.assertEqual(duplicate.slug, "city-clinic-main-road-2")
 
 
+class LeadWorkflowTests(TestCase):
+    def setUp(self):
+        self.owner = get_user_model().objects.create_user(
+            phone="9888888888", full_name="Lead Owner", password="safe-password"
+        )
+        self.business = Business.objects.create(
+            name="Lead Clinic", owner=self.owner, services=["Blood Test", "Consultation"]
+        )
+        self.doctor = Doctor.objects.create(name="Dr Lead", business=self.business)
+
+    def test_appointment_submission_creates_new_lead_for_selected_doctor(self):
+        response = self.client.post(
+            reverse("doctors:book-appointment", args=[self.doctor.slug]),
+            {"patient_name": "Patient One", "phone": "9876543210", "message": "Morning"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        lead = Lead.objects.get()
+        self.assertEqual(lead.doctor, self.doctor)
+        self.assertEqual(lead.business, self.business)
+        self.assertEqual(lead.lead_type, Lead.LeadType.APPOINTMENT)
+        self.assertEqual(lead.status, Lead.Status.NEW)
+
+    def test_enquiry_submission_accepts_only_business_service(self):
+        response = self.client.post(
+            reverse("businesses:send-enquiry", args=[self.business.slug]),
+            {"patient_name": "Patient Two", "phone": "9876543211", "service": "Blood Test"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Lead.objects.get().service, "Blood Test")
+
+        invalid = self.client.post(
+            reverse("businesses:send-enquiry", args=[self.business.slug]),
+            {"patient_name": "Patient Three", "phone": "9876543212", "service": "Unknown"},
+        )
+        self.assertEqual(invalid.status_code, 400)
+
+    def test_lead_submission_rejects_non_numeric_or_non_ten_digit_phone(self):
+        url = reverse("doctors:book-appointment", args=[self.doctor.slug])
+        for phone in ("98765abcde", "98765432101", "987654321"):
+            response = self.client.post(
+                url, {"patient_name": "Invalid Phone", "phone": phone}
+            )
+            self.assertEqual(response.status_code, 400)
+        self.assertFalse(Lead.objects.exists())
+
+    def test_owner_lead_page_is_private_and_supports_status_and_archive(self):
+        lead = Lead.objects.create(
+            business=self.business, patient_name="Patient", phone="9876543210"
+        )
+        anonymous = self.client.get(reverse("businesses:leads", args=[self.business.slug]))
+        self.assertEqual(anonymous.status_code, 302)
+
+        self.client.force_login(self.owner)
+        page = self.client.get(reverse("businesses:leads", args=[self.business.slug]))
+        self.assertContains(page, "Patient")
+        self.assertNotContains(page, 'aria-label="Primary navigation"')
+
+        action_url = reverse("businesses:lead-action", args=[self.business.slug, lead.id])
+        self.assertEqual(self.client.post(action_url, {"status": Lead.Status.CONTACTED}).status_code, 200)
+        lead.refresh_from_db()
+        self.assertEqual(lead.status, Lead.Status.CONTACTED)
+        self.assertEqual(self.client.post(action_url, {"action": "archive"}).status_code, 200)
+        lead.refresh_from_db()
+        self.assertTrue(lead.is_archived)
+
+    def test_business_without_doctors_shows_single_lead_list_without_tabs(self):
+        business = Business.objects.create(name="No Doctor Pharmacy", owner=self.owner)
+        Lead.objects.create(
+            business=business,
+            patient_name="Enquiry Patient",
+            phone="9876543210",
+            lead_type=Lead.LeadType.ENQUIRY,
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("businesses:leads", args=[business.slug]))
+
+        self.assertContains(response, "Enquiry Patient")
+        self.assertNotContains(response, 'role="tablist"')
+        self.assertNotContains(response, "Appointments (")
+
+
 class BusinessPhoneTests(TestCase):
     def test_missing_phone_uses_owner_phone_with_india_country_code(self):
         owner = get_user_model().objects.create_user(
@@ -871,6 +960,19 @@ class BusinessListViewTests(TestCase):
         self.assertEqual(response.context["open_now_count"], 0)
         self.assertContains(response, "Open Now (0)")
         self.assertContains(response, "No businesses are open now.")
+
+    def test_24_7_business_counts_as_open_now_and_returns_24_hour_status(self):
+        Business.objects.filter(name="Nearby Pharmacy 0").update(is_24_7=True)
+
+        response = self.client.get(
+            reverse("businesses:list", kwargs={"slug": self.category.slug})
+        )
+
+        business = response.context["businesses"][0]
+        self.assertEqual(response.context["open_now_count"], 1)
+        self.assertTrue(business["is_open"])
+        self.assertTrue(business["is_24_7"])
+        self.assertEqual(business["open_status"], "Open 24 Hours")
 
     def test_ajax_second_page_returns_remaining_businesses(self):
         response = self.client.get(

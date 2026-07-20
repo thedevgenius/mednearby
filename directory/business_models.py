@@ -95,7 +95,7 @@ class Business(models.Model):
         default=PublicationStatus.DRAFT,
         db_index=True,
     )
-    
+
     business_hours = models.JSONField(null=True, blank=True)
     services = models.JSONField(null=True, blank=True, default=list)
     tags = models.CharField(max_length=500, blank=True)
@@ -382,3 +382,49 @@ class Facility(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Lead(models.Model):
+    class LeadType(models.TextChoices):
+        APPOINTMENT = "appointment", "Doctor Appointment"
+        ENQUIRY = "enquiry", "General Enquiry"
+
+    class Status(models.TextChoices):
+        NEW = "new", "New"
+        CONTACTED = "contacted", "Contacted"
+        CONFIRMED = "confirmed", "Confirmed"
+        COMPLETED = "completed", "Completed"
+        CANCELLED = "cancelled", "Cancelled"
+        INVALID = "invalid", "Invalid"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    business = models.ForeignKey("Business", on_delete=models.CASCADE, related_name="leads")
+    lead_type = models.CharField(max_length=30, choices=LeadType.choices, default=LeadType.ENQUIRY, db_index=True)
+
+    doctor = models.ForeignKey("Doctor", on_delete=models.SET_NULL, null=True, blank=True, related_name="leads")
+    service = models.CharField(max_length=200, null=True, blank=True)
+
+    patient_name = models.CharField(max_length=120)
+    phone = models.CharField(max_length=15, db_index=True)
+    message = models.TextField(blank=True, null=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.NEW,
+        db_index=True,
+    )
+
+    is_archived = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["business", "status", "-created_at"]),
+            models.Index(fields=["business", "lead_type", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.business.name} - {self.patient_name}"

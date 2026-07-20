@@ -17,7 +17,7 @@
 <meta property="og:title" content="MedNearby – Find Healthcare Services Near You">
 <meta property="og:description" content="Discover nearby doctors, clinics, hospitals, pharmacies and diagnostic centres quickly and easily.">
 <meta property="og:url" content="https://mednearby.online/">
-<meta property="og:image" content="https://mednearby.in/images/mednearby-social-preview.jpg">
+<meta property="og:image" content="https://mednearby.online/images/mednearby-social-preview.jpg">
 
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
@@ -32,13 +32,13 @@
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "MedNearby",
-  "url": "https://mednearby.in/",
+  "url": "https://mednearby.online/",
   "description": "MedNearby helps users discover nearby doctors, clinics, hospitals, pharmacies, diagnostic centres and other healthcare services.",
   "potentialAction": {
     "@type": "SearchAction",
     "target": {
       "@type": "EntryPoint",
-      "urlTemplate": "https://mednearby.in/search?q={search_term_string}"
+      "urlTemplate": "https://mednearby.online/search?q={search_term_string}"
     },
     "query-input": "required name=search_term_string"
   }
@@ -192,7 +192,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="app-container relative z-0 bg-white min-h-screen">
+<div class="app-container relative z-0 bg-white min-h-dvh">
 
     <!-- Decorative Top Ambient Glow -->
     <div class="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-emerald-500/5 to-transparent -z-10 pointer-events-none"></div>
@@ -291,8 +291,57 @@
 
     {% include "includes/updates_section.html" with updates=nearby_updates updates_heading="Updates & Offers Near You" updates_horizontal=True updates_show_all=True %}
 
+    {% if nearby_businesses %}
+    <!-- Businesses Near You -->
+    <section id="businesses-near-you" class="mt-6 bg-gray-100 px-3 py-5">
+        <div class="mb-4">
+            <h2 class="text-[16px] font-black text-textMain tracking-tight">Medical Services Near You</h2>
+            <p class="mt-0.5 text-[10px] font-semibold text-textMuted">Businesses near your selected location</p>
+        </div>
+
+        <div class="hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 -mx-1">
+            {% for business in nearby_businesses %}
+            <article class="relative w-[86%] max-w-[360px] shrink-0 snap-start cursor-pointer rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md active:scale-[0.99]" data-href="{% url 'businesses:detail' business.slug %}" role="link" tabindex="0" onclick="if (!event.target.closest('a, button')) window.location.href=this.dataset.href" onkeydown="if (!event.target.closest('a, button') && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); window.location.href=this.dataset.href; }">
+                <div class="flex gap-3">
+                    <div class="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[1rem] border border-gray-100/80 bg-gray-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                        <img src="{{ business.thumbnail_url }}" alt="{{ business.name }}" class="h-full w-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy">
+                    </div>
+                    <div class="flex min-w-0 flex-1 flex-col justify-center py-0.5">
+                        <h2 class="mt-0.5 truncate text-[18px] font-black leading-none tracking-tight text-textMain"><a href="{% url 'businesses:detail' business.slug %}">{{ business.name }}</a></h2>
+                        <div class="mt-2 flex flex-wrap items-center gap-1">{% for tag in business.tags|slice:":3" %}<span class="rounded-md border border-sky-100 bg-sky-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-sky-600 shadow-sm">{{ tag }}</span>{% endfor %}</div>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <div class="h-2 w-2 shrink-0 rounded-full {% if business.is_open %}animate-pulse bg-emerald-500{% else %}bg-red-500{% endif %} shadow-sm"></div>
+                            <p class="text-[11px] font-extrabold {% if business.is_open %}text-emerald-600{% else %}text-red-500{% endif %}">{% if business.is_open %}Open Now{% else %}Closed{% endif %}{% if business.open_status %}<span class="ml-1 font-semibold text-gray-400">&bull; {{ business.open_status }}</span>{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2 flex flex-col gap-2.5 border-t border-gray-100/80 pt-2">
+                    <div class="flex items-start gap-1.5">
+                        <i class="fa-solid fa-location-dot mt-0.5 w-3 shrink-0 text-center text-[11px] text-gray-400" aria-hidden="true"></i>
+                        <p class="pr-1 text-[11px] font-semibold leading-snug text-textMuted">{{ business.full_address }} <span class="mx-0.5 text-gray-300">&bull;</span> <span class="whitespace-nowrap font-extrabold text-primary">{{ business.distance_km }} km</span></p>
+                    </div>
+                    {% if business.is_home_delivery or business.is_home_collection %}
+                    <div class="flex flex-wrap gap-2 pl-[18px]">
+                        {% if business.is_home_delivery %}<div class="inline-flex items-center gap-1 rounded-md border border-teal-100/60 bg-teal-50 px-1.5 py-0.5 shadow-sm"><i class="fa-solid fa-motorcycle text-[8px] text-teal-500"></i><span class="text-[8px] font-extrabold uppercase tracking-widest text-teal-700">Home Delivery</span></div>{% endif %}
+                        {% if business.is_home_collection %}<div class="inline-flex items-center gap-1 rounded-md border border-rose-100/60 bg-rose-50 px-1.5 py-0.5 shadow-sm"><i class="fa-solid fa-house-medical text-[8px] text-rose-500"></i><span class="text-[8px] font-extrabold uppercase tracking-widest text-rose-700">Home Sample Collection</span></div>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-2.5 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-100/80 pt-2.5">
+                    {% if business.phone %}<a href="tel:{{ business.phone }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-1 py-2.5 text-center text-[10px] font-black text-white shadow-sm transition-colors hover:bg-primaryDark active:scale-95"><i class="fa-solid fa-phone"></i><span>Call</span></a>{% endif %}
+                    {% if business.whatsapp %}<a href="https://wa.me/{{ business.whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 px-1 py-2.5 text-center text-[10px] font-black text-[#7C3AED] shadow-sm hover:bg-purple-100 active:scale-95"><i class="fa-brands fa-whatsapp text-[12px]"></i><span>Chat</span></a>{% endif %}
+                    {% if business.latitude is not None and business.longitude is not None %}<a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ business.latitude }},{{ business.longitude }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-1 py-2.5 text-center text-[10px] font-black text-[#F59E0B] shadow-sm hover:bg-amber-100 active:scale-95"><i class="fa-solid fa-diamond-turn-right"></i><span>Direction</span></a>{% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <!-- POPULAR SPECIALTIES (With subtle background sectioning) -->
-    <section class="mt-6 pt-5 pb-3 bg-gradient-to-b from-gray-100/50 to-transparent border-t border-gray-50">
+    <section id="find-a-specialist" class="py-5 pb-7">
         <div class="px-3 flex justify-between items-center mb-4">
             <h2 class="text-[16px] font-black text-textMain tracking-tight">Find a Specialist</h2>
             <a href="{% url 'doctors:specialties' %}" class="bg-white border border-gray-200 px-3 py-1.5 rounded-full text-[10px] font-extrabold text-textMain hover:bg-gray-50 transition-colors shadow-sm active:scale-95">
@@ -315,58 +364,8 @@
         </div>
     </section>
 
-    {% if available_doctors %}
-    <!-- Doctors Near You Listed Today -->
-    <section class="mt-6 px-3">
-        <div class="mb-4 flex items-center justify-between">
-            <div>
-                <h2 class="text-[16px] font-black text-textMain tracking-tight">Doctors Near You</h2>
-                <p class="mt-0.5 text-[10px] font-semibold text-textMuted">Listed today near you</p>
-            </div>
-            <a href="{% url 'doctors:specialties' %}" class="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[10px] font-extrabold text-textMain shadow-sm transition-colors hover:bg-gray-50 active:scale-95">View All</a>
-        </div>
-
-        <div class="hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 -mx-1">
-            {% for doctor in available_doctors %}
-            <article class="doctor-home-card relative w-[86%] max-w-[360px] shrink-0 snap-start cursor-pointer rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm" data-href="{% url 'doctors:detail' doctor.slug %}" role="link" tabindex="0" onclick="if (!event.target.closest('a, button')) window.location.href=this.dataset.href" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href=this.dataset.href; }">
-                <button type="button" data-save-item data-save-type="doctor" data-save-slug="{{ doctor.slug }}" data-save-name="{{ doctor.name }}" class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-sm" aria-label="Save {{ doctor.name }}"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button>
-                <!-- Keep Card Interior Untouched -->
-                <div class="flex items-stretch gap-3">
-                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] {% if doctor.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif doctor.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}"><i class="fa-solid {% if doctor.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}" aria-hidden="true"></i></div>
-                    <div class="flex min-w-0 flex-1 flex-col justify-between py-0.5">
-                        <div>
-                            <h4 class="truncate text-[17px] font-black leading-none tracking-tight text-textMain">{{ doctor.name }}</h4>
-                            <p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">{{ doctor.specialties|join:", " }}</p>
-                            <p class="mt-0.5 truncate text-[10px] font-medium text-gray-400">{{ doctor.qualification }}</p>
-                            {% if doctor.fees %}<p class="mt-1 flex items-baseline gap-1"><span class="text-[13px] font-black text-primary">₹{{ doctor.fees }}</span><span class="text-[9px] font-medium text-gray-400">(Consultation Fee)</span></p>{% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-2.5">
-                    <div class="flex items-start gap-1.5">
-                        <i class="fa-regular fa-hospital mt-0.5 shrink-0 text-[11px] text-rose-500" aria-hidden="true"></i>
-                        <div class="min-w-0 flex-1">
-                            <h5 class="truncate text-[12px] font-extrabold text-textMain">{{ doctor.business }}</h5>
-                            <p class="mt-0.5 truncate text-[11px] font-semibold text-textMuted">{{ doctor.address|default:doctor.locality }} &bull; <span class="font-bold text-primary">{{ doctor.distance_km }} km</span></p>
-                        </div>
-                    </div>
-                    <div class="mt-2 border-t border-gray-200/60 pt-2 text-[11px] font-extrabold text-emerald-600"><i class="fa-regular fa-clock mr-1 text-[10px]"></i>Listed Today &bull; {{ doctor.schedule.next_time }}</div>
-                </div>
-
-                <div class="mt-3 grid grid-cols-3 gap-1.5">
-                    {% if doctor.phone %}<a href="tel:{{ doctor.phone }}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg bg-primary px-1 py-2.5 text-center text-[10px] font-extrabold text-white shadow-sm active:scale-95"><i class="fa-solid fa-phone"></i> Enquiry</a>{% else %}<span class="flex min-w-0 cursor-not-allowed items-center justify-center gap-1 rounded-lg bg-gray-200 px-1 py-2.5 text-center text-[10px] font-extrabold text-gray-500"><i class="fa-solid fa-phone"></i> Enquiry</span>{% endif %}
-                    <a href="{% url 'businesses:detail' doctor.business_slug %}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-purple-200 bg-purple-50 px-1 py-2.5 text-center text-[10px] font-extrabold text-purple-700 active:scale-95 hover:bg-purple-100"><i class="fa-regular fa-hospital"></i> Visit Clinic</a>
-                    <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ doctor.latitude }},{{ doctor.longitude }}" target="_blank" rel="noopener noreferrer" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-1 py-2.5 text-center text-[10px] font-extrabold text-gray-600 active:scale-95 hover:bg-gray-100"><i class="fa-solid fa-diamond-turn-right"></i> Direction</a>
-                </div>
-            </article>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
     <!-- WHY MEDNEARBY (Vertical Feature Layout) -->
-    <section class="px-3 mt-6 mb-6">
+    <section id="healthcare-simplified" class="px-3 mb-6">
         <div class="bg-white p-3 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[1.5rem] p-4.5 relative overflow-hidden">
             <!-- Decorative Ambient Blur -->
             <div class="absolute -right-8 -top-8 w-32 h-32 bg-emerald-50 rounded-full blur-2xl pointer-events-none"></div>
@@ -412,48 +411,52 @@
         </div>
     </section>
 
-    {% if nearby_businesses %}
-    <!-- Businesses Near You -->
-    <section class="mt-8 px-3">
-        <div class="mb-4">
-            <h2 class="text-[16px] font-black text-textMain tracking-tight">Healthcare Providers Near You</h2>
-            <p class="mt-0.5 text-[10px] font-semibold text-textMuted">Open now near your selected location</p>
+    {% if available_doctors %}
+    <!-- Doctors Near You -->
+    <section id="doctors-near-you" class="mt-6 bg-indigo-50/35 px-3 py-5">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-[16px] font-black text-textMain tracking-tight">Doctors Near You</h2>
+                <p class="mt-0.5 text-[10px] font-semibold text-textMuted">Doctors near your selected location</p>
+            </div>
+            <a href="{% url 'doctors:specialties' %}" class="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[10px] font-extrabold text-textMain shadow-sm transition-colors hover:bg-gray-50 active:scale-95">View All</a>
         </div>
 
         <div class="hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 -mx-1">
-            {% for business in nearby_businesses %}
-            <article class="relative w-[86%] max-w-[360px] shrink-0 snap-start cursor-pointer rounded-[1.5rem] border border-gray-100/80 bg-white p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all hover:border-emerald-100 hover:shadow-md active:scale-[0.99]" data-href="{% url 'businesses:detail' business.slug %}" role="link" tabindex="0" onclick="if (!event.target.closest('a, button')) window.location.href=this.dataset.href" onkeydown="if (!event.target.closest('a, button') && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); window.location.href=this.dataset.href; }">
-                <div class="flex gap-3">
-                    <div class="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[1rem] border border-gray-100/80 bg-gray-50 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                        <img src="{{ business.thumbnail_url }}" alt="{{ business.name }}" class="h-full w-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy">
-                    </div>
-                    <div class="flex min-w-0 flex-1 flex-col justify-center py-0.5">
-                        <h2 class="mt-0.5 truncate text-[18px] font-black leading-none tracking-tight text-textMain"><a href="{% url 'businesses:detail' business.slug %}">{{ business.name }}</a></h2>
-                        <div class="mt-2 flex flex-wrap items-center gap-1">{% for tag in business.tags|slice:":3" %}<span class="rounded-md border border-sky-100 bg-sky-50 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-sky-600 shadow-sm">{{ tag }}</span>{% endfor %}</div>
-                        <div class="mt-2.5 flex items-center gap-1.5">
-                            <div class="h-2 w-2 shrink-0 rounded-full {% if business.is_open %}animate-pulse bg-emerald-500{% else %}bg-red-500{% endif %} shadow-sm"></div>
-                            <p class="text-[11px] font-extrabold {% if business.is_open %}text-emerald-600{% else %}text-red-500{% endif %}">{% if business.is_open %}Open Now{% else %}Closed{% endif %}{% if business.open_status %}<span class="ml-1 font-semibold text-gray-400">&bull; {{ business.open_status }}</span>{% endif %}</p>
+            {% for doctor in available_doctors %}
+            <article class="doctor-home-card relative w-[86%] max-w-[360px] shrink-0 snap-start cursor-pointer rounded-[1.25rem] border border-gray-100 bg-white p-3 shadow-sm" data-href="{% url 'doctors:detail' doctor.slug %}" role="link" tabindex="0" onclick="if (!event.target.closest('a, button')) window.location.href=this.dataset.href" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href=this.dataset.href; }">
+                <button type="button" data-save-item data-save-type="doctor" data-save-slug="{{ doctor.slug }}" data-save-name="{{ doctor.name }}" class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-sm" aria-label="Save {{ doctor.name }}"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button>
+                <!-- Keep Card Interior Untouched -->
+                <div class="flex items-stretch gap-3">
+                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1rem] border bg-gradient-to-br to-white text-3xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] {% if doctor.gender == 'male' %}border-indigo-100 from-indigo-50 text-indigo-500{% elif doctor.gender == 'female' %}border-rose-100 from-rose-50 text-rose-500{% else %}border-emerald-100 from-emerald-50 text-emerald-500{% endif %}"><i class="fa-solid {% if doctor.gender == 'female' %}fa-user-doctor-hair-long{% else %}fa-user-doctor{% endif %}" aria-hidden="true"></i></div>
+                    <div class="flex min-w-0 flex-1 flex-col justify-between py-0.5">
+                        <div>
+                            <h4 class="truncate text-[17px] font-black leading-none tracking-tight text-textMain">{{ doctor.name }}</h4>
+                            <p class="mt-1.5 truncate text-[11px] font-extrabold text-gray-500">{{ doctor.specialties|join:", " }}</p>
+                            <p class="mt-0.5 truncate text-[10px] font-medium text-gray-400">{{ doctor.qualification }}</p>
+                            {% if doctor.fees %}<p class="mt-1 flex items-baseline gap-1"><span class="text-[13px] font-black text-primary">₹{{ doctor.fees }}</span><span class="text-[9px] font-medium text-gray-400">(Consultation Fee)</span></p>{% endif %}
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-2 flex flex-col gap-2.5 border-t border-gray-100/80 pt-2">
+                <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-2.5">
                     <div class="flex items-start gap-1.5">
-                        <i class="fa-solid fa-location-dot mt-0.5 w-3 shrink-0 text-center text-[11px] text-gray-400" aria-hidden="true"></i>
-                        <p class="pr-1 text-[11px] font-semibold leading-snug text-textMuted">{{ business.full_address }} <span class="mx-0.5 text-gray-300">&bull;</span> <span class="whitespace-nowrap font-extrabold text-primary">{{ business.distance_km }} km</span></p>
+                        <i class="fa-regular fa-hospital mt-0.5 shrink-0 text-[11px] text-rose-500" aria-hidden="true"></i>
+                        <div class="min-w-0 flex-1">
+                            <h5 class="truncate text-[12px] font-extrabold text-textMain">{{ doctor.business }}</h5>
+                            <p class="mt-0.5 truncate text-[11px] font-semibold text-textMuted">{{ doctor.address|default:doctor.locality }} &bull; <span class="font-bold text-primary">{{ doctor.distance_km }} km</span></p>
+                        </div>
                     </div>
-                    {% if business.is_home_delivery or business.is_home_collection %}
-                    <div class="flex flex-wrap gap-2 pl-[18px]">
-                        {% if business.is_home_delivery %}<div class="inline-flex items-center gap-1 rounded-md border border-teal-100/60 bg-teal-50 px-1.5 py-0.5 shadow-sm"><i class="fa-solid fa-motorcycle text-[8px] text-teal-500"></i><span class="text-[8px] font-extrabold uppercase tracking-widest text-teal-700">Home Delivery</span></div>{% endif %}
-                        {% if business.is_home_collection %}<div class="inline-flex items-center gap-1 rounded-md border border-rose-100/60 bg-rose-50 px-1.5 py-0.5 shadow-sm"><i class="fa-solid fa-house-medical text-[8px] text-rose-500"></i><span class="text-[8px] font-extrabold uppercase tracking-widest text-rose-700">Blood Collection</span></div>{% endif %}
-                    </div>
+                    {% if doctor.schedule.next_time or doctor.schedule.next_date %}
+                    <div class="mt-2 border-t border-gray-200/60 pt-2 text-[11px] font-extrabold {% if doctor.schedule.is_today %}text-emerald-600{% else %}text-indigo-600{% endif %}"><i class="fa-regular fa-clock mr-1 text-[10px]"></i>{% if doctor.schedule.is_today %}Listed Today &bull; {{ doctor.schedule.next_time }}{% else %}Listed on {{ doctor.schedule.next_date }}{% if doctor.schedule.next_date and doctor.schedule.next_time %} &bull; {% endif %}{{ doctor.schedule.next_time }}{% endif %}</div>
+                    {% else %}
+                    <div class="mt-2 border-t border-gray-200/60 pt-2 text-[11px] font-extrabold text-gray-500"><i class="fa-regular fa-clock mr-1 text-[10px]"></i>Schedule not listed</div>
                     {% endif %}
                 </div>
 
-                <div class="mt-2.5 grid grid-flow-col auto-cols-fr gap-2 border-t border-gray-100/80 pt-2.5">
-                    {% if business.phone %}<a href="tel:{{ business.phone }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-1 py-2.5 text-center text-[10px] font-black text-white shadow-sm transition-colors hover:bg-primaryDark active:scale-95"><i class="fa-solid fa-phone"></i><span>Call</span></a>{% endif %}
-                    {% if business.whatsapp %}<a href="https://wa.me/{{ business.whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50 px-1 py-2.5 text-center text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100/80 active:scale-95"><i class="fa-brands fa-whatsapp text-[12px]"></i><span>Chat</span></a>{% endif %}
-                    {% if business.latitude is not None and business.longitude is not None %}<a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ business.latitude }},{{ business.longitude }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-1 py-2.5 text-center text-[10px] font-black text-gray-600 shadow-sm transition-colors hover:bg-gray-100 active:scale-95"><i class="fa-solid fa-diamond-turn-right"></i><span>Directions</span></a>{% endif %}
+                <div class="mt-3 grid grid-cols-2 gap-1.5">
+                    {% if doctor.phone %}<a href="tel:{{ doctor.phone }}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg bg-[#10B981] px-1 py-2.5 text-center text-[10px] font-extrabold text-white shadow-sm active:scale-95"><i class="fa-solid fa-phone"></i> Call</a>{% else %}<span class="flex min-w-0 cursor-not-allowed items-center justify-center gap-1 rounded-lg bg-gray-200 px-1 py-2.5 text-center text-[10px] font-extrabold text-gray-500"><i class="fa-solid fa-phone"></i> Call</span>{% endif %}
+                    <a href="{% url 'doctors:detail' doctor.slug %}" class="flex min-w-0 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-1 py-2.5 text-center text-[10px] font-extrabold text-[#374151] active:scale-95 hover:bg-gray-100"><i class="fa-solid fa-user-doctor"></i> View Details</a>
                 </div>
             </article>
             {% endfor %}
