@@ -1,7 +1,7 @@
 import random
 from io import BytesIO
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from math import asin, cos, radians, sin, sqrt
 from urllib.parse import urlencode
@@ -66,7 +66,12 @@ class AppointmentLeadCreateView(View):
 
 class EnquiryLeadCreateView(View):
     def post(self, request, slug):
-        business = get_object_or_404(Business, slug=slug, is_active=True)
+        business = get_object_or_404(
+            Business,
+            slug=slug,
+            is_active=True,
+            is_appointment=True,
+        )
         form = EnquiryLeadForm(request.POST, business=business)
         if form.is_valid():
             lead = form.save(commit=False)
@@ -86,15 +91,26 @@ class BusinessLeadListView(LoginRequiredMixin, View):
 
     def get(self, request, slug):
         business = self.get_business(request, slug)
-        leads = business.leads.filter(is_archived=False).select_related("doctor").order_by("-created_at")
+        leads = (
+            business.leads.filter(
+                is_archived=False,
+                created_at__gte=timezone.now() - timedelta(days=7),
+            )
+            .select_related("doctor")
+            .order_by("-created_at")
+        )
+        appointment_leads = leads.filter(lead_type=Lead.LeadType.APPOINTMENT)
+        enquiry_leads = leads.filter(lead_type=Lead.LeadType.ENQUIRY)
         return render(
             request,
             "accounts/business_leads.html",
             {
                 "business": business,
                 "has_doctors": business.doctor_set.filter(is_active=True).exists(),
-                "appointment_leads": leads.filter(lead_type=Lead.LeadType.APPOINTMENT),
-                "enquiry_leads": leads.filter(lead_type=Lead.LeadType.ENQUIRY),
+                "appointment_leads": appointment_leads,
+                "enquiry_leads": enquiry_leads,
+                "new_appointment_count": appointment_leads.filter(status=Lead.Status.NEW).count(),
+                "new_enquiry_count": enquiry_leads.filter(status=Lead.Status.NEW).count(),
                 "lead_statuses": Lead.Status.choices,
             },
         )
@@ -105,9 +121,17 @@ class BusinessLeadActionView(LoginRequiredMixin, View):
 
     def post(self, request, slug, lead_id):
         lead = get_object_or_404(Lead, id=lead_id, business__slug=slug, business__owner=request.user)
-        if request.POST.get("action") == "archive":
-            lead.is_archived = True
-            lead.save(update_fields=["is_archived", "updated_at"])
+        if request.POST.get("action") == "delete":
+            lead.delete()
+            return JsonResponse({"ok": True, "deleted": True})
+        if request.POST.get("action") == "toggle-viewed":
+            lead.status = (
+                Lead.Status.CONTACTED
+                if lead.status == Lead.Status.NEW
+                else Lead.Status.NEW
+            )
+            lead.save(update_fields=["status", "updated_at"])
+            return JsonResponse({"ok": True, "status": lead.status})
         else:
             valid_statuses = {value for value, _ in Lead.Status.choices}
             status = request.POST.get("status")

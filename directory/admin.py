@@ -68,6 +68,7 @@ class BusinessAdmin(admin.ModelAdmin):
         "verification_status",
         "publication_status",
         "is_active",
+        "is_appointment",
         "updated_at",
     )
     list_display_links = ("name",)
@@ -77,6 +78,7 @@ class BusinessAdmin(admin.ModelAdmin):
         "publication_status",
         "is_active",
         "is_24_7",
+        "is_appointment",
         "categories",
     )
     search_fields = (
@@ -153,7 +155,7 @@ class BusinessAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("Availability", {"fields": ("is_active", "is_testing", "is_24_7", "is_emergency", "is_home_collection", "is_home_delivery", "business_hours", "services", "tags", "facilities",)}),
+        ("Availability", {"fields": ("is_active", "is_testing", "is_24_7", "is_appointment", "is_emergency", "is_home_collection", "is_home_delivery", "business_hours", "services", "tags", "facilities",)}),
 
         (
             "Moderation",

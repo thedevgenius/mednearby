@@ -429,6 +429,7 @@ def serialize_business(business, now=None):
         "is_open": is_open,
         "open_status": open_status,
         "is_24_7": business.is_24_7,
+        "is_appointment": business.is_appointment,
         "is_home_delivery": business.is_home_delivery,
         "is_home_collection": business.is_home_collection,
         "distance_km": round(distance_km, 1),
