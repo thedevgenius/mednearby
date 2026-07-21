@@ -123,7 +123,7 @@
                     <i class="fa-regular fa-hospital"></i> Visit Clinic
                 </a>
             </div>
-            <button type="button" data-book-appointment data-bottom-sheet-target="#appointment-lead-sheet" data-appointment-url="{% url 'doctors:book-appointment' doctor.slug %}" data-doctor-name="{{ doctor.name }}" class="m-1.5 mt-1 flex w-[calc(100%-0.75rem)] items-center justify-center gap-2 rounded-xl border border-indigo-200/80 bg-indigo-50 py-3 text-[11px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100 active:scale-95"><i class="fa-regular fa-calendar-check"></i> Book Appointment</button>
+            {% if doctor.business.is_appointment %}<button type="button" data-book-appointment data-bottom-sheet-target="#appointment-lead-sheet" data-appointment-url="{% url 'doctors:book-appointment' doctor.slug %}" data-doctor-name="{{ doctor.name }}" class="m-1.5 mt-1 flex w-[calc(100%-0.75rem)] items-center justify-center gap-2 rounded-xl border border-indigo-200/80 bg-indigo-50 py-3 text-[11px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100 active:scale-95"><i class="fa-regular fa-calendar-check"></i> Book Appointment</button>{% endif %}
 
         </div>
     </section>
@@ -171,7 +171,7 @@
                     </div>
                 </div>
                 </a>
-                <button type="button" data-book-appointment data-bottom-sheet-target="#appointment-lead-sheet" data-appointment-url="{% url 'doctors:book-appointment' similar.slug %}" data-doctor-name="{{ similar.name }}" class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200/80 bg-indigo-50 py-2.5 text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100 active:scale-95"><i class="fa-regular fa-calendar-check"></i> Book Appointment</button>
+                {% if similar.business.is_appointment %}<button type="button" data-book-appointment data-bottom-sheet-target="#appointment-lead-sheet" data-appointment-url="{% url 'doctors:book-appointment' similar.slug %}" data-doctor-name="{{ similar.name }}" class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200/80 bg-indigo-50 py-2.5 text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100 active:scale-95"><i class="fa-regular fa-calendar-check"></i> Book Appointment</button>{% endif %}
             </article>
             {% endfor %}
         </div>
