@@ -1231,6 +1231,21 @@ class BusinessDetailViewTests(TestCase):
             reverse("businesses:send-enquiry", args=[self.business.slug]),
         )
 
+    def test_hides_doctor_card_appointment_when_business_disables_appointments(self):
+        doctor = Doctor.objects.create(name="Dr. No Booking", business=self.business)
+        self.business.is_appointment = False
+        self.business.save(update_fields=["is_appointment"])
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertContains(response, "Dr. No Booking")
+        self.assertNotContains(
+            response,
+            reverse("doctors:book-appointment", args=[doctor.slug]),
+        )
+
     def test_displays_alternate_phone_in_contact_information(self):
         response = self.client.get(
             reverse("businesses:detail", kwargs={"slug": self.business.slug})
@@ -1736,6 +1751,19 @@ class DoctorDetailViewTests(TestCase):
         self.assertContains(response, "Found+Dr.+Detail%2C+Cardiology+on+Mednearby+-+http%3A%2F%2Ftestserver")
         self.assertContains(response, "%2Fdoctor%2Fdr-detail")
         self.assertContains(response, "Find+verified+medical+services+near+you+and+connect+with+them+easily%21")
+
+    def test_hides_appointment_when_doctors_business_disables_appointments(self):
+        self.business.is_appointment = False
+        self.business.save(update_fields=["is_appointment"])
+
+        response = self.client.get(
+            reverse("doctors:detail", kwargs={"slug": self.doctor.slug})
+        )
+
+        self.assertNotContains(
+            response,
+            reverse("doctors:book-appointment", args=[self.doctor.slug]),
+        )
 
     def test_displays_at_most_ten_nearby_doctors_with_same_specialty(self):
         for number in range(11):

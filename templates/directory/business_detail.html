@@ -312,7 +312,7 @@
                     {% else %}
                     <span class="flex cursor-not-allowed items-center justify-center rounded-lg border border-gray-200 bg-white py-2.5 text-[10px] font-extrabold text-gray-400">Phone unavailable</span>
                     {% endif %}
-                    <button type="button" data-book-appointment data-bottom-sheet-target="#appointment-lead-sheet" data-appointment-url="{% url 'doctors:book-appointment' doctor.slug %}" data-doctor-name="{{ doctor.name }}" class="flex items-center justify-center gap-1 rounded-lg border border-indigo-200/80 bg-indigo-50 py-2.5 text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100 active:scale-95"><i class="fa-regular fa-calendar-check"></i> Book Appointment</button>
+                    {% if doctor.business.is_appointment %}<button type="button" data-book-appointment data-bottom-sheet-target="#appointment-lead-sheet" data-appointment-url="{% url 'doctors:book-appointment' doctor.slug %}" data-doctor-name="{{ doctor.name }}" class="flex items-center justify-center gap-1 rounded-lg border border-indigo-200/80 bg-indigo-50 py-2.5 text-[10px] font-black text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100 active:scale-95"><i class="fa-regular fa-calendar-check"></i> Book Appointment</button>{% endif %}
                     </div>
                 </article>
                 {% endfor %}
