@@ -38,7 +38,7 @@
                 </div>
                 <div class="mt-4 grid grid-cols-2 gap-2">
                     <a href="{% url 'businesses:detail' business.slug %}" class="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-2.5 text-xs font-black text-emerald-700"><i class="fa-solid fa-store" aria-hidden="true"></i> View business</a>
-                    <a href="{% url 'businesses:leads' business.slug %}" class="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-xs font-black text-white"><i class="fa-solid fa-inbox" aria-hidden="true"></i> View Leads</a>
+                    {% if business.is_appointment %}<a href="{% url 'businesses:leads' business.slug %}" class="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-xs font-black text-white"><i class="fa-solid fa-inbox" aria-hidden="true"></i> View Leads</a>{% endif %}
                     <a href="{% url 'businesses:qr-code' business.slug %}" download class="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-black text-gray-700"><i class="fa-solid fa-qrcode" aria-hidden="true"></i> Download QR</a>
                     <button type="button" data-share-business data-business-name="{{ business.name }}" data-profile-url="{% url 'businesses:detail' business.slug %}" class="flex items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 py-2.5 text-xs font-black text-sky-700"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Share</button>
                 </div>

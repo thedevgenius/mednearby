@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from directory.models import Business
+from directory.models import Business, Lead
 
 from .models import User
 
@@ -157,3 +157,41 @@ class OwnerDashboardTests(TestCase):
             response,
             "View our official business profile on MedNearby for our services, contact details, location, timings, directions, and latest updates",
         )
+
+    def test_dashboard_hides_view_leads_when_business_disables_appointments(self):
+        self.owned_business.is_appointment = False
+        self.owned_business.save(update_fields=["is_appointment"])
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("accounts:dashboard"))
+
+        self.assertNotContains(response, "View Leads")
+        self.assertNotContains(
+            response,
+            reverse("businesses:leads", kwargs={"slug": self.owned_business.slug}),
+        )
+
+    def test_bottom_navigation_dashboard_badge_counts_new_owned_leads_only(self):
+        Lead.objects.create(
+            business=self.owned_business,
+            patient_name="New Patient",
+            phone="9876543210",
+            status=Lead.Status.NEW,
+        )
+        Lead.objects.create(
+            business=self.owned_business,
+            patient_name="Viewed Patient",
+            phone="9876543211",
+            status=Lead.Status.CONTACTED,
+        )
+        Lead.objects.create(
+            business=self.other_business,
+            patient_name="Other Owner Patient",
+            phone="9876543212",
+            status=Lead.Status.NEW,
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("core:home"))
+
+        self.assertContains(response, 'aria-label="1 new lead"')

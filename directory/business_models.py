@@ -82,6 +82,10 @@ class Business(models.Model):
     is_home_collection = models.BooleanField(default=False)
     is_home_delivery = models.BooleanField(default=False)
     is_emergency = models.BooleanField(default=False)
+    is_appointment = models.BooleanField(
+        default=True,
+        help_text="Allow customers to send enquiries and show lead actions.",
+    )
 
     verification_status = models.CharField(
         max_length=20,
@@ -148,6 +152,13 @@ class Business(models.Model):
             self.pincode,
         )
         return ", ".join(part.strip() for part in parts if part and part.strip())
+
+    @property
+    def whatsapp_display(self):
+        number = (self.whatsapp or "").strip()
+        if not number or number.startswith("+"):
+            return number
+        return f"+{number}"
 
     def save(self, *args, **kwargs):
         changed_fields = set()

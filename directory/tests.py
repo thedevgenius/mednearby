@@ -1,6 +1,6 @@
 import math
 import tempfile
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime, timedelta, timezone as dt_timezone
 from io import BytesIO, StringIO
 
 from django.contrib.auth import get_user_model
@@ -10,6 +10,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from PIL import Image
 
@@ -649,6 +650,18 @@ class LeadWorkflowTests(TestCase):
         )
         self.assertEqual(invalid.status_code, 400)
 
+    def test_enquiry_submission_is_unavailable_when_business_disables_it(self):
+        self.business.is_appointment = False
+        self.business.save(update_fields=["is_appointment"])
+
+        response = self.client.post(
+            reverse("businesses:send-enquiry", args=[self.business.slug]),
+            {"patient_name": "Patient Two", "phone": "9876543211"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(Lead.objects.exists())
+
     def test_lead_submission_rejects_non_numeric_or_non_ten_digit_phone(self):
         url = reverse("doctors:book-appointment", args=[self.doctor.slug])
         for phone in ("98765abcde", "98765432101", "987654321"):
@@ -658,7 +671,7 @@ class LeadWorkflowTests(TestCase):
             self.assertEqual(response.status_code, 400)
         self.assertFalse(Lead.objects.exists())
 
-    def test_owner_lead_page_is_private_and_supports_status_and_archive(self):
+    def test_owner_lead_page_is_private_and_supports_status_and_delete(self):
         lead = Lead.objects.create(
             business=self.business, patient_name="Patient", phone="9876543210"
         )
@@ -674,9 +687,85 @@ class LeadWorkflowTests(TestCase):
         self.assertEqual(self.client.post(action_url, {"status": Lead.Status.CONTACTED}).status_code, 200)
         lead.refresh_from_db()
         self.assertEqual(lead.status, Lead.Status.CONTACTED)
-        self.assertEqual(self.client.post(action_url, {"action": "archive"}).status_code, 200)
+        self.assertEqual(self.client.post(action_url, {"action": "delete"}).status_code, 200)
+        self.assertFalse(Lead.objects.filter(pk=lead.pk).exists())
+
+    def test_owner_can_toggle_a_lead_between_new_and_viewed(self):
+        lead = Lead.objects.create(
+            business=self.business,
+            patient_name="Patient",
+            phone="9876543210",
+            status=Lead.Status.NEW,
+        )
+        self.client.force_login(self.owner)
+        action_url = reverse("businesses:lead-action", args=[self.business.slug, lead.id])
+
+        viewed = self.client.post(action_url, {"action": "toggle-viewed"})
         lead.refresh_from_db()
-        self.assertTrue(lead.is_archived)
+        self.assertEqual(viewed.json()["status"], Lead.Status.CONTACTED)
+        self.assertEqual(lead.status, Lead.Status.CONTACTED)
+
+        new = self.client.post(action_url, {"action": "toggle-viewed"})
+        lead.refresh_from_db()
+        self.assertEqual(new.json()["status"], Lead.Status.NEW)
+        self.assertEqual(lead.status, Lead.Status.NEW)
+
+    def test_lead_page_defaults_to_enquiries_and_counts_only_new_leads(self):
+        Lead.objects.create(
+            business=self.business,
+            patient_name="New Enquiry",
+            phone="9876543210",
+            lead_type=Lead.LeadType.ENQUIRY,
+            status=Lead.Status.NEW,
+        )
+        Lead.objects.create(
+            business=self.business,
+            patient_name="Contacted Enquiry",
+            phone="9876543211",
+            lead_type=Lead.LeadType.ENQUIRY,
+            status=Lead.Status.CONTACTED,
+        )
+        Lead.objects.create(
+            business=self.business,
+            doctor=self.doctor,
+            patient_name="New Appointment",
+            phone="9876543212",
+            lead_type=Lead.LeadType.APPOINTMENT,
+            status=Lead.Status.NEW,
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("businesses:leads", args=[self.business.slug]))
+
+        self.assertEqual(response.context["new_enquiry_count"], 1)
+        self.assertEqual(response.context["new_appointment_count"], 1)
+        self.assertContains(response, 'data-lead-tab="enquiry"')
+        self.assertContains(response, 'data-lead-panel="appointment" class="mt-3 hidden')
+
+    def test_lead_page_defaults_to_last_seven_days_and_kolkata_time(self):
+        recent = Lead.objects.create(
+            business=self.business,
+            patient_name="Recent Patient",
+            phone="9876543210",
+        )
+        old = Lead.objects.create(
+            business=self.business,
+            patient_name="Old Patient",
+            phone="9876543211",
+        )
+        Lead.objects.filter(pk=recent.pk).update(created_at=timezone.now())
+        Lead.objects.filter(pk=old.pk).update(
+            created_at=timezone.now() - timedelta(days=8)
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("businesses:leads", args=[self.business.slug]))
+        self.assertContains(response, "Recent Patient")
+        self.assertNotContains(response, "Old Patient")
+        self.assertContains(response, "Call Back")
+        self.assertContains(response, "Viewed")
+        self.assertNotContains(response, "<select")
+        self.assertNotContains(response, ">9876543210</a>")
 
     def test_business_without_doctors_shows_single_lead_list_without_tabs(self):
         business = Business.objects.create(name="No Doctor Pharmacy", owner=self.owner)
@@ -826,6 +915,50 @@ class AddRandomBusinessHoursCommandTests(TestCase):
 
         business.refresh_from_db()
         self.assertNotEqual(business.business_hours, existing)
+
+
+class PrepareDemoSiteCommandTests(TestCase):
+    def test_creates_complete_repeatable_showcase_dataset(self):
+        output = StringIO()
+
+        call_command("prepare_demo_site", skip_images=True, stdout=output)
+
+        businesses = Business.objects.filter(email__endswith="@demo.mednearby.in")
+        self.assertEqual(businesses.count(), 20)
+        self.assertEqual(
+            businesses.values("categories").distinct().count(),
+            Category.objects.filter(type=Category.Type.BUSINESS_CATEGORY).count(),
+        )
+        for business in businesses:
+            self.assertTrue(business.description)
+            self.assertTrue(business.full_address)
+            self.assertTrue(business.phone)
+            self.assertTrue(business.whatsapp)
+            self.assertTrue(business.services)
+            self.assertTrue(business.tags)
+            self.assertEqual(business.facilities.count(), 5)
+            self.assertEqual(Doctor.objects.filter(business=business).count(), 2)
+            self.assertEqual(business.updates.count(), 2)
+            self.assertEqual(business.leads.count(), 2)
+
+        self.assertEqual(
+            Doctor.objects.values("specialties").distinct().count(),
+            Category.objects.filter(type=Category.Type.DOCTOR_SPECIALTY).count(),
+        )
+        self.assertIn("Demo site ready: 20 businesses", output.getvalue())
+
+        call_command("prepare_demo_site", skip_images=True, stdout=StringIO())
+        self.assertEqual(
+            Business.objects.filter(email__endswith="@demo.mednearby.in").count(),
+            20,
+        )
+        self.assertEqual(Doctor.objects.count(), 40)
+        self.assertEqual(BusinessUpdate.objects.count(), 40)
+        self.assertEqual(Lead.objects.count(), 40)
+
+    def test_rejects_zero_businesses(self):
+        with self.assertRaisesMessage(CommandError, "--count must be at least 1"):
+            call_command("prepare_demo_site", count=0, skip_images=True)
 
 
 class SeedDirectoryCategoriesCommandTests(TestCase):
@@ -1069,6 +1202,12 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "Year")
         self.assertNotContains(response, "4.8")
         self.assertContains(response, 'href="tel:9876543210"')
+        self.assertContains(response, 'href="https://wa.me/919876543210"')
+        self.assertContains(response, ">+919876543210</p>")
+        self.assertEqual(
+            Business(whatsapp="+919876543210").whatsapp_display,
+            "+919876543210",
+        )
         self.assertContains(response, "Pharmacy")
         self.assertContains(response, "12 Main Road")
         self.assertContains(response, "Near City Park")
@@ -1078,6 +1217,19 @@ class BusinessDetailViewTests(TestCase):
         self.assertContains(response, "openstreetmap.org/export/embed.html")
         self.assertContains(response, "marker=22.572600000%2C88.363900000")
         self.assertNotContains(response, "Apollo Multispeciality Hospital")
+
+    def test_hides_enquiry_actions_when_business_disables_appointments(self):
+        self.business.is_appointment = False
+        self.business.save(update_fields=["is_appointment"])
+
+        response = self.client.get(
+            reverse("businesses:detail", kwargs={"slug": self.business.slug})
+        )
+
+        self.assertNotContains(
+            response,
+            reverse("businesses:send-enquiry", args=[self.business.slug]),
+        )
 
     def test_displays_alternate_phone_in_contact_information(self):
         response = self.client.get(

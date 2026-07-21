@@ -43,7 +43,7 @@
                     <a id="update-business-chat" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 px-1 py-2.5 text-[10px] font-black text-[#7C3AED] shadow-sm hover:bg-purple-100 active:scale-95">
                         <i class="fa-brands fa-whatsapp text-[12px]" aria-hidden="true"></i> Chat
                     </a>
-                    <button id="update-business-enquiry" type="button" data-bottom-sheet-target="#enquiry-lead-sheet" class="flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-1 py-2.5 text-[10px] font-black text-[#2563EB] shadow-sm hover:bg-blue-100 active:scale-95"><i class="fa-regular fa-paper-plane"></i> Enquiry</button>
+                    {% if not business or business.is_appointment %}<button id="update-business-enquiry" type="button" data-bottom-sheet-target="#enquiry-lead-sheet" class="flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-1 py-2.5 text-[10px] font-black text-[#2563EB] shadow-sm hover:bg-blue-100 active:scale-95"><i class="fa-regular fa-paper-plane"></i> Enquiry</button>{% endif %}
                     <a id="update-business-profile" href="#" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-1 py-2.5 text-[10px] font-black text-[#374151] shadow-sm hover:bg-gray-100 active:scale-95"><i class="fa-solid fa-store" aria-hidden="true"></i> Profile</a>
                 </div>
             </div>
@@ -106,9 +106,12 @@ document.addEventListener("click", (event) => {
     businessLink.href = trigger.dataset.updateBusinessUrl;
     profileLink.href = trigger.dataset.updateBusinessUrl;
     const enquiryButton = document.getElementById("update-business-enquiry");
-    enquiryButton.dataset.enquiryUrl = trigger.dataset.updateBusinessEnquiryUrl;
-    enquiryButton.dataset.enquiryBusiness = trigger.dataset.updateBusiness;
-    enquiryButton.dataset.enquiryServices = trigger.dataset.updateBusinessServices || "";
+    if (enquiryButton) {
+        enquiryButton.hidden = trigger.dataset.updateBusinessEnquiryEnabled !== "true";
+        enquiryButton.dataset.enquiryUrl = trigger.dataset.updateBusinessEnquiryUrl;
+        enquiryButton.dataset.enquiryBusiness = trigger.dataset.updateBusiness;
+        enquiryButton.dataset.enquiryServices = trigger.dataset.updateBusinessServices || "";
+    }
     
     document.getElementById("update-detail-details").textContent = trigger.dataset.updateDetails;
     document.getElementById("update-detail-date").textContent = `Posted ${trigger.dataset.updateDate}`;
@@ -126,4 +129,4 @@ document.addEventListener("click", (event) => {
     window.openBottomSheet("update-detail-sheet");
 });
 </script>
-{% include "includes/enquiry_lead_sheet.html" %}
+{% if not business or business.is_appointment %}{% include "includes/enquiry_lead_sheet.html" %}{% endif %}

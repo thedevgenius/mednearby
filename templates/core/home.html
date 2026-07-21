@@ -508,6 +508,8 @@
         </div>
     </section>
 
+
+
     <!-- FOOTER SECTION -->
     <footer class="mt-2 border-t border-gray-100 bg-gray-50/80 px-4 pt-6 pb-8">
         <div class="flex flex-col items-center justify-center gap-3">
@@ -528,11 +530,17 @@
                 <a href="{% url 'core:privacy-policy' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Privacy Policy</a>
                 <div class="h-1 w-1 rounded-full bg-gray-300"></div>
                 <a href="{% url 'core:terms-of-use' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Terms of Use</a>
+                {% if not request.user.is_authenticated %}
                 <div class="h-1 w-1 rounded-full bg-gray-300"></div>
                 <a href="{% url 'accounts:login' %}" class="text-[10px] font-bold text-gray-500 transition-colors hover:text-primary active:scale-95">Login</a>
+                {% endif %}
             </nav>
 
-            <p class="mt-2 text-center text-[9px] font-semibold text-gray-400">
+            <a href="https://www.facebook.com/mednearby" target="_blank" rel="noopener noreferrer" aria-label="Follow MedNearby on Facebook" class="mt-1 ">
+                <i class="fa-brands fa-facebook text-xl text-blue-600" aria-hidden="true"></i>
+            </a>
+
+            <p class="text-center text-[9px] font-semibold text-gray-400">
                 &copy; 2026 MedNearby. All rights reserved.
             </p>
         </div>

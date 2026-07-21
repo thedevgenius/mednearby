@@ -48,6 +48,7 @@
             data-update-business="{{ update.business.name }}" 
             data-update-business-url="{% url 'businesses:detail' update.business.slug %}" 
             data-update-business-enquiry-url="{% url 'businesses:send-enquiry' update.business.slug %}"
+            data-update-business-enquiry-enabled="{{ update.business.is_appointment|yesno:'true,false' }}"
             data-update-business-services="{{ update.business.services|join:'||' }}"
             data-update-business-phone="{{ update.business.phone }}" 
             data-update-business-whatsapp="{{ update.business.whatsapp }}" 
